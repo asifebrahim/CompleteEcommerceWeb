@@ -1,0 +1,14 @@
+<!-- src/main/resources/templates/error.html -->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Error</title>
+</head>
+<body>
+<h1>Error Occurred</h1>
+<p th:text="'Error status: ' + ${status}" />
+<p th:text="'Message: ' + ${error}" />
+<p>Please check the system logs for more details.</p>
+</body>
+</html>
