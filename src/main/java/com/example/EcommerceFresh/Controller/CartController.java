@@ -38,7 +38,7 @@ public class CartController {
         return "cart";
     }
 
-    @PostMapping("/cart/removeItem/{index}")
+    @GetMapping("/cart/removeItem/{index}")
     public String removeItem(@PathVariable("index") int index){
         if(index>=0 && index<GlobalData.cart.size()){
             GlobalData.cart.remove(index);

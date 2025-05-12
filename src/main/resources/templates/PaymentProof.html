@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Proof</title>
+</head>
+<body>
+<h3>Scan this QR for payment</h3>
+<img th:src="@{/images/qr_code.png}" width="auto" height="400" alt="QR Code"/>
+
+<h2>Please provide the transaction ID with additional details...</h2>
+
+<form th:action="@{/ProofUploading}" th:object="${paymentProof}" method="post">
+    <!-- Hidden userId -->
+
+
+    <!-- Transaction ID -->
+    <label for="transactionId">Transaction ID:</label><br>
+    <input type="text" id="transactionId" th:field="*{Transaction_id}" required><br><br>
+
+    <button type="submit">Submit</button>
+</form>
+</body>
+</html>

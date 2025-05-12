@@ -18,7 +18,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // 🔹 CSRF protection disabled
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/shop/**", "/register/**").permitAll()
+                        .requestMatchers("/", "/shop/**", "/register/**","/forgotpassword/**","/resetPassword/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

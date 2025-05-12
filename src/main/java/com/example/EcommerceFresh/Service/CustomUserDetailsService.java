@@ -2,7 +2,8 @@ package com.example.EcommerceFresh.Service;
 
 import com.example.EcommerceFresh.Dao.UserDao;
 import com.example.EcommerceFresh.Entity.Users;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,37 +11,39 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    @Autowired
-    private UserDao userDao;
+    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
+    private final UserDao userDao;
+
+    public CustomUserDetailsService(UserDao userDao) {
+        this.userDao = userDao;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Retrieve the user using the Optional from the DAO
-        Optional<Users> optionalUser = userDao.findByEmail(username);
+        logger.info("Attempting to find user with email: {}", username);
 
-        // Handle Optional logic: throw an exception if empty, otherwise map to UserDetails
-        Users user = optionalUser.orElseThrow(() -> {
-            // Logging for debugging purposes
-            System.err.println("User not found: " + username);
-            return new UsernameNotFoundException("User Not Found with username: " + username);
-        });
+        Users user = userDao.findByEmail(username)
+                .orElseThrow(() -> {
+                    logger.warn("User not found: {}", username);
+                    return new UsernameNotFoundException("User Not Found with username: " + username);
+                });
 
-        // Map user roles to GrantedAuthority
-        Set<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName())) // role.getName() should match the role name
-                .collect(Collectors.toSet());
+        Set<GrantedAuthority> authorities = (user.getRoles() != null) ?
+                user.getRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority(role.getName()))
+                        .collect(Collectors.toSet()) :
+                Collections.emptySet();
 
-        // Return Spring Security UserDetails object
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
-                user.getPassword(), // Ensure passwords are encoded in your database
+                user.getPassword(),
                 authorities
         );
     }

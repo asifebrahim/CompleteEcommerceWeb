@@ -48,7 +48,7 @@ public class HomeController {
         return "viewProduct";
     }
 
-    @GetMapping("/cart/removeItem/{id}")
+    @GetMapping("/home/removeItem/{id}")
     public String removeItem(@PathVariable int index){
         GlobalData.cart.remove(index);
         return "redirect:/cart";
@@ -56,6 +56,9 @@ public class HomeController {
 
     @GetMapping("/checkout")
     public String checkout(Model model){
+        if(GlobalData.cart.isEmpty()){
+            return "redirect:/cart?error=CartIsEmpty";
+        }
         model.addAttribute("total",GlobalData.cart.stream().mapToDouble(Product::getPrice).sum());
         return "checkout";
     }
