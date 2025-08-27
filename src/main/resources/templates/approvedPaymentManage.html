@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <title>Payment Management - Approved</title>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 th:text="${viewTitle}">Approved Payments</h3>
+        <div>
+            <a th:href="@{/admin/payment/manage/pending}" class="btn btn-outline-primary mr-2">View Pending</a>
+            <a th:href="@{/admin}" class="btn btn-secondary">Back to Admin</a>
+        </div>
+    </div>
+
+    <div th:if="${payments == null or #lists.isEmpty(payments)}">
+        <div class="alert alert-info">No approved payments found.</div>
+    </div>
+
+    <div th:if="${payments != null and !#lists.isEmpty(payments)}">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Transaction ID</th>
+                <th>User Email</th>
+                <th>Address</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${payments}">
+                <td th:text="${p.id}">1</td>
+                <td th:text="${p.transactionId}">TX123</td>
+                <td th:text="${p.users.email}">user@example.com</td>
+                <td>
+                    <div th:if="${p.address != null}">
+                        <span th:text="${p.address.address1}"></span>,
+                        <span th:text="${p.address.town}"></span>,
+                        <span th:text="${p.address.pinCode}"></span>
+                    </div>
+                    <div th:if="${p.address == null}">-</div>
+                </td>
+                <td>
+                    <span class="badge badge-success" th:text="${p.status}">Approved</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -16,6 +16,27 @@ public class PaymentProof {
     @JoinColumn(name = "User_id", referencedColumnName = "id")
     private Users users;
 
+    @ManyToOne
+    @JoinColumn(name="address_id",referencedColumnName = "id")
+    private Address address;
+
+    @Column(name="status")
+    private String status;
+
+    public String getStatus() {
+        return status;
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
     public Integer getId() {
         return id;
     }

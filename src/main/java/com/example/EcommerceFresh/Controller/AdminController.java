@@ -2,6 +2,7 @@ package com.example.EcommerceFresh.Controller;
 
 
 
+import com.example.EcommerceFresh.Dao.PaymentProofDao;
 import com.example.EcommerceFresh.Entity.Category;
 import com.example.EcommerceFresh.Entity.Product;
 import com.example.EcommerceFresh.Service.CategoryserviceImpl;
@@ -21,13 +22,15 @@ import java.util.Optional;
 @Controller
 public class AdminController {
 
+    private final PaymentProofDao paymentProofDao;
     public String uploadDir=System.getProperty("user.dir")+"/src/main/resources/static/productImages";
 
     private CategoryserviceImpl categoryservice;
     private ProductServiceImpl productService;
-    public AdminController(CategoryserviceImpl categoryservice,ProductServiceImpl productService){
+    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao){
         this.categoryservice=categoryservice;
         this.productService=productService;
+        this.paymentProofDao = paymentProofDao;
     }
 
     @GetMapping("/admin")
@@ -131,5 +134,29 @@ public class AdminController {
         model.addAttribute("productDTO",productDto);
         return "productsAdd";
 
+    }
+
+    @GetMapping("/admin/payment/manage/pending")
+    public String paymentManager(Model model){
+        model.addAttribute("payments", paymentProofDao.findByStatus("Pending"));
+        model.addAttribute("viewTitle", "Pending Payments");
+        return "paymentManage";
+    }
+    @GetMapping("/admin/payment/manage/approved")
+    public String approvedPaymentManager(Model model){
+        model.addAttribute("payments", paymentProofDao.findByStatus("Approved"));
+        model.addAttribute("viewTitle", "Approved Payments");
+        return "approvedPaymentManage";
+    }
+
+    @GetMapping("/admin/payment/approve/{id}")
+    public String approvePayment(@PathVariable int id){
+        var paymentOpt=paymentProofDao.findById(id);
+        if(paymentOpt.isPresent()){
+            var payment=paymentOpt.get();
+            payment.setStatus("Approved");
+            paymentProofDao.save(payment);
+        }
+        return "redirect:/admin/payment/manage/pending";
     }
 }

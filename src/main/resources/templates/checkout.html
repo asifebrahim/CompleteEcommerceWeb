@@ -53,6 +53,7 @@
 <div class="container">
 
     <!--Section: Block Content-->
+    <form th:action="@{/payNow}" method="post">
     <section class="mt-5 mb-4">
 
         <!--Grid row-->
@@ -76,7 +77,7 @@
                                 <!-- First name -->
                                 <div class="md-form md-outline mb-0 mb-lg-4">
                                     <label for="firstName">First name</label>
-                                    <input type="text" id="firstName" required class="form-control mb-0 mb-lg-2">
+                                    <input type="text" id="firstName" name="firstName" required class="form-control mb-0 mb-lg-2">
                                 </div>
 
                             </div>
@@ -88,7 +89,7 @@
                                 <!-- Last name -->
                                 <div class="md-form md-outline">
                                     <label for="lastName">Last name</label>
-                                    <input type="text" id="lastName" required class="form-control">
+                                    <input type="text" id="lastName" name="lastName" required class="form-control">
                                 </div>
 
                             </div>
@@ -111,45 +112,45 @@
                         <!-- Address Part 1 -->
                         <div class="md-form md-outline mt-2">
                             <label for="form14">Address (Line 1)</label>
-                            <input type="text" required id="form14" placeholder="House number and street name" class="form-control">
+                            <input type="text" required id="form14" name="address1" placeholder="House number and street name" class="form-control">
                         </div>
 
                         <!-- Address Part 2 -->
                         <div class="md-form md-outline mt-2">
                             <label for="form15">Address (Line 2)</label>
-                            <input type="text" id="form15" placeholder="Apartment, suite, unit etc. (optional)"
+                            <input type="text" id="form15" name="address2" placeholder="Apartment, suite, unit etc. (optional)"
                                    class="form-control">
                         </div>
 
                         <!-- Postcode / ZIP -->
                         <div class="md-form md-outline mt-3">
                             <label for="form16">Postcode / ZIP</label>
-                            <input type="text" maxlength="6" minlength="6" required id="form16" class="form-control">
+                            <input type="text" maxlength="6" minlength="6" required id="form16" name="pinCode" class="form-control">
                         </div>
 
                         <!-- Town / City -->
                         <div class="md-form md-outline mt-2">
                             <label for="form17">Town / City</label>
-                            <input type="text" required id="form17" class="form-control">
+                            <input type="text" required id="form17" name="town" class="form-control">
 
                         </div>
 
                         <!-- Phone -->
                         <div class="md-form md-outline mt-2">
                             <label for="form18">Phone</label>
-                            <input type="number" minlength="10" maxlength="10" required id="form18" class="form-control">
+                            <input type="text" minlength="10" maxlength="10" required id="form18" name="phone" class="form-control">
                         </div>
 
                         <!-- Email address -->
                         <div class="md-form md-outline mt-2">
                             <label for="form19">Email address</label>
-                            <input type="email" required id="form19" class="form-control">
+                            <input type="email" required id="form19" name="email" class="form-control">
                         </div>
 
                         <!-- Additional information -->
                         <div class="md-form md-outline mt-2">
                             <label for="form76">Additional information</label>
-                            <textarea id="form76" class="md-textarea form-control" rows="4"></textarea>
+                            <textarea id="form76" name="additionalInfo" class="md-textarea form-control" rows="4"></textarea>
                         </div>
 
 
@@ -188,11 +189,8 @@
                                 </div>
                                 <span><strong>₹<span th:text="${total}"></span></strong></span>
                             </li>
-                        </ul>
 
-                        <form action="" method="post" th:action="@{/payNow}" >
                             <button type="submit"  class="btn btn-primary btn-block waves-effect waves-light">Pay Now</button>
-                        </form>
 
                     </div>
                 </div>
@@ -227,11 +225,11 @@
         <!--Grid row-->
 
     </section>
+    </form>
     <!--Section: Block Content-->
 
 
 </div>
-
 
 
 

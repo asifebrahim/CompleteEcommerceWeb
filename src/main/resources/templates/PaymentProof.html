@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -9,17 +8,30 @@
 <h3>Scan this QR for payment</h3>
 <img th:src="@{/images/qr_code.png}" width="auto" height="400" alt="QR Code"/>
 
-<h2>Please provide the transaction ID with additional details...</h2>
+<h2>Please provide the transaction ID and confirm your shipping address, then submit...</h2>
 
-<!--<form th:action="@{/ProofUploading}" th:object="${paymentProof}" method="post">-->
-<!--    &lt;!&ndash; Hidden userId &ndash;&gt;-->
-<!--    <input type="hidden" name="userId" th:value="${userId}">-->
+<form th:action="@{/ProofUploading}" th:object="${paymentProof}" method="post">
+    <!-- Transaction ID -->
+    <div>
+        <label for="transactionId">Transaction ID:</label><br>
+        <input type="text" id="transactionId" th:field="*{transactionId}" required />
+    </div>
 
-<!--    &lt;!&ndash; Transaction ID &ndash;&gt;-->
-<!--    <label for="transactionId">Transaction ID:</label><br>-->
-<!--    <input type="text" id="transactionId" th:field="*{transactionId}" required><br><br>-->
+    <h3>Shipping address (from checkout)</h3>
+    <div>
+        <p><strong th:text="${address.firstName} + ' ' + ${address.lastName}">Name</strong></p>
+        <p th:text="${address.address1}">Address line 1</p>
+        <p th:text="${address.address2}">Address line 2</p>
+        <p th:text="${address.town} + ', ' + ${address.pinCode}">Town, Pin</p>
+        <p>Phone: <span th:text="${address.phone}">0000000000</span></p>
+        <p th:if="${address.additionalInfo} != null">Notes: <span th:text="${address.additionalInfo}"></span></p>
+    </div>
 
-<!--    <button type="submit">Submit</button>-->
-<!--</form>-->
+    <!-- Hidden binding to the already-saved address id so we don't ask for address again -->
+    <input type="hidden" th:field="*{address.id}" />
+
+    <br />
+    <button type="submit">Submit payment proof</button>
+</form>
 </body>
 </html>
