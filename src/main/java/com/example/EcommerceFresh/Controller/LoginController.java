@@ -36,7 +36,10 @@ public class LoginController {
     public String login(){
         return "login";
     }
-
+    @GetMapping("/WaitingMessage")
+    public String WaitingMessage(Model model){
+        return "WaitingMessage";
+    }
     @GetMapping("/register")
     public String registerGet(Model model){
         model.addAttribute("user",new Users());

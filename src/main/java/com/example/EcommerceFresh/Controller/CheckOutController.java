@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.security.Principal;
+
 @Controller
 public class CheckOutController {
 
@@ -23,19 +25,31 @@ public class CheckOutController {
 
     // To render the payment form
     @PostMapping("/payNow")
-    public String checkout(@RequestParam("userId") Integer userId, Model model) {
+    public String checkout(Principal principal, Model model){
         PaymentProof paymentProof = new PaymentProof();
         model.addAttribute("paymentProof", paymentProof);
-        model.addAttribute("userId", userId); // send userId to form
+
+        // If user is authenticated, resolve user id from principal (email)
+        if (principal != null) {
+            String email = principal.getName();
+            Users user = usersRepository.findByEmail(email).orElse(null);
+            if (user != null) {
+                model.addAttribute("userId", user.getId()); // optional, view can use it if needed
+            }
+        }
+
         return "PaymentProof";
     }
 
     // To handle form submission
     @PostMapping("/ProofUploading")
-    public String handlePaymentProof(@ModelAttribute PaymentProof paymentProof,
-                                     @RequestParam("userId") Integer userId) {
+    public String handlePaymentProof(@ModelAttribute PaymentProof paymentProof, Principal principal) {
 
-        Users user = usersRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        if (principal == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+        String email = principal.getName();
+        Users user = usersRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         paymentProof.setUsers(user);
 
         paymentProofRepository.save(paymentProof);

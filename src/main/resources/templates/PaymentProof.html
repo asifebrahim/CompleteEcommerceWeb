@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -10,15 +11,15 @@
 
 <h2>Please provide the transaction ID with additional details...</h2>
 
-<form th:action="@{/ProofUploading}" th:object="${paymentProof}" method="post">
-    <!-- Hidden userId -->
+<!--<form th:action="@{/ProofUploading}" th:object="${paymentProof}" method="post">-->
+<!--    &lt;!&ndash; Hidden userId &ndash;&gt;-->
+<!--    <input type="hidden" name="userId" th:value="${userId}">-->
 
+<!--    &lt;!&ndash; Transaction ID &ndash;&gt;-->
+<!--    <label for="transactionId">Transaction ID:</label><br>-->
+<!--    <input type="text" id="transactionId" th:field="*{transactionId}" required><br><br>-->
 
-    <!-- Transaction ID -->
-    <label for="transactionId">Transaction ID:</label><br>
-    <input type="text" id="transactionId" th:field="*{Transaction_id}" required><br><br>
-
-    <button type="submit">Submit</button>
-</form>
+<!--    <button type="submit">Submit</button>-->
+<!--</form>-->
 </body>
 </html>
