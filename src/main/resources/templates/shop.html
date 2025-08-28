@@ -63,6 +63,15 @@
             </ul>
         </div>
         <div class="col-sm-9">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <label>Sort:</label>
+                    <a th:href="@{/shop(sort='') }" class="btn btn-sm btn-outline-secondary ml-2" th:classappend="${sort == ''} ? ' active'">Default</a>
+                    <a th:href="@{/shop(sort='price_asc') }" class="btn btn-sm btn-outline-secondary ml-2" th:classappend="${sort == 'price_asc'} ? ' active'">Price ↑</a>
+                    <a th:href="@{/shop(sort='price_desc') }" class="btn btn-sm btn-outline-secondary ml-2" th:classappend="${sort == 'price_desc'} ? ' active'">Price ↓</a>
+                    <a th:href="@{/shop(sort='rating') }" class="btn btn-sm btn-outline-secondary ml-2" th:classappend="${sort == 'rating'} ? ' active'">Top Rated</a>
+                </div>
+            </div>
             <div class="card" style="margin-top: 20px" th:each="product : ${products}">
                 <div class="row no-gutters">
                     <div class="col-sm-5 d-flex justify-content-center">
@@ -72,6 +81,9 @@
                         <div class="card-body">
                             <h5 class="card-title" th:text="${product.name}"></h5>
                             <h4>₹ <span th:text="${product.price}"></span></h4>
+                            <div class="text-warning">
+                                <i th:each="i: ${#numbers.sequence(1, Math.round(avgRatings[product.id]?:0))}" class="fas fa-star"></i>
+                            </div>
                             <p th:text="${product.description}" >Suresh Dasari is a founder and technical lead developer in tutlane.</p>
                             <a href="#" th:href="@{/shop/viewproduct/{id}(id=${product.id})}" class="btn btn-primary">View Product</a>
                         </div>

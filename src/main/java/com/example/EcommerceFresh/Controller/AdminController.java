@@ -149,12 +149,30 @@ public class AdminController {
         return "approvedPaymentManage";
     }
 
+    @GetMapping("/admin/payment/manage/declined")
+    public String declinedPaymentManager(Model model){
+        model.addAttribute("payments", paymentProofDao.findByStatus("Declined"));
+        model.addAttribute("viewTitle", "Declined Payments");
+        return "declinedPaymentManage";
+    }
+
     @GetMapping("/admin/payment/approve/{id}")
     public String approvePayment(@PathVariable int id){
         var paymentOpt=paymentProofDao.findById(id);
         if(paymentOpt.isPresent()){
             var payment=paymentOpt.get();
             payment.setStatus("Approved");
+            paymentProofDao.save(payment);
+        }
+        return "redirect:/admin/payment/manage/pending";
+    }
+
+    @GetMapping("/admin/payment/decline/{id}")
+    public String declinePayment(@PathVariable int id){
+        var paymentOpt=paymentProofDao.findById(id);
+        if(paymentOpt.isPresent()){
+            var payment=paymentOpt.get();
+            payment.setStatus("Declined");
             paymentProofDao.save(payment);
         }
         return "redirect:/admin/payment/manage/pending";

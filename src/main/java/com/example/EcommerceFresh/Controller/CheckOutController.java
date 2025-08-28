@@ -7,6 +7,7 @@ import com.example.EcommerceFresh.Dao.UserDao;
 import com.example.EcommerceFresh.Entity.Address;
 import com.example.EcommerceFresh.Entity.PaymentProof;
 import com.example.EcommerceFresh.Entity.Users;
+import com.example.EcommerceFresh.Global.GlobalData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,6 +102,14 @@ public class CheckOutController {
         }
 
         paymentProofRepository.save(paymentProof);
+
+        // Clear the in-memory cart after successful submission
+        try {
+            GlobalData.cart.clear();
+        } catch (Exception e) {
+            // best-effort: swallow to avoid breaking the flow
+            e.printStackTrace();
+        }
 
         return "paymentSuccess"; // or whatever success page
     }

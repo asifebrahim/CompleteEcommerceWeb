@@ -66,6 +66,52 @@
                 <spna th:text="${product.weight}"></spna> grams.
             </h5>
             <p th:text="${product.description}"></p>
+            <div class="mb-3">
+                <strong>Average rating:</strong>
+                <span th:text="${#numbers.formatDecimal(averageRating, 1, 'POINT', 1, 'ROUND_HALF_UP')}">0.0</span>
+                <span class="ml-2 text-warning">
+                    <i th:each="i: ${#numbers.sequence(1, Math.round(averageRating))}" class="fas fa-star"></i>
+                </span>
+            </div>
+            <div th:if="${#authorization.expression('isAuthenticated()')}">
+                <form th:action="@{/product/{id}/rate(id=${product.id})}" method="post" class="form-inline mb-3">
+                    <label class="mr-2">Rate:</label>
+                    <select name="score" class="form-control mr-2">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                    <input type="text" name="comment" class="form-control mr-2" placeholder="Add a comment (optional)">
+                    <button class="btn btn-primary" type="submit">Submit</button>
+                </form>
+            </div>
+
+            <div class="mb-3">
+                <label>Sort reviews:</label>
+                <a th:href="@{/shop/viewproduct/{id}(id=${product.id}, sort='recent')}" class="btn btn-sm btn-outline-secondary ml-2" th:classappend="${sort == 'recent'} ? ' active'">Recent</a>
+                <a th:href="@{/shop/viewproduct/{id}(id=${product.id}, sort='top')}" class="btn btn-sm btn-outline-secondary ml-1" th:classappend="${sort == 'top'} ? ' active'">Top rated</a>
+            </div>
+
+            <div>
+                <h5>Reviews</h5>
+                <div th:if="${ratings == null or #lists.isEmpty(ratings)}">
+                    <div class="text-muted">No reviews yet.</div>
+                </div>
+                <div th:each="r : ${ratings}" class="border p-3 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <strong th:text="${r.users.firstName}">User</strong>
+                            <small class="text-muted ml-2" th:text="${#dates.format(r.createdAt, 'dd MMM yyyy HH:mm')}"></small>
+                        </div>
+                        <div class="text-warning">
+                            <i th:each="i: ${#numbers.sequence(1, r.score)}" class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p th:text="${r.comment}" class="mt-2"></p>
+                </div>
+            </div>
             <a href="" th:href="@{/addToCart/{id}(id = ${product.id})}" class="btn btn-primary">Add to cart</a>
         </div>
     </div>

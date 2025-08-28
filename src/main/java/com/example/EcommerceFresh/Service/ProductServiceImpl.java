@@ -2,7 +2,9 @@ package com.example.EcommerceFresh.Service;
 
 
 import com.example.EcommerceFresh.Dao.ProductDao;
+import com.example.EcommerceFresh.Dao.RatingDao;
 import com.example.EcommerceFresh.Entity.Product;
+import com.example.EcommerceFresh.Entity.Rating;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,8 +13,10 @@ import java.util.Optional;
 @Service
 public class ProductServiceImpl {
     private ProductDao productDao;
-    public ProductServiceImpl(ProductDao productDao){
+    private RatingDao ratingDao;
+    public ProductServiceImpl(ProductDao productDao, RatingDao ratingDao){
         this.productDao=productDao;
+        this.ratingDao=ratingDao;
     }
 
     public void Save(Product tempProduct){
@@ -33,5 +37,23 @@ public class ProductServiceImpl {
 
     public List<Product> getProductByCategoryId(int id){
         return  productDao.findAllBycategoryId(id);
+    }
+
+    public double getAverageRating(Product product){
+        var ratings = ratingDao.findByProduct(product);
+        if(ratings == null || ratings.isEmpty()) return 0.0;
+        return ratings.stream().mapToInt(Rating::getScore).average().orElse(0.0);
+    }
+
+    public void saveRating(Rating rating){
+        ratingDao.save(rating);
+    }
+
+    public List<Rating> getRatingsForProduct(Product product){
+        return ratingDao.findByProductOrderByCreatedAtDesc(product);
+    }
+
+    public List<Rating> getRatingsForProductSortedByScore(Product product){
+        return ratingDao.findByProductOrderByScoreDesc(product);
     }
 }
