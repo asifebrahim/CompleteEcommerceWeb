@@ -51,6 +51,10 @@ public class HomeController {
         Map<Integer, Double> avgRatings = products.stream()
                 .collect(Collectors.toMap(Product::getId, p -> productService.getAverageRating(p)));
 
+        // compute rounded ratings (integers) to use in templates without Math.round
+        Map<Integer, Integer> roundedRatings = avgRatings.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> (int) Math.round(e.getValue())));
+
         // apply sorting
         if("price_asc".equals(sort)){
             products.sort(Comparator.comparingDouble(Product::getPrice));
@@ -62,6 +66,7 @@ public class HomeController {
 
         model.addAttribute("products",products);
         model.addAttribute("avgRatings", avgRatings);
+        model.addAttribute("roundedRatings", roundedRatings);
         model.addAttribute("sort", sort);
 
         return "shop";
@@ -81,6 +86,7 @@ public class HomeController {
         model.addAttribute("product",product);
         double avg = productService.getAverageRating(product);
         model.addAttribute("averageRating", avg);
+        model.addAttribute("roundedAverage", (int)Math.round(avg));
         if("top".equals(sort)){
             model.addAttribute("ratings", productService.getRatingsForProductSortedByScore(product));
         } else {

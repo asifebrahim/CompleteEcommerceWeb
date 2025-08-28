@@ -15,6 +15,7 @@
 <body>
 
 
+
 <nav class="navbar navbar-expand-lg navbar-light bg-light" >
     <div class="container-fluid">
         <a class="navbar-brand" href="#">
@@ -82,7 +83,7 @@
                             <h5 class="card-title" th:text="${product.name}"></h5>
                             <h4>₹ <span th:text="${product.price}"></span></h4>
                             <div class="text-warning">
-                                <i th:each="i: ${#numbers.sequence(1, Math.round(avgRatings[product.id]?:0))}" class="fas fa-star"></i>
+                                <i th:each="i: ${#numbers.sequence(1, roundedRatings[product.id]?:0)}" class="fas fa-star"></i>
                             </div>
                             <p th:text="${product.description}" >Suresh Dasari is a founder and technical lead developer in tutlane.</p>
                             <a href="#" th:href="@{/shop/viewproduct/{id}(id=${product.id})}" class="btn btn-primary">View Product</a>
