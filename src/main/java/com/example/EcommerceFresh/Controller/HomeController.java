@@ -74,12 +74,13 @@ public class HomeController {
     }
 
     @GetMapping("/shop/category/{id}")
-    public String shopByCategory(Model model, @PathVariable int id){
+    public String shopByCategory(Model model, @PathVariable int id, @RequestParam(value = "sort", required = false, defaultValue = "") String sort){
         model.addAttribute("cartCount",GlobalData.cart.size());
         model.addAttribute("categories",categoryservice.getAllCategory());
         List<Product> products = productService.getProductByCategoryId(id);
+        if(products == null) products = java.util.Collections.emptyList();
 
-        // compute average ratings for each product
+        // compute average ratings for each product (defensive: skip null ids)
         Map<Integer, Double> avgRatings = products.stream()
                 .collect(Collectors.toMap(Product::getId, p -> productService.getAverageRating(p)));
 
@@ -87,10 +88,19 @@ public class HomeController {
         Map<Integer, Integer> roundedRatings = avgRatings.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> (int) Math.round(e.getValue())));
 
+        // apply sorting same as /shop
+        if("price_asc".equals(sort)){
+            products.sort(Comparator.comparingDouble(Product::getPrice));
+        } else if("price_desc".equals(sort)){
+            products.sort(Comparator.comparingDouble(Product::getPrice).reversed());
+        } else if("rating".equals(sort)){
+            products.sort(Comparator.comparingDouble((Product p) -> avgRatings.getOrDefault(p.getId(), 0.0)).reversed());
+        }
+
         model.addAttribute("products", products);
         model.addAttribute("avgRatings", avgRatings);
         model.addAttribute("roundedRatings", roundedRatings);
-        model.addAttribute("sort", "");
+        model.addAttribute("sort", sort);
         return "shop";
     }
     @GetMapping("/shop/viewproduct/{id}")

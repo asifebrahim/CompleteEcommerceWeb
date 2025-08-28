@@ -23,7 +23,7 @@ public class PaymentProof {
     private Address address;
 
     @ManyToOne
-    @JoinColumn(name="product_id",referencedColumnName = "id")
+    @JoinColumn(name="product_id",referencedColumnName = "product_id")
     private Product product;
 
     @Column(name="status")
