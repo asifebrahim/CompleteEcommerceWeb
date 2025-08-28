@@ -26,6 +26,7 @@
             <tr>
                 <th>ID</th>
                 <th>Transaction ID</th>
+                <th>Product ID</th>
                 <th>User Email</th>
                 <th>Address</th>
                 <th>Status</th>
@@ -36,6 +37,7 @@
             <tr th:each="p : ${payments}">
                 <td th:text="${p.id}">1</td>
                 <td th:text="${p.transactionId}">TX123</td>
+                <td th:text="${p.product != null ? p.product.id : '-'}">-</td>
                 <td th:text="${p.users.email}">user@example.com</td>
                 <td>
                     <div th:if="${p.address != null}">
@@ -51,7 +53,7 @@
                 <td>
                     <a th:href="@{/admin/payment/approve/{id}(id=${p.id})}" class="btn btn-sm btn-primary mr-1" th:if="${p.status == 'Pending'}">Approve</a>
                     <a th:href="@{/admin/payment/decline/{id}(id=${p.id})}" class="btn btn-sm btn-danger mr-1" th:if="${p.status == 'Pending'}">Decline</a>
-                    <a th:href="@{/admin/payment/manage/approved}" class="btn btn-sm btn-outline-secondary" th:if="${p.status != 'Pending'}">View</a>
+                    <a th:href="@{/admin/payment/view/{id}(id=${p.id})}" class="btn btn-sm btn-outline-secondary">View</a>
                 </td>
             </tr>
             </tbody>

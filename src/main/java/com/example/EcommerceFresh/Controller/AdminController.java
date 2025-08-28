@@ -177,4 +177,14 @@ public class AdminController {
         }
         return "redirect:/admin/payment/manage/pending";
     }
+
+    @GetMapping("/admin/payment/view/{id}")
+    public String viewPayment(@PathVariable int id, Model model){
+        var paymentOpt = paymentProofDao.findById(id);
+        if(paymentOpt.isPresent()){
+            model.addAttribute("payment", paymentOpt.get());
+            return "paymentView";
+        }
+        return "redirect:/admin/payment/manage/pending";
+    }
 }

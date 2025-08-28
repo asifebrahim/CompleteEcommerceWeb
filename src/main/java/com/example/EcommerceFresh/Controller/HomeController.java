@@ -77,7 +77,20 @@ public class HomeController {
     public String shopByCategory(Model model, @PathVariable int id){
         model.addAttribute("cartCount",GlobalData.cart.size());
         model.addAttribute("categories",categoryservice.getAllCategory());
-        model.addAttribute("products",productService.getProductByCategoryId(id));
+        List<Product> products = productService.getProductByCategoryId(id);
+
+        // compute average ratings for each product
+        Map<Integer, Double> avgRatings = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> productService.getAverageRating(p)));
+
+        // compute rounded ratings (integers) to use in templates without Math.round
+        Map<Integer, Integer> roundedRatings = avgRatings.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> (int) Math.round(e.getValue())));
+
+        model.addAttribute("products", products);
+        model.addAttribute("avgRatings", avgRatings);
+        model.addAttribute("roundedRatings", roundedRatings);
+        model.addAttribute("sort", "");
         return "shop";
     }
     @GetMapping("/shop/viewproduct/{id}")

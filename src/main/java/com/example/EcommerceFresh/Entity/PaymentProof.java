@@ -1,6 +1,7 @@
 package com.example.EcommerceFresh.Entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class PaymentProof {
@@ -10,6 +11,7 @@ public class PaymentProof {
     private Integer id;
 
     @Column(name="Transaction_id")
+    @NotNull
     private String transactionId;
 
     @ManyToOne
@@ -19,6 +21,10 @@ public class PaymentProof {
     @ManyToOne
     @JoinColumn(name="address_id",referencedColumnName = "id")
     private Address address;
+
+    @ManyToOne
+    @JoinColumn(name="product_id",referencedColumnName = "id")
+    private Product product;
 
     @Column(name="status")
     private String status;
@@ -59,5 +65,12 @@ public class PaymentProof {
 
     public void setUsers(Users users) {
         this.users = users;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+    public void setProduct(Product product) {
+        this.product = product;
     }
 }
