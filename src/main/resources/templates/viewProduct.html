@@ -68,9 +68,9 @@
             <p th:text="${product.description}"></p>
             <div class="mb-3">
                 <strong>Average rating:</strong>
-                <span th:text="${#numbers.formatDecimal(averageRating, 1, 'POINT', 1, 'ROUND_HALF_UP')}">0.0</span>
+                <span th:text="${#strings.format('%.1f', averageRating)}">0.0</span>
                 <span class="ml-2 text-warning">
-                    <i th:each="i: ${#numbers.sequence(1, Math.round(averageRating))}" class="fas fa-star"></i>
+                    <i th:each="i: ${#numbers.sequence(1, (roundedAverage?:0))}" class="fas fa-star"></i>
                 </span>
             </div>
             <div th:if="${#authorization.expression('isAuthenticated()')}">
