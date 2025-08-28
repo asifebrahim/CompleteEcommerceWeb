@@ -1,6 +1,5 @@
 package com.example.EcommerceFresh.Configuration;
 
-import com.example.EcommerceFresh.Components.AuthFailureHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,10 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private AuthFailureHandler authFailureHandler;
-    public SecurityConfig(AuthFailureHandler authFailureHandler) {
-        this.authFailureHandler = authFailureHandler;
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -30,8 +25,8 @@ public class SecurityConfig {
                 .formLogin(login -> login
                         .loginPage("/login")
                         .defaultSuccessUrl("/shop", true)
-//                        .failureUrl("/login?error=true")
-                                .failureHandler(authFailureHandler)
+                       .failureUrl("/login?error=true")
+                                // .failureHandler(authFailureHandler)
                         .permitAll()
                         .usernameParameter("email")
                         .passwordParameter("password")

@@ -48,7 +48,7 @@ public class LoginController {
 
 
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute("user") Users users, RedirectAttributes redirectAttributes) {
+    public String registerUser(@ModelAttribute("user") Users users) {
         System.out.println("Register method called with email: " + users.getEmail());
 
         if(userDao.findByEmail(users.getEmail()).isPresent()){
@@ -63,7 +63,6 @@ public class LoginController {
         System.out.println("User id is : "+users.getId());
         Roles userRole = roleDao.findByName("ROLE_USER");
         if (userRole == null) {
-            redirectAttributes.addFlashAttribute("error", "Role not found in database");
             return "redirect:/register";
         }
 
@@ -83,7 +82,7 @@ public class LoginController {
     }
 
     @PostMapping("/resetPassword")
-    public String finalResetSubmission(@ModelAttribute("resetPassword") Users user, RedirectAttributes redirectAttributes) {
+    public String finalResetSubmission(@ModelAttribute("resetPassword") Users user) {
         String emailOfTheUser = user.getEmail();
         System.out.println("The email is: " + emailOfTheUser);
 
@@ -91,11 +90,9 @@ public class LoginController {
 
         if (userOptional.isPresent()) {
             System.out.println("Email exists, sending reset link...");
-//            return "flashSucessResetPassword";
-//            redirectAttributes.addFlashAttribute("message", "Password reset link sent to your email.");
+           return "flashSucessResetPassword";
         } else {
             System.out.println("Wrong email");
-            redirectAttributes.addFlashAttribute("error", "Invalid email. Please try again.");
         }
         return "redirect:/login";
     }
