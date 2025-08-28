@@ -1,8 +1,0 @@
-FROM mysql:8.0
-
-ENV MYSQL_DATABASE=employee_directory \
-    MYSQL_USER=springstudent \
-    MYSQL_PASSWORD=Asif@1234 \
-    MYSQL_ROOT_PASSWORD=RootPass123
-
-EXPOSE 3306
