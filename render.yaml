@@ -27,11 +27,12 @@ services:
       sizeGB: 10
     dockerfilePath: ./Dockerfile.mysql
     envVars:
-      - key: MYSQL_DATABASE
-        value: employee_directory
-      - key: MYSQL_USER
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:mysql://mysql.internal:3306/employee_directory?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - key: SPRING_DATASOURCE_USERNAME
         value: springstudent
-      - key: MYSQL_PASSWORD
+      - key: SPRING_DATASOURCE_PASSWORD
         value: Asif@1234
-      - key: MYSQL_ROOT_PASSWORD
-        value: RootPass123
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+
