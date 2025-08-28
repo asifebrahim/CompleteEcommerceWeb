@@ -103,7 +103,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <strong th:text="${r.users.firstName}">User</strong>
-                            <small class="text-muted ml-2" th:text="${#dates.format(r.createdAt, 'dd MMM yyyy HH:mm')}"></small>
+                            <small class="text-muted ml-2" th:text="${r.createdAt != null ? r.createdAt.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy HH:mm')) : ''}"></small>
                         </div>
                         <div class="text-warning">
                             <i th:each="i: ${#numbers.sequence(1, r.score)}" class="fas fa-star"></i>
