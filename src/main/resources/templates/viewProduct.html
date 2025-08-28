@@ -68,7 +68,7 @@
             <p th:text="${product.description}"></p>
             <div class="mb-3">
                 <strong>Average rating:</strong>
-                <span th:text="${#strings.format('%.1f', averageRating)}">0.0</span>
+                <span th:text="${formattedAverage}">0.0</span>
                 <span class="ml-2 text-warning">
                     <i th:each="i: ${#numbers.sequence(1, (roundedAverage?:0))}" class="fas fa-star"></i>
                 </span>

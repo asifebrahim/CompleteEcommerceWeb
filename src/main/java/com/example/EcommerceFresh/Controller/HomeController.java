@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.security.Principal;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -87,6 +88,9 @@ public class HomeController {
         double avg = productService.getAverageRating(product);
         model.addAttribute("averageRating", avg);
         model.addAttribute("roundedAverage", (int)Math.round(avg));
+        // add formatted string to avoid Thymeleaf format functions
+        String formatted = String.format(Locale.US, "%.1f", avg);
+        model.addAttribute("formattedAverage", formatted);
         if("top".equals(sort)){
             model.addAttribute("ratings", productService.getRatingsForProductSortedByScore(product));
         } else {
