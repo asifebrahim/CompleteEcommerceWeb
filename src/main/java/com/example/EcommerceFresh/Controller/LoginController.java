@@ -63,7 +63,10 @@ public class LoginController {
         System.out.println("User id is : "+users.getId());
         Roles userRole = roleDao.findByName("ROLE_USER");
         if (userRole == null) {
-            return "redirect:/register";
+            System.out.println("ROLE_USER not found, creating it...");
+            userRole = new Roles();
+            userRole.setName("ROLE_USER");
+            userRole = roleDao.save(userRole);
         }
 
         // Create and assign roles set

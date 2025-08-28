@@ -41,6 +41,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                         .collect(Collectors.toSet()) :
                 Collections.emptySet();
 
+        logger.info("User {} has roles: {}", user.getEmail(), authorities);
+
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
