@@ -8,7 +8,7 @@ services:
     startCommand: java -jar target/*.jar
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:mysql://mysql:3306/employee_directory
+        value: jdbc:mysql://mysql.internal:3306/employee_directory?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       - key: SPRING_DATASOURCE_USERNAME
         value: springstudent
       - key: SPRING_DATASOURCE_PASSWORD
