@@ -15,7 +15,7 @@ public class UserOrder {
     private Users user;
     
     @ManyToOne
-    @JoinColumn(name = "product_id", referencedColumnName = "id")
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     private Product product;
     
     @Column(name = "quantity")
