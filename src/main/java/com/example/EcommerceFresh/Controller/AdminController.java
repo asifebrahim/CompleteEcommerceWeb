@@ -23,7 +23,7 @@ import java.util.Optional;
 public class AdminController {
 
     private final PaymentProofDao paymentProofDao;
-    public String uploadDir=System.getProperty("user.dir")+"/src/main/resources/static/productImages";
+    public String uploadDir = System.getProperty("user.dir") + "/productImages";
 
     private CategoryserviceImpl categoryservice;
     private ProductServiceImpl productService;
@@ -101,8 +101,29 @@ public class AdminController {
         product.setWeight(productDto.getWeight());
         product.setDescription(productDto.getDescription());
         String imageUUID;
+
+        // Preserve existing image name if updating
+        String existingImageName = null;
+        if (productDto.getId() != 0) {
+            try {
+                var existing = productService.findById(productDto.getId());
+                if (existing.isPresent()) {
+                    existingImageName = existing.get().getImageName();
+                }
+            } catch (Exception ex) {
+                // ignore
+                ex.printStackTrace();
+            }
+        }
+
         if(!file.isEmpty()){
-            imageUUID=file.getOriginalFilename();
+            String original = file.getOriginalFilename();
+            String ext = "";
+            if (original != null && original.contains(".")) {
+                ext = original.substring(original.lastIndexOf('.'));
+            }
+            imageUUID = System.currentTimeMillis() + "_" + java.util.UUID.randomUUID() + ext;
+
             // Create directory if it doesn't exist
             Path uploadPath = Paths.get(uploadDir);
             if (!Files.exists(uploadPath)) {
@@ -110,8 +131,22 @@ public class AdminController {
             }
             Path fileNameAndPath= Paths.get(uploadDir,imageUUID);
             Files.write(fileNameAndPath,file.getBytes());
+
+            // Delete old image file if present and different from default
+            try {
+                if (existingImageName != null && !existingImageName.equals("default.png") && !existingImageName.equals(imageUUID)) {
+                    Path old = Paths.get(uploadDir, existingImageName);
+                    if (Files.exists(old)) {
+                        Files.delete(old);
+                    }
+                }
+            } catch (Exception ex) {
+                // best-effort
+                ex.printStackTrace();
+            }
         }else{
-            imageUUID=imgName != null ? imgName : "default.png";
+            // if no new file uploaded, prefer imgName (from form) -> existingImageName -> default
+            imageUUID = imgName != null && !imgName.isEmpty() ? imgName : (existingImageName != null ? existingImageName : "default.png");
         }
         product.setImageName(imageUUID);
         productService.Save(product);

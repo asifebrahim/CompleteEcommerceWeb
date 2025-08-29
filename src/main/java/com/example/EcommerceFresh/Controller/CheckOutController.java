@@ -21,8 +21,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
 public class CheckOutController {
@@ -42,21 +44,34 @@ public class CheckOutController {
     @Autowired
     private UserOrderDao userOrderDao;
 
+    // In-memory map to hold cart snapshots keyed by razorpay order id
+    private static final ConcurrentHashMap<String, java.util.List<Product>> pendingCartMap = new ConcurrentHashMap<>();
+
     // Create Razorpay order
     @PostMapping("/create-order")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> createOrder(@RequestParam Double amount) {
         try {
             Order order = razorpayService.createOrder(amount);
+            String orderId = order.get("id").toString();
+
+            // Store a snapshot of the current cart for this order id
+            try {
+                pendingCartMap.put(orderId, new ArrayList<>(GlobalData.cart));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
             Map<String, Object> response = new HashMap<>();
-            response.put("orderId", order.get("id"));
+            response.put("orderId", orderId);
             response.put("amount", order.get("amount"));
             response.put("currency", order.get("currency"));
             response.put("keyId", razorpayService.getKeyId());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            e.printStackTrace();
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to create order");
+            errorResponse.put("error", "Failed to create order: " + e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
@@ -69,16 +84,24 @@ public class CheckOutController {
             @RequestParam String orderId,
             @RequestParam String signature,
             Principal principal) {
-        
+
         Map<String, String> response = new HashMap<>();
-        
+
         if (razorpayService.verifyPayment(paymentId, orderId, signature)) {
             // Payment verified successfully
             try {
-                Users user = usersRepository.findByEmail(principal.getName()).orElseThrow();
-                
+                if (principal == null) throw new RuntimeException("User not authenticated");
+                Users user = usersRepository.findByEmail(principal.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+
+                // Use snapshot stored at order creation time
+                java.util.List<Product> cartSnapshot = pendingCartMap.remove(orderId);
+                if (cartSnapshot == null || cartSnapshot.isEmpty()) {
+                    // fallback to live cart
+                    cartSnapshot = new ArrayList<>(GlobalData.cart);
+                }
+
                 // Create orders for each cart item
-                for (Product product : GlobalData.cart) {
+                for (Product product : cartSnapshot) {
                     UserOrder userOrder = new UserOrder();
                     userOrder.setUser(user);
                     userOrder.setProduct(product);
@@ -87,21 +110,31 @@ public class CheckOutController {
                     userOrder.setOrderStatus("Paid");
                     userOrderDao.save(userOrder);
                 }
-                
-                // Clear cart
-                GlobalData.cart.clear();
-                
+
+                // Clear cart only if we consumed the live cart
+                try {
+                    if (cartSnapshot == GlobalData.cart || (GlobalData.cart != null && GlobalData.cart.isEmpty())) {
+                        GlobalData.cart.clear();
+                    } else {
+                        // best-effort clear live cart as well
+                        GlobalData.cart.clear();
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
                 response.put("status", "success");
                 response.put("message", "Payment verified and order created successfully");
             } catch (Exception e) {
+                e.printStackTrace();
                 response.put("status", "error");
-                response.put("message", "Payment verified but order creation failed");
+                response.put("message", "Payment verified but order creation failed: " + e.getMessage());
             }
         } else {
             response.put("status", "error");
             response.put("message", "Payment verification failed");
         }
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -170,6 +203,17 @@ public class CheckOutController {
         // If address reference present (only id expected), load the persisted address and set it
         if (paymentProof.getAddress() != null && paymentProof.getAddress().getId() > 0) {
             addressRepository.findById(paymentProof.getAddress().getId()).ifPresent(paymentProof::setAddress);
+        }
+
+        // If product is not set on the payment proof and there are items in cart, link the first product so admin can see it
+        try {
+            if (paymentProof.getProduct() == null && GlobalData.cart != null && !GlobalData.cart.isEmpty()) {
+                Product first = GlobalData.cart.get(0);
+                paymentProof.setProduct(first);
+            }
+        } catch (Exception ex) {
+            // swallow, not critical
+            ex.printStackTrace();
         }
 
         if (paymentProof.getStatus() == null) {

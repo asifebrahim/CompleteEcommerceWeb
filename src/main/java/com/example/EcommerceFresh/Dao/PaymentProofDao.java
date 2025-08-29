@@ -8,5 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PaymentProofDao extends JpaRepository<PaymentProof,Integer> {
     List<PaymentProof> findByStatus(String status);
+    List<PaymentProof> findByProduct(com.example.EcommerceFresh.Entity.Product product);
 
 }
