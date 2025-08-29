@@ -39,7 +39,10 @@ public class UserOrder {
     
     @Column(name = "delivery_address")
     private String deliveryAddress;
-    
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt; // timestamp when delivery was confirmed
+
     // Getters and setters
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -73,6 +76,9 @@ public class UserOrder {
 
     public LocalDateTime getOrderDate() { return orderDate; }
     public void setOrderDate(LocalDateTime orderDate) { this.orderDate = orderDate; }
+
+    public LocalDateTime getDeliveredAt() { return deliveredAt; }
+    public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
 
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }

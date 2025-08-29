@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancelled Orders</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Cancelled Order Groups</h2>
+    <div th:if="${orderGroups == null or #lists.isEmpty(orderGroups)}" class="alert alert-info">No cancelled orders.</div>
+    <div th:if="${orderGroups != null and !#lists.isEmpty(orderGroups)}">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Group ID</th>
+                <th>User</th>
+                <th>Created At</th>
+                <th>Total Amount</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="g : ${orderGroups}">
+                <td th:text="${g.id}"></td>
+                <td th:text="${g.user != null ? g.user.email : '-'}"></td>
+                <td th:text="${#temporals.format(g.createdAt, 'dd MMM yyyy HH:mm')}"></td>
+                <td th:text="${g.totalAmount}"></td>
+                <td>
+                    <a th:href="@{'/admin/order/group/' + ${g.id}}" class="btn btn-sm btn-outline-secondary">View</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

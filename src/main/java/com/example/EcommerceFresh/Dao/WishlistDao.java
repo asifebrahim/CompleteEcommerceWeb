@@ -10,5 +10,6 @@ import java.util.List;
 @Repository
 public interface WishlistDao extends JpaRepository<Wishlist, Integer> {
     List<Wishlist> findByUser(Users user);
-    Wishlist findByUserAndProductId(Users user, Integer productId);
+    // Spring Data nested property syntax: product.id -> product_Id
+    Wishlist findByUserAndProduct_Id(Users user, Integer productId);
 }

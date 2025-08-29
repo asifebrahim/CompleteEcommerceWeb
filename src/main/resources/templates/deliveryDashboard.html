@@ -17,6 +17,7 @@
                 <th>OTP</th>
                 <th>Order</th>
                 <th>Product</th>
+                <th>Customer Email</th>
                 <th>Expires At</th>
                 <th>Action</th>
             </tr>
@@ -24,8 +25,17 @@
             <tbody>
             <tr th:each="d : ${otps}">
                 <td th:text="${d.otpCode}"></td>
-                <td>#<span th:text="${d.order.id}"></span></td>
-                <td th:text="${d.order.product != null ? d.order.product.name : 'N/A'}"></td>
+                <td>#<span th:text="${d.order != null ? d.order.id : '-'}"></span></td>
+                <td th:text="${d.order != null && d.order.product != null ? d.order.product.name : 'N/A'}"></td>
+                <td>
+                    <span th:if="${d.order != null && d.order.user != null && d.order.user.email != null}" th:text="${d.order.user.email}"></span>
+                    <div th:if="${d.order != null && (d.order.user == null || d.order.user.email == null)}">
+                        <form th:action="@{'/delivery/assign-email/' + ${d.order.id}}" method="post" class="form-inline">
+                            <input type="email" name="email" placeholder="customer@example.com" class="form-control form-control-sm mr-2" required />
+                            <button class="btn btn-sm btn-outline-primary" type="submit">Assign</button>
+                        </form>
+                    </div>
+                </td>
                 <td th:text="${#temporals.format(d.expiresAt, 'dd MMM yyyy')}"></td>
                 <td>
                     <form th:action="@{'/delivery/verify/' + ${d.order.id}}" method="post">

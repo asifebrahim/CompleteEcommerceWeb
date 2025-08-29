@@ -86,6 +86,15 @@ public class OrderLifecycleController {
         if(principal==null) return ResponseEntity.status(401).body("Unauthorized");
         Users user = usersRepository.findByEmail(principal.getName()).orElse(null);
         if(user == null) return ResponseEntity.status(401).body("Unauthorized");
+        // Prefer direct DAO lookup (uses nested property query)
+        try{
+            Wishlist byPair = wishlistDao.findByUserAndProduct_Id(user, productId);
+            if(byPair != null){
+                wishlistDao.delete(byPair);
+                return ResponseEntity.ok("Removed");
+            }
+        } catch(Exception ignored){ }
+        // Fallback: scan user's wishlist
         java.util.List<Wishlist> list = wishlistDao.findByUser(user);
         var existing = list.stream().filter(w -> w.getProduct() != null && w.getProduct().getId() == productId).findFirst();
         if(existing.isEmpty()) return ResponseEntity.ok("Not found");
@@ -125,12 +134,40 @@ public class OrderLifecycleController {
         if(o.isEmpty()) return ResponseEntity.badRequest().body("Order not found");
         UserOrder order = o.get();
         if(!order.getUser().getEmail().equals(principal.getName())) return ResponseEntity.status(403).body("Forbidden");
-        if(!order.getOrderStatus().equalsIgnoreCase("Pending") && !order.getOrderStatus().toLowerCase().contains("awaiting")){
+        String status = order.getOrderStatus() == null ? "" : order.getOrderStatus();
+        // Only allow cancelling while pending/awaiting
+        if(!status.equalsIgnoreCase("Pending") && !status.toLowerCase().contains("awaiting")){
             return ResponseEntity.badRequest().body("Cannot cancel at this stage");
         }
-        order.setOrderStatus("Cancelled");
-        userOrderDao.save(order);
-        return ResponseEntity.ok("Cancelled");
+        // Disallow cancelling delivered orders here
+        if(status.equalsIgnoreCase("Delivered")){
+            return ResponseEntity.badRequest().body("Cannot cancel delivered order; request a return instead");
+        }
+
+        // If part of a group, delete all orders in the group and mark group cancelled
+        OrderGroup og = order.getOrderGroup();
+        if(og != null){
+            java.util.List<UserOrder> toDelete = og.getUserOrders() != null ? new java.util.ArrayList<>(og.getUserOrders()) : java.util.Collections.emptyList();
+            for(UserOrder uo : toDelete){
+                try { userOrderDao.delete(uo); } catch(Exception ex){ ex.printStackTrace(); }
+            }
+            og.setGroupStatus("Cancelled");
+            orderGroupDao.save(og);
+
+            // mark any active delivery OTPs for orders in this group as used so they no longer appear in delivery dashboard
+            deliveryOtpDao.findAll().stream()
+                    .filter(d -> d.getOrder() != null && d.getOrder().getOrderGroup() != null && og.getId() != null && d.getOrder().getOrderGroup().getId().equals(og.getId()))
+                    .forEach(d -> { d.setUsed(true); deliveryOtpDao.save(d); });
+        } else {
+            // delete single order
+            try { userOrderDao.delete(order); } catch(Exception ex){ ex.printStackTrace(); }
+            // mark any OTPs tied to this order used
+            deliveryOtpDao.findAll().stream()
+                    .filter(d -> d.getOrder() != null && d.getOrder().getId().equals(order.getId()))
+                    .forEach(d -> { d.setUsed(true); deliveryOtpDao.save(d); });
+        }
+
+        return ResponseEntity.ok("Cancelled and removed");
     }
 
     // Form wrapper for cancel that provides a flash message and redirect
@@ -153,17 +190,31 @@ public class OrderLifecycleController {
         if(o.isEmpty()) return ResponseEntity.badRequest().body("Order not found");
         UserOrder order = o.get();
         if(!order.getUser().getEmail().equals(principal.getName())) return ResponseEntity.status(403).body("Forbidden");
-        if(!type.equalsIgnoreCase("RETURN") && !type.equalsIgnoreCase("REPLACE")) return ResponseEntity.badRequest().body("Invalid type");
+        // Only RETURN is supported; REPLACE is not available
+        if (!type.equalsIgnoreCase("RETURN")) {
+            return ResponseEntity.badRequest().body("Only RETURN requests are supported");
+        }
+
+        // Ensure order has been delivered and is within the 5-day return window
+        if (order.getDeliveredAt() == null) {
+            return ResponseEntity.badRequest().body("Order has not been delivered yet");
+        }
+        java.time.Duration sinceDelivered = java.time.Duration.between(order.getDeliveredAt(), java.time.LocalDateTime.now());
+        if (sinceDelivered.toDays() > 5) {
+            return ResponseEntity.badRequest().body("Return window expired");
+        }
+
+        // create return request
         ReturnRequest rr = new ReturnRequest();
         rr.setOrder(order);
-        rr.setRequestType(type.toUpperCase());
+        rr.setRequestType("RETURN");
         rr.setReason(reason);
         rr.setStatus("Pending");
         returnRequestDao.save(rr);
         // mark order status
-        order.setOrderStatus(type.equalsIgnoreCase("RETURN")?"ReturnRequested":"ReplaceRequested");
+        order.setOrderStatus("ReturnRequested");
         userOrderDao.save(order);
-        return ResponseEntity.ok("Request submitted");
+        return ResponseEntity.ok("Return request submitted");
     }
 
     // Form wrapper for return/replace that provides flash message and redirect
@@ -271,6 +322,7 @@ public class OrderLifecycleController {
         // mark delivered
         UserOrder order = otp.getOrder();
         order.setOrderStatus("Delivered");
+        order.setDeliveredAt(LocalDateTime.now());
         userOrderDao.save(order);
         otp.setUsed(true);
         deliveryOtpDao.save(otp);
@@ -285,51 +337,102 @@ public class OrderLifecycleController {
         if(r.isEmpty()) return ResponseEntity.badRequest().body("Request not found");
         ReturnRequest req = r.get();
         UserOrder order = req.getOrder();
-        // action: RETURN or REPLACE or REJECT
+        // action: RETURN or REJECT
         if(action == null) action = "RETURN";
         if(action.equalsIgnoreCase("REJECT")){
             req.setStatus("Rejected");
-            req.setRequestType(req.getRequestType());
             returnRequestDao.save(req);
             order.setOrderStatus("ReturnRejected");
             userOrderDao.save(order);
+
+            // mark any OTPs for this order used
+            deliveryOtpDao.findAll().stream()
+                    .filter(d -> d.getOrder() != null && d.getOrder().getId().equals(order.getId()))
+                    .forEach(d -> { d.setUsed(true); deliveryOtpDao.save(d); });
+
             return ResponseEntity.ok("Rejected");
         }
-        if(action.equalsIgnoreCase("REPLACE")){
-            req.setStatus("Approved");
-            req.setRequestType("REPLACE");
-            returnRequestDao.save(req);
-            order.setOrderStatus("ReplaceApproved");
-            userOrderDao.save(order);
-            return ResponseEntity.ok("Replace Approved");
-        }
-        // default: RETURN
+        // approve return: set request approved and mark order/group as Returned
         req.setStatus("Approved");
         req.setRequestType("RETURN");
         returnRequestDao.save(req);
-        order.setOrderStatus("ReturnApproved");
+        order.setOrderStatus("Returned");
         userOrderDao.save(order);
+
+        // if part of a group, mark group status as Returned
+        OrderGroup og = order.getOrderGroup();
+        if (og != null) {
+            og.setGroupStatus("Returned");
+            orderGroupDao.save(og);
+        }
+
+        deliveryOtpDao.findAll().stream()
+                .filter(d -> d.getOrder() != null && d.getOrder().getId().equals(order.getId()))
+                .forEach(d -> { d.setUsed(true); deliveryOtpDao.save(d); });
+
         return ResponseEntity.ok("Return Approved");
     }
 
-    // Admin page to view and manage orders (generate OTP)
-    @GetMapping("/admin/orders")
+    // Admin: view processed (approved) returns
+    @GetMapping("/admin/returns/processed")
     @PreAuthorize("hasRole('ADMIN')")
-    public String adminOrdersPage(Model model){
-        // Show order groups instead of individual orders for better organization
-        java.util.List<OrderGroup> orderGroups = orderGroupDao.findAll();
+    public String viewProcessedReturns(Model model){
+        java.util.List<ReturnRequest> processed = returnRequestDao.findByStatus("Approved");
         model.addAttribute("cartCount", GlobalData.cart.size());
-        model.addAttribute("orderGroups", orderGroups);
-        
-        // For OTP generation, we still need to work with individual orders
-        // compute orders that already have an active OTP so template can disable generate button
-        java.util.Set<Integer> ordersWithActiveOtp = deliveryOtpDao.findAll().stream()
-                .filter(d -> d.getOrder() != null)
-                .filter(d -> !d.isUsed())
-                .filter(d -> d.getExpiresAt() == null || d.getExpiresAt().isAfter(LocalDateTime.now()))
-                .map(d -> d.getOrder().getId())
-                .collect(java.util.stream.Collectors.toSet());
-        model.addAttribute("ordersWithActiveOtp", ordersWithActiveOtp);
-        return "adminOrders";
+        model.addAttribute("requests", processed);
+        return "adminReturned";
+    }
+
+    // Admin: mark an approved return as completed (finalize and optionally restock)
+    @PostMapping("/admin/return/complete/{requestId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> completeReturn(@PathVariable Integer requestId){
+        Optional<ReturnRequest> r = returnRequestDao.findById(requestId);
+        if(r.isEmpty()) return ResponseEntity.badRequest().body("Request not found");
+        ReturnRequest req = r.get();
+        if(!"Approved".equalsIgnoreCase(req.getStatus())) return ResponseEntity.badRequest().body("Request not in approved state");
+        UserOrder order = req.getOrder();
+        // finalize
+        req.setStatus("Completed");
+        returnRequestDao.save(req);
+        order.setOrderStatus("Returned");
+        userOrderDao.save(order);
+        OrderGroup og = order.getOrderGroup();
+        if(og != null){ og.setGroupStatus("Returned"); orderGroupDao.save(og); }
+
+        // mark related OTPs used
+        deliveryOtpDao.findAll().stream()
+                .filter(d -> d.getOrder() != null && d.getOrder().getId().equals(order.getId()))
+                .forEach(d -> { d.setUsed(true); deliveryOtpDao.save(d); });
+
+        return ResponseEntity.ok("Return completed");
+    }
+
+    // Delivery staff can assign/verify an email for an order if customer email is missing
+    @PostMapping("/delivery/assign-email/{orderId}")
+    @PreAuthorize("hasRole('DELIVERY')")
+    public ResponseEntity<String> assignDeliveryEmail(@PathVariable Integer orderId, @RequestParam String email){
+        if(email == null || email.isBlank()) return ResponseEntity.badRequest().body("Invalid email");
+        Optional<UserOrder> o = userOrderDao.findById(orderId);
+        if(o.isEmpty()) return ResponseEntity.badRequest().body("Order not found");
+        UserOrder order = o.get();
+        Users user = order.getUser();
+        if(user == null) return ResponseEntity.badRequest().body("Order has no associated user");
+        if(user.getEmail() != null && !user.getEmail().isBlank()) return ResponseEntity.ok("Email already present");
+        user.setEmail(email);
+        usersRepository.save(user);
+        return ResponseEntity.ok("Email assigned");
+    }
+
+    // Admin view for cancelled order groups
+    @GetMapping("/admin/orders/cancelled")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String adminCancelledOrdersPage(Model model){
+        java.util.List<OrderGroup> cancelled = orderGroupDao.findAll().stream()
+                .filter(og -> og.getGroupStatus() != null && og.getGroupStatus().equalsIgnoreCase("Cancelled"))
+                .collect(java.util.stream.Collectors.toList());
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        model.addAttribute("orderGroups", cancelled);
+        return "adminCancelledOrders"; // template may need to be created
     }
 }

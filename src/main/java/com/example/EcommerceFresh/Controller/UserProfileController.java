@@ -18,6 +18,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/profile")
@@ -106,9 +110,26 @@ public class UserProfileController {
         
         // Fetch grouped orders instead of individual user orders
         List<OrderGroup> orderGroups = orderGroupDao.findByUserOrderByCreatedAtDesc(user);
-        
+
+        // Build a map to indicate whether a return is allowed for each order group
+        Map<Integer, Boolean> returnAllowedMap = new HashMap<>();
+        for (OrderGroup og : orderGroups) {
+            boolean allowed = false;
+            if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                UserOrder firstOrder = og.getUserOrders().get(0);
+                if (firstOrder.getDeliveredAt() != null) {
+                    Duration sinceDelivered = Duration.between(firstOrder.getDeliveredAt(), LocalDateTime.now());
+                    if (sinceDelivered.toDays() <= 5) {
+                        allowed = true;
+                    }
+                }
+            }
+            returnAllowedMap.put(og.getId(), allowed);
+        }
+
         model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("orderGroups", orderGroups);
+        model.addAttribute("returnAllowedMap", returnAllowedMap);
         return "userOrders";
     }
 }

@@ -129,6 +129,17 @@ public class CheckOutController {
                     paymentProof.setTransactionId(paymentId);
                     paymentProof.setUsers(user);
                     paymentProof.setStatus("Pending");
+
+                    // Attach a user address if available so admin can see delivery address
+                    try {
+                        var addrOpt = addressRepository.findAll().stream()
+                                .filter(a -> a.getEmail() != null && a.getEmail().equals(user.getEmail()))
+                                .findFirst();
+                        addrOpt.ifPresent(paymentProof::setAddress);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
                     // Link the first product if available to help admin identify the payment
                     if (cartSnapshot != null && !cartSnapshot.isEmpty()) {
                         Product first = cartSnapshot.get(0);

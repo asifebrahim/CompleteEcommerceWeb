@@ -39,12 +39,12 @@
                 <td th:text="${p.id}">1</td>
                 <td th:text="${p.transactionId}">TX123</td>
                 <td th:text="${p.product != null ? p.product.id : '-'}">-</td>
-                <td th:text="${p.users.email}">user@example.com</td>
+                <td th:text="${p.users != null ? p.users.email : '-'}">user@example.com</td>
                 <td>
                     <div th:if="${p.address != null}">
-                        <span th:text="${p.address.address1}"></span>,
-                        <span th:text="${p.address.town}"></span>,
-                        <span th:text="${p.address.pinCode}"></span>
+                        <span th:text="${p.address.address1}"></span>
+                        <span th:if="${p.address.town}">, <span th:text="${p.address.town}"></span></span>
+                        <span th:if="${p.address.pinCode}">, <span th:text="${p.address.pinCode}"></span></span>
                     </div>
                     <div th:if="${p.address == null}">-</div>
                 </td>

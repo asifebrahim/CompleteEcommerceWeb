@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Return Requests</title>
+    <title>Processed Returns</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
 </head>
 <body>
 <div class="container mt-4">
-    <h2>Pending Return Requests</h2>
-    <div th:if="${requests == null or #lists.isEmpty(requests)}" class="alert alert-info">No pending requests.</div>
+    <h2>Processed Returns (Approved)</h2>
+    <div th:if="${requests == null or #lists.isEmpty(requests)}" class="alert alert-info">No processed returns.</div>
     <div th:if="${requests != null and !#lists.isEmpty(requests)}">
         <table class="table table-bordered">
             <thead>
@@ -18,8 +18,8 @@
                 <th>Order</th>
                 <th>Product</th>
                 <th>User</th>
-                <th>Type</th>
-                <th>Reason</th>
+                <th>Requested At</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
             </thead>
@@ -29,17 +29,13 @@
                 <td>#<span th:text="${r.order.id}"></span></td>
                 <td th:text="${r.order.product != null ? r.order.product.name : 'N/A'}"></td>
                 <td th:text="${r.order.user != null ? r.order.user.email : 'N/A'}"></td>
-                <td th:text="${r.requestType}"></td>
-                <td th:text="${r.reason}"></td>
+                <td th:text="${#temporals.format(r.createdAt, 'dd MMM yyyy')}"></td>
+                <td th:text="${r.status}"></td>
                 <td>
-                    <form th:action="@{'/admin/return/approve/' + ${r.id}}" method="post" style="display:inline-block; margin-right:6px;">
-                        <input type="hidden" name="action" value="RETURN" />
-                        <button class="btn btn-success btn-sm" type="submit">Approve Return</button>
+                    <form th:action="@{'/admin/return/complete/' + ${r.id}}" method="post" style="display:inline-block; margin-right:6px;">
+                        <button class="btn btn-success btn-sm" type="submit">Mark Completed</button>
                     </form>
-                    <form th:action="@{'/admin/return/approve/' + ${r.id}}" method="post" style="display:inline-block;">
-                        <input type="hidden" name="action" value="REJECT" />
-                        <button class="btn btn-danger btn-sm" type="submit">Reject</button>
-                    </form>
+                    <a th:href="@{'/admin/returns'}" class="btn btn-outline-secondary btn-sm">Back</a>
                 </td>
             </tr>
             </tbody>

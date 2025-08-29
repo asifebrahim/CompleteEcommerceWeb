@@ -94,11 +94,11 @@
                         <div th:each="order : ${orderGroup.userOrders}" class="border-bottom pb-2 mb-2">
                             <div class="row">
                                 <div class="col-md-2">
-                                    <img th:src="@{${'/productImages/' + order.product.imageName}}" 
+                                    <img th:src="@{${'/productImages/' + (order.product != null ? order.product.imageName : '')}}" 
                                          class="img-fluid rounded" alt="Product Image" style="max-height: 60px;">
                                 </div>
                                 <div class="col-md-10">
-                                    <h6 th:text="${order.product.name}">Product Name</h6>
+                                    <h6 th:text="${order.product != null ? order.product.name : 'Product'}">Product Name</h6>
                                     <p class="text-muted mb-1">
                                         Quantity: <span th:text="${order.quantity}"></span> | 
                                         Price at order: ₹<span th:text="${order.productPriceAtOrder}"></span> | 
@@ -108,7 +108,7 @@
                             </div>
                         </div>
 
-                        <!-- Actions: Cancel (if pending/awaiting) and Request Return/Replace for the entire group -->
+                        <!-- Actions: Cancel (if pending/awaiting) and Request Return for the entire group -->
                         <div class="mt-3">
                             <!-- Note: For simplicity, using the first order in the group for actions -->
                             <div th:if="${orderGroup.userOrders != null and !#lists.isEmpty(orderGroup.userOrders)}">
@@ -118,17 +118,12 @@
                                         <button class="btn btn-danger btn-sm" type="submit">Cancel Order Group</button>
                                     </form>
 
-                                    <form th:if="${orderGroup.groupStatus != null and orderGroup.groupStatus.toLowerCase().contains('delivered')}"
+                                    <form th:if="${orderGroup.groupStatus != null and orderGroup.groupStatus.toLowerCase().contains('delivered') and (returnAllowedMap[orderGroup.id] == true)}"
                                           th:action="@{'/order/return/' + ${firstOrder.id} + '/form'}" method="post" style="display:inline-block; margin-right:4px;">
                                         <input type="hidden" name="type" value="RETURN" />
                                         <button class="btn btn-warning btn-sm" type="submit">Request Return</button>
                                     </form>
 
-                                    <form th:if="${orderGroup.groupStatus != null and orderGroup.groupStatus.toLowerCase().contains('delivered')}"
-                                          th:action="@{'/order/return/' + ${firstOrder.id} + '/form'}" method="post" style="display:inline-block;">
-                                        <input type="hidden" name="type" value="REPLACE" />
-                                        <button class="btn btn-secondary btn-sm" type="submit">Request Replace</button>
-                                    </form>
                                 </div>
                             </div>
                         </div>
