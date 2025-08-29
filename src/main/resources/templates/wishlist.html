@@ -27,7 +27,8 @@
                     <img th:src="@{'/productImages/' + ${w.product != null ? w.product.imageName : 'default.png'}}" height="80" width="80" alt="">
                     <span th:text="${w.product != null ? w.product.name : 'Product'}"></span>
                 </td>
-                <td th:text="${#dates.format(w.createdAt, 'dd MMM yyyy')}"></td>
+                <!-- Use #temporals for java.time.* types and guard for null to avoid evaluation errors -->
+                <td th:text="${w.createdAt != null ? #temporals.format(w.createdAt, 'dd MMM yyyy') : ''}"></td>
                 <td>
                     <form th:action="@{'/wishlist/remove/' + (w.product != null ? w.product.id : 0) + '/form'}" method="post">
                         <button type="submit">Remove</button>
