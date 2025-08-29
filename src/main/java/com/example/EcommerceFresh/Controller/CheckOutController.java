@@ -194,6 +194,11 @@ public class CheckOutController {
         Users user = usersRepository.findByEmail(principal.getName()).orElse(null);
         model.addAttribute("user", user);
 
+        // add cart count and total so templates and JS have values
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        double total = GlobalData.cart.stream().mapToDouble(Product::getPrice).sum();
+        model.addAttribute("total", total);
+
         // Get the user's saved addresses for checkout
         if (user != null) {
             java.util.List<Address> addresses = addressRepository.findAll().stream()

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <title>Admin Orders</title>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Orders</h3>
+        <div>
+            <a th:href="@{/admin}" class="btn btn-secondary">Back to Admin</a>
+        </div>
+    </div>
+
+    <div th:if="${orders == null or #lists.isEmpty(orders)}">
+        <div class="alert alert-info">No orders found.</div>
+    </div>
+
+    <div th:if="${orders != null and !#lists.isEmpty(orders)}">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="o : ${orders}">
+                <td th:text="${o.id}"></td>
+                <td th:text="${o.user.email}"></td>
+                <td th:text="${o.product != null ? o.product.name : '-'}"></td>
+                <td th:text="${o.quantity}"></td>
+                <td th:text="${o.orderStatus}"></td>
+                <td>
+                    <div th:if="${o.orderStatus == null or !o.orderStatus.toLowerCase().contains('delivered')}">
+                        <form th:action="@{'/admin/order/generate-otp/' + ${o.id}}" method="post" style="display:inline-block;">
+                            <button class="btn btn-sm btn-primary" type="submit" th:text="${ordersWithActiveOtp != null and ordersWithActiveOtp.contains(o.id)} ? 'Resend OTP' : 'Generate OTP'"></button>
+                        </form>
+                    </div>
+                    <div th:if="${o.orderStatus != null and o.orderStatus.toLowerCase().contains('delivered')}">
+                        <span class="badge badge-success">Delivered</span>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

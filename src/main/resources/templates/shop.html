@@ -51,6 +51,9 @@
                 <li class="nav-item active">
                     <a class="nav-link" th:href="@{/cart}" href="#">cart</a>
                 </li>
+                <li class="nav-item active" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/wishlist}" href="#">wishlist</a>
+                </li>
                 <li class="nav-item active">
                     <span class="nav-link" th:text="${cartCount}">0</span>
                 </li>

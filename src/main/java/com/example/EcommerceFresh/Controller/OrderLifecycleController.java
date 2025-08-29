@@ -63,7 +63,11 @@ public class OrderLifecycleController {
         Wishlist w = new Wishlist();
         w.setUser(user);
         var pOpt = productDao.findById(productId);
-        if(pOpt.isPresent()) w.setProduct(pOpt.get()); else { com.example.EcommerceFresh.Entity.Product p = new com.example.EcommerceFresh.Entity.Product(); p.setId(productId); w.setProduct(p); }
+        if (pOpt.isEmpty()) {
+            // avoid saving a transient Product with only id; require existing product
+            return ResponseEntity.badRequest().body("Product not found");
+        }
+        w.setProduct(pOpt.get());
         wishlistDao.save(w);
         return ResponseEntity.ok("Added");
     }
@@ -169,14 +173,47 @@ public class OrderLifecycleController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> generateDeliveryOtp(@PathVariable Integer orderId){
         Optional<UserOrder> o = userOrderDao.findById(orderId);
-        if(o.isEmpty()) return ResponseEntity.badRequest().body("Order not found");
+        if (o.isEmpty()) return ResponseEntity.badRequest().body("Order not found");
         UserOrder order = o.get();
+
+        // Do not generate OTP for already delivered orders
+        if (order.getOrderStatus() != null && order.getOrderStatus().toLowerCase().contains("delivered")) {
+            return ResponseEntity.badRequest().body("Order already delivered");
+        }
+
+        // Check for existing active (not used and not expired) OTP for this order
+        Optional<DeliveryOtp> existingActive = deliveryOtpDao.findAll().stream()
+                .filter(d -> d.getOrder() != null && d.getOrder().getId() == orderId)
+                .filter(d -> !d.isUsed())
+                .filter(d -> d.getExpiresAt() == null || d.getExpiresAt().isAfter(LocalDateTime.now()))
+                .findFirst();
+
+        String code;
+        if (existingActive.isPresent()) {
+            // Re-send existing OTP
+            DeliveryOtp otp = existingActive.get();
+            code = otp.getOtpCode();
+            try {
+                if (order.getUser() != null && order.getUser().getEmail() != null && !order.getUser().getEmail().isBlank()) {
+                    otpService.sendOtpEmail(order.getUser().getEmail(), code);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            // ensure order status indicates out for delivery
+            order.setOrderStatus("Out for Delivery");
+            userOrderDao.save(order);
+            return ResponseEntity.ok("OTP_SENT:" + code);
+        }
+
+        // create new OTP
         DeliveryOtp otp = new DeliveryOtp();
         otp.setOrder(order);
-        String code = String.valueOf(100000 + new Random().nextInt(900000));
+        code = String.valueOf(100000 + new Random().nextInt(900000));
         otp.setOtpCode(code);
         otp.setExpiresAt(LocalDateTime.now().plusDays(14));
         deliveryOtpDao.save(otp);
+
         // send email notification to customer (best-effort)
         try {
             if (order.getUser() != null && order.getUser().getEmail() != null && !order.getUser().getEmail().isBlank()) {
@@ -185,10 +222,11 @@ public class OrderLifecycleController {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+
         // mark order as out for delivery so UI can reflect it
         order.setOrderStatus("Out for Delivery");
         userOrderDao.save(order);
-        return ResponseEntity.ok("OTP:"+code);
+        return ResponseEntity.ok("OTP:" + code);
     }
 
     // Admin page to view pending return/replace requests
@@ -260,5 +298,22 @@ public class OrderLifecycleController {
         order.setOrderStatus("ReturnApproved");
         userOrderDao.save(order);
         return ResponseEntity.ok("Return Approved");
+    }
+
+    // Admin page to view and manage orders (generate OTP)
+    @GetMapping("/admin/orders")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String adminOrdersPage(Model model){
+        java.util.List<UserOrder> orders = userOrderDao.findAll();
+        model.addAttribute("orders", orders);
+        // compute orders that already have an active OTP so template can disable generate button
+        java.util.Set<Integer> ordersWithActiveOtp = deliveryOtpDao.findAll().stream()
+                .filter(d -> d.getOrder() != null)
+                .filter(d -> !d.isUsed())
+                .filter(d -> d.getExpiresAt() == null || d.getExpiresAt().isAfter(LocalDateTime.now()))
+                .map(d -> d.getOrder().getId())
+                .collect(java.util.stream.Collectors.toSet());
+        model.addAttribute("ordersWithActiveOtp", ordersWithActiveOtp);
+        return "adminOrders";
     }
 }
