@@ -188,13 +188,6 @@ public class HomeController {
         return "redirect:/cart";
     }
 
-    @GetMapping("/checkout")
-    public String checkout(Model model){
-        if(GlobalData.cart.isEmpty()){
-            return "redirect:/cart?error=CartIsEmpty";
-        }
-        model.addAttribute("total",GlobalData.cart.stream().mapToDouble(Product::getPrice).sum());
-        return "checkout";
-    }
+    // ... checkout is handled by CheckOutController
 
 }
