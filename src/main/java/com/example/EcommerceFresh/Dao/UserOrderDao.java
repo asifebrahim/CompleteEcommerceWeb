@@ -11,4 +11,5 @@ import java.util.List;
 public interface UserOrderDao extends JpaRepository<UserOrder, Integer> {
     List<UserOrder> findByUserOrderByOrderDateDesc(Users user);
     List<UserOrder> findByUserAndOrderStatusOrderByOrderDateDesc(Users user, String orderStatus);
+    List<UserOrder> findByUserAndProductAndOrderStatus(Users user, com.example.EcommerceFresh.Entity.Product product, String orderStatus);
 }

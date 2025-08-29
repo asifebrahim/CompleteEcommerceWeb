@@ -44,6 +44,9 @@ public class CheckOutController {
     @Autowired
     private UserOrderDao userOrderDao;
 
+    @Autowired
+    private com.example.EcommerceFresh.Dao.ProductDao productDao;
+
     // In-memory map to hold cart snapshots keyed by razorpay order id
     private static final ConcurrentHashMap<String, java.util.List<Product>> pendingCartMap = new ConcurrentHashMap<>();
 
@@ -52,6 +55,19 @@ public class CheckOutController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> createOrder(@RequestParam Double amount) {
         try {
+            if (amount == null || amount <= 0) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Invalid amount");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            int amountPaise = (int) Math.round(amount * 100);
+            final int MIN_PAISA = 100; // ₹1.00
+            if (amountPaise < MIN_PAISA) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Amount too small. Minimum allowed is ₹1");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
             Order order = razorpayService.createOrder(amount);
             String orderId = order.get("id").toString();
 
@@ -102,11 +118,20 @@ public class CheckOutController {
 
                 // Create orders for each cart item
                 for (Product product : cartSnapshot) {
+                    // load managed product to avoid detached-entity issues
+                    Product managedProduct = product;
+                    try {
+                        var pOpt = productDao.findById(product.getId());
+                        if (pOpt.isPresent()) managedProduct = pOpt.get();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
                     UserOrder userOrder = new UserOrder();
                     userOrder.setUser(user);
-                    userOrder.setProduct(product);
+                    userOrder.setProduct(managedProduct);
                     userOrder.setQuantity(1);
-                    userOrder.setTotalPrice(product.getPrice());
+                    userOrder.setTotalPrice(managedProduct.getPrice());
                     userOrder.setOrderStatus("Paid");
                     userOrderDao.save(userOrder);
                 }
@@ -221,6 +246,28 @@ public class CheckOutController {
         }
 
         paymentProofRepository.save(paymentProof);
+
+        // Create UserOrder entries with status 'Pending' for current cart items so they appear in My Orders
+        try {
+            for (Product product : new ArrayList<>(GlobalData.cart)) {
+                Product managedProduct = product;
+                try {
+                    var pOpt = productDao.findById(product.getId());
+                    if (pOpt.isPresent()) managedProduct = pOpt.get();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                UserOrder userOrder = new UserOrder();
+                userOrder.setUser(user);
+                userOrder.setProduct(managedProduct);
+                userOrder.setQuantity(1);
+                userOrder.setTotalPrice(managedProduct.getPrice());
+                userOrder.setOrderStatus("Pending");
+                userOrderDao.save(userOrder);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Clear the in-memory cart after successful submission
         try {

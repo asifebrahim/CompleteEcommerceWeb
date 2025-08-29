@@ -54,6 +54,15 @@ public class ProductServiceImpl {
                         userOrderDao.delete(ord);
                     }
                 }
+                // Delete ratings referencing this product
+                try {
+                    var ratings = ratingDao.findByProduct(product);
+                    if (ratings != null) {
+                        ratingDao.deleteAll(ratings);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 // Delete image file (best-effort)
                 try {
                     java.nio.file.Path imagePath = java.nio.file.Paths.get(System.getProperty("user.dir"), "productImages", product.getImageName());
