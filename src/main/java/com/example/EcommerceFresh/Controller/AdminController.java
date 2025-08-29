@@ -9,6 +9,7 @@ import com.example.EcommerceFresh.Entity.Category;
 import com.example.EcommerceFresh.Entity.Product;
 import com.example.EcommerceFresh.Entity.UserOrder;
 import com.example.EcommerceFresh.Entity.UserProfile;
+import com.example.EcommerceFresh.Global.GlobalData;
 import com.example.EcommerceFresh.Service.CategoryserviceImpl;
 import com.example.EcommerceFresh.Service.ProductServiceImpl;
 import com.example.EcommerceFresh.dto.ProductDto;
@@ -44,16 +45,19 @@ public class AdminController {
     }
 
     @GetMapping("/admin")
-    public String adminHome(){
+    public String adminHome(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
         return "adminHome";
     }
     @GetMapping("/admin/categories")
     public String getCat(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("categories",categoryservice.getAllCategory());
         return "categories";
     }
     @GetMapping("/admin/categories/add")
     public String addCat(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("category",new Category());
         return "categoriesAdd";
     }
@@ -84,12 +88,14 @@ public class AdminController {
 
     @GetMapping("/admin/products")
     public String getProduct(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("products",productService.findAllProduct());
         return "products";
     }
 
     @GetMapping("/admin/products/add")
     public String productAdd(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("productDTO",new ProductDto());
         model.addAttribute("categories",categoryservice.getAllCategory());
         return "productsAdd";
@@ -188,12 +194,14 @@ public class AdminController {
 
     @GetMapping("/admin/payment/manage/pending")
     public String paymentManager(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("payments", paymentProofDao.findByStatus("Pending"));
         model.addAttribute("viewTitle", "Pending Payments");
         return "paymentManage";
     }
     @GetMapping("/admin/payment/manage/approved")
     public String approvedPaymentManager(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("payments", paymentProofDao.findByStatus("Approved"));
         model.addAttribute("viewTitle", "Approved Payments");
         return "approvedPaymentManage";
@@ -201,6 +209,7 @@ public class AdminController {
 
     @GetMapping("/admin/payment/manage/declined")
     public String declinedPaymentManager(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("payments", paymentProofDao.findByStatus("Declined"));
         model.addAttribute("viewTitle", "Declined Payments");
         return "declinedPaymentManage";
