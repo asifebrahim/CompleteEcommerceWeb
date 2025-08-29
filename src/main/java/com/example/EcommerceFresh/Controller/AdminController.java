@@ -4,12 +4,15 @@ package com.example.EcommerceFresh.Controller;
 
 import com.example.EcommerceFresh.Dao.PaymentProofDao;
 import com.example.EcommerceFresh.Dao.UserOrderDao;
+import com.example.EcommerceFresh.Dao.UserProfileDao;
 import com.example.EcommerceFresh.Entity.Category;
 import com.example.EcommerceFresh.Entity.Product;
 import com.example.EcommerceFresh.Entity.UserOrder;
+import com.example.EcommerceFresh.Entity.UserProfile;
 import com.example.EcommerceFresh.Service.CategoryserviceImpl;
 import com.example.EcommerceFresh.Service.ProductServiceImpl;
 import com.example.EcommerceFresh.dto.ProductDto;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -28,13 +31,16 @@ public class AdminController {
     private CategoryserviceImpl categoryservice;
     private ProductServiceImpl productService;
     private UserOrderDao userOrderDao;
-    public String uploadDir = System.getProperty("user.dir") + "/productImages";
+    private UserProfileDao userProfileDao;
+    @Value("${product.images.dir:${user.dir}/productImages}")
+    public String uploadDir;
 
-    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao){
+    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao, UserProfileDao userProfileDao){
         this.categoryservice=categoryservice;
         this.productService=productService;
         this.paymentProofDao = paymentProofDao;
         this.userOrderDao = userOrderDao;
+        this.userProfileDao = userProfileDao;
     }
 
     @GetMapping("/admin")
@@ -292,5 +298,17 @@ public class AdminController {
             }
         }
         return "redirect:/admin/payment/manage/declined";
+    }
+
+    @GetMapping("/admin/payment/search")
+    public String searchPayments(@RequestParam(value = "q", required = false) String q, Model model){
+        model.addAttribute("viewTitle","Search Results");
+        if(q == null || q.trim().isEmpty()){
+            model.addAttribute("payments", java.util.Collections.emptyList());
+        } else {
+            var results = paymentProofDao.findByTransactionIdContainingIgnoreCaseOrUsers_EmailContainingIgnoreCase(q, q);
+            model.addAttribute("payments", results);
+        }
+        return "paymentManage"; // reuse template
     }
 }

@@ -116,167 +116,102 @@ public class CheckOutController {
                     cartSnapshot = new ArrayList<>(GlobalData.cart);
                 }
 
-                // Create orders for each cart item
-                for (Product product : cartSnapshot) {
-                    // load managed product to avoid detached-entity issues
-                    Product managedProduct = product;
-                    try {
-                        var pOpt = productDao.findById(product.getId());
-                        if (pOpt.isPresent()) managedProduct = pOpt.get();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-
-                    UserOrder userOrder = new UserOrder();
-                    userOrder.setUser(user);
-                    userOrder.setProduct(managedProduct);
-                    userOrder.setQuantity(1);
-                    userOrder.setTotalPrice(managedProduct.getPrice());
-                    userOrder.setOrderStatus("Paid");
-                    userOrderDao.save(userOrder);
-                }
-
-                // Clear cart only if we consumed the live cart
+                // Create a PaymentProof record for the gateway payment so admin can review/approve it
                 try {
-                    if (cartSnapshot == GlobalData.cart || (GlobalData.cart != null && GlobalData.cart.isEmpty())) {
-                        GlobalData.cart.clear();
-                    } else {
-                        // best-effort clear live cart as well
-                        GlobalData.cart.clear();
+                    PaymentProof paymentProof = new PaymentProof();
+                    paymentProof.setTransactionId(paymentId);
+                    paymentProof.setUsers(user);
+                    paymentProof.setStatus("Pending");
+                    // Link the first product if available to help admin identify the payment
+                    if (cartSnapshot != null && !cartSnapshot.isEmpty()) {
+                        Product first = cartSnapshot.get(0);
+                        try {
+                            var pOpt = productDao.findById(first.getId());
+                            if (pOpt.isPresent()) paymentProof.setProduct(pOpt.get());
+                            else paymentProof.setProduct(first);
+                        } catch (Exception ex) {
+                            // fallback to assigning the first product object
+                            paymentProof.setProduct(first);
+                        }
                     }
+                    // persist the payment proof so it appears in admin pending payments
+                    paymentProofRepository.save(paymentProof);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
 
                 response.put("status", "success");
-                response.put("message", "Payment verified and order created successfully");
+                return ResponseEntity.ok(response);
             } catch (Exception e) {
                 e.printStackTrace();
                 response.put("status", "error");
-                response.put("message", "Payment verified but order creation failed: " + e.getMessage());
+                response.put("message", e.getMessage());
+                return ResponseEntity.badRequest().body(response);
             }
         } else {
+            // Payment verification failed
             response.put("status", "error");
             response.put("message", "Payment verification failed");
+            return ResponseEntity.badRequest().body(response);
         }
-
-        return ResponseEntity.ok(response);
     }
 
-    // To render the payment form
-    @PostMapping("/payNow")
-    public String checkout(Principal principal,
-                           Model model,
-                           @RequestParam("firstName") String firstName,
-                           @RequestParam("lastName") String lastName,
-                           @RequestParam("address1") String address1,
-                           @RequestParam(value = "address2", required = false) String address2,
-                           @RequestParam("pinCode") String pinCode,
-                           @RequestParam("town") String town,
-                           @RequestParam("phone") String phone,
-                           @RequestParam(value = "additionalInfo", required = false) String additionalInfo) {
-
+    @GetMapping("/checkout")
+    public String checkoutPage(Model model, Principal principal) {
         if (principal == null) {
-            throw new RuntimeException("User not authenticated");
+            return "redirect:/login";
         }
 
-        String email = principal.getName();
-        Users user = usersRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        Users user = usersRepository.findByEmail(principal.getName()).orElse(null);
+        model.addAttribute("user", user);
 
-        // Create and save address once at checkout
-        Address address = new Address();
-        address.setFirstName(firstName);
-        address.setLastName(lastName);
-        address.setAddress1(address1);
-        address.setAddress2(address2);
-        address.setPinCode(pinCode);
-        address.setTown(town);
-        address.setPhone(phone);
-        address.setEmail(user.getEmail());
-        address.setAdditionalInfo(additionalInfo);
-        if(addressRepository.findByAddress1(address1).isEmpty()) // Avoid duplicate addresses
-        {
-            addressRepository.save(address);
+        // Get the user's saved addresses for checkout
+        if (user != null) {
+            java.util.List<Address> addresses = addressRepository.findByUsers(user);
+            model.addAttribute("addresses", addresses);
         }
-        else {
-            address = addressRepository.findByAddress1(address1).get();
-        }
-        // Prepare payment proof bound object with address reference
-        PaymentProof paymentProof = new PaymentProof();
-        paymentProof.setAddress(address);
-        paymentProof.setStatus("Pending");
 
-        model.addAttribute("paymentProof", paymentProof);
-        model.addAttribute("address", address);
-
-        return "PaymentProof";
+        return "checkout";
     }
 
-    // To handle form submission
-    @PostMapping("/ProofUploading")
-    @Transactional
-    public String handlePaymentProof(@ModelAttribute PaymentProof paymentProof, Principal principal) {
+    @PostMapping("/checkout")
+    public String placeOrder(
+            @RequestParam String addressId,
+            @RequestParam String paymentMode,
+            Principal principal) {
 
         if (principal == null) {
-            throw new RuntimeException("User not authenticated");
+            return "redirect:/login";
         }
 
-        String email = principal.getName();
-        Users user = usersRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        paymentProof.setUsers(user);
-
-        // If address reference present (only id expected), load the persisted address and set it
-        if (paymentProof.getAddress() != null && paymentProof.getAddress().getId() > 0) {
-            addressRepository.findById(paymentProof.getAddress().getId()).ifPresent(paymentProof::setAddress);
+        Users user = usersRepository.findByEmail(principal.getName()).orElse(null);
+        if (user == null) {
+            return "redirect:/login";
         }
 
-        // If product is not set on the payment proof and there are items in cart, link the first product so admin can see it
-        try {
-            if (paymentProof.getProduct() == null && GlobalData.cart != null && !GlobalData.cart.isEmpty()) {
-                Product first = GlobalData.cart.get(0);
-                paymentProof.setProduct(first);
-            }
-        } catch (Exception ex) {
-            // swallow, not critical
-            ex.printStackTrace();
+        // Find the address by ID
+        Address address = addressRepository.findById(addressId).orElse(null);
+        if (address == null || !address.getUsers().equals(user)) {
+            return "redirect:/checkout"; // Address not found or doesn't belong to the user
         }
 
-        if (paymentProof.getStatus() == null) {
-            paymentProof.setStatus("Pending");
-        }
+        // Create a new order
+        UserOrder order = new UserOrder();
+        order.setUsers(user);
+        order.setAddress(address);
+        order.setStatus("Pending");
+        order.setPaymentMode(paymentMode);
 
-        paymentProofRepository.save(paymentProof);
+        // Calculate total amount from cart items
+        double totalAmount = GlobalData.cart.stream().mapToDouble(Product::getPrice).sum();
+        order.setAmount(totalAmount);
 
-        // Create UserOrder entries with status 'Pending' for current cart items so they appear in My Orders
-        try {
-            for (Product product : new ArrayList<>(GlobalData.cart)) {
-                Product managedProduct = product;
-                try {
-                    var pOpt = productDao.findById(product.getId());
-                    if (pOpt.isPresent()) managedProduct = pOpt.get();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                UserOrder userOrder = new UserOrder();
-                userOrder.setUser(user);
-                userOrder.setProduct(managedProduct);
-                userOrder.setQuantity(1);
-                userOrder.setTotalPrice(managedProduct.getPrice());
-                userOrder.setOrderStatus("Pending");
-                userOrderDao.save(userOrder);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Save the order
+        userOrderDao.save(order);
 
-        // Clear the in-memory cart after successful submission
-        try {
-            GlobalData.cart.clear();
-        } catch (Exception e) {
-            // best-effort: swallow to avoid breaking the flow
-            e.printStackTrace();
-        }
+        // Clear the cart
+        GlobalData.cart.clear();
 
-        return "paymentSuccess"; // or whatever success page
+        return "redirect:/orders"; // Redirect to orders page after successful checkout
     }
 }
