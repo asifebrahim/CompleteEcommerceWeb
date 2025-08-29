@@ -12,6 +12,7 @@
         <h3 th:text="${viewTitle}">Approved Payments</h3>
         <div>
             <a th:href="@{/admin/payment/manage/pending}" class="btn btn-outline-primary mr-2">View Pending</a>
+            <a th:href="@{/admin/payment/manage/declined}" class="btn btn-outline-danger mr-2">View Declined</a>
             <a th:href="@{/admin}" class="btn btn-secondary">Back to Admin</a>
         </div>
     </div>
@@ -26,15 +27,18 @@
             <tr>
                 <th>ID</th>
                 <th>Transaction ID</th>
+                <th>Product ID</th>
                 <th>User Email</th>
                 <th>Address</th>
                 <th>Status</th>
+                <th>Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="p : ${payments}">
                 <td th:text="${p.id}">1</td>
                 <td th:text="${p.transactionId}">TX123</td>
+                <td th:text="${p.product != null ? p.product.id : '-'}">-</td>
                 <td th:text="${p.users.email}">user@example.com</td>
                 <td>
                     <div th:if="${p.address != null}">
@@ -46,6 +50,9 @@
                 </td>
                 <td>
                     <span class="badge badge-success" th:text="${p.status}">Approved</span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/payment/view/{id}(id=${p.id})}" class="btn btn-sm btn-outline-secondary">View</a>
                 </td>
             </tr>
             </tbody>

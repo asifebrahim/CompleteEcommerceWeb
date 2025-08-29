@@ -190,7 +190,8 @@
                                 <span><strong>₹<span th:text="${total}"></span></strong></span>
                             </li>
 
-                            <button type="submit"  class="btn btn-primary btn-block waves-effect waves-light">Pay Now</button>
+                            <button type="button" class="btn btn-primary btn-block waves-effect waves-light" onclick="initiatePayment()">Pay with Razorpay</button>
+                            <button type="submit" class="btn btn-outline-secondary btn-block mt-2">Pay with QR Code (Old Method)</button>
 
                     </div>
                 </div>
@@ -237,5 +238,86 @@
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    function initiatePayment() {
+        const amount = [[${total}]];
+        
+        // First create order on server
+        fetch('/create-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'amount=' + amount
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error creating order: ' + data.error);
+                return;
+            }
+            
+            // Now open Razorpay checkout
+            var options = {
+                "key": data.keyId,
+                "amount": data.amount,
+                "currency": data.currency,
+                "name": "EcommerceFresh",
+                "description": "Payment for products",
+                "image": "/images/logo.png",
+                "order_id": data.orderId,
+                "handler": function (response){
+                    // Payment successful, verify on server
+                    verifyPayment(response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature);
+                },
+                "prefill": {
+                    "name": document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value,
+                    "email": document.getElementById('form19').value,
+                    "contact": document.getElementById('form18').value
+                },
+                "notes": {
+                    "address": "EcommerceFresh Corporate Office"
+                },
+                "theme": {
+                    "color": "#3399cc"
+                }
+            };
+            
+            var rzp1 = new Razorpay(options);
+            rzp1.on('payment.failed', function (response){
+                alert('Payment failed: ' + response.error.description);
+            });
+            rzp1.open();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error initiating payment');
+        });
+    }
+    
+    function verifyPayment(paymentId, orderId, signature) {
+        fetch('/verify-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'paymentId=' + paymentId + '&orderId=' + orderId + '&signature=' + signature
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Payment successful!');
+                window.location.href = '/paymentSuccess';
+            } else {
+                alert('Payment verification failed: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error verifying payment');
+        });
+    }
+</script>
 </body>
 </html>

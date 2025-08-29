@@ -4,19 +4,25 @@ package com.example.EcommerceFresh.Controller;
 import com.example.EcommerceFresh.Dao.AddressDao;
 import com.example.EcommerceFresh.Dao.PaymentProofDao;
 import com.example.EcommerceFresh.Dao.UserDao;
+import com.example.EcommerceFresh.Dao.UserOrderDao;
 import com.example.EcommerceFresh.Entity.Address;
 import com.example.EcommerceFresh.Entity.PaymentProof;
+import com.example.EcommerceFresh.Entity.Product;
+import com.example.EcommerceFresh.Entity.UserOrder;
 import com.example.EcommerceFresh.Entity.Users;
 import com.example.EcommerceFresh.Global.GlobalData;
+import com.example.EcommerceFresh.Service.RazorpayService;
+import com.razorpay.Order;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class CheckOutController {
@@ -29,6 +35,75 @@ public class CheckOutController {
 
     @Autowired
     private AddressDao addressRepository;
+
+    @Autowired
+    private RazorpayService razorpayService;
+
+    @Autowired
+    private UserOrderDao userOrderDao;
+
+    // Create Razorpay order
+    @PostMapping("/create-order")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createOrder(@RequestParam Double amount) {
+        try {
+            Order order = razorpayService.createOrder(amount);
+            Map<String, Object> response = new HashMap<>();
+            response.put("orderId", order.get("id"));
+            response.put("amount", order.get("amount"));
+            response.put("currency", order.get("currency"));
+            response.put("keyId", razorpayService.getKeyId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to create order");
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    // Verify payment and create order
+    @PostMapping("/verify-payment")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> verifyPayment(
+            @RequestParam String paymentId,
+            @RequestParam String orderId,
+            @RequestParam String signature,
+            Principal principal) {
+        
+        Map<String, String> response = new HashMap<>();
+        
+        if (razorpayService.verifyPayment(paymentId, orderId, signature)) {
+            // Payment verified successfully
+            try {
+                Users user = usersRepository.findByEmail(principal.getName()).orElseThrow();
+                
+                // Create orders for each cart item
+                for (Product product : GlobalData.cart) {
+                    UserOrder userOrder = new UserOrder();
+                    userOrder.setUser(user);
+                    userOrder.setProduct(product);
+                    userOrder.setQuantity(1);
+                    userOrder.setTotalPrice(product.getPrice());
+                    userOrder.setOrderStatus("Paid");
+                    userOrderDao.save(userOrder);
+                }
+                
+                // Clear cart
+                GlobalData.cart.clear();
+                
+                response.put("status", "success");
+                response.put("message", "Payment verified and order created successfully");
+            } catch (Exception e) {
+                response.put("status", "error");
+                response.put("message", "Payment verified but order creation failed");
+            }
+        } else {
+            response.put("status", "error");
+            response.put("message", "Payment verification failed");
+        }
+        
+        return ResponseEntity.ok(response);
+    }
 
     // To render the payment form
     @PostMapping("/payNow")

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" crossorigin="anonymous">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <img th:src="@{/images/logo.png}" src="../static/images/logo.png" width="auto" height="40"
+                 class="d-inline-block align-top" alt=""/>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-navbar" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto"></ul>
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" th:href="@{/}" href="#">home</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" th:href="@{/shop}" href="#">shop</a>
+                </li>
+                <li class="nav-item active dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Profile
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" th:href="@{/profile}">My Profile</a>
+                        <a class="dropdown-item" th:href="@{/profile/orders}">My Orders</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" th:href="@{/logout}">Logout</a>
+                    </div>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" sec:authorize="isAnonymous()" th:href="@{/login}" href="#">login</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" th:href="@{/cart}" href="#">cart</a>
+                </li>
+                <li class="nav-item active">
+                    <span class="nav-link" th:text="${cartCount}"></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>My Orders</h2>
+                <a th:href="@{/profile}" class="btn btn-outline-secondary">Back to Profile</a>
+            </div>
+            
+            <div th:if="${orders == null or #lists.isEmpty(orders)}" class="alert alert-info">
+                You have no orders yet. <a th:href="@{/shop}">Start shopping!</a>
+            </div>
+            
+            <div th:if="${orders != null and !#lists.isEmpty(orders)}">
+                <div class="card mb-3" th:each="order : ${orders}">
+                    <div class="card-header d-flex justify-content-between">
+                        <div>
+                            <strong>Order #<span th:text="${order.id}"></span></strong>
+                            <span class="text-muted">- <span th:text="${#temporals.format(order.orderDate, 'dd MMM yyyy HH:mm')}"></span></span>
+                        </div>
+                        <span class="badge" 
+                              th:classappend="${order.orderStatus == 'Delivered'} ? 'badge-success' : 
+                                             (${order.orderStatus == 'Cancelled'} ? 'badge-danger' : 
+                                             (${order.orderStatus == 'Shipped'} ? 'badge-info' : 'badge-warning'))"
+                              th:text="${order.orderStatus}">Status</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <img th:src="@{${'/productImages/' + order.product.imageName}}" 
+                                     class="img-fluid rounded" alt="Product Image" style="max-height: 80px;">
+                            </div>
+                            <div class="col-md-10">
+                                <h6 th:text="${order.product.name}">Product Name</h6>
+                                <p class="text-muted mb-1">Quantity: <span th:text="${order.quantity}"></span></p>
+                                <p class="text-muted mb-1">Total: ₹<span th:text="${order.totalPrice}"></span></p>
+                                <p class="text-muted mb-0" th:if="${order.deliveryAddress}">
+                                    Delivery Address: <span th:text="${order.deliveryAddress}"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

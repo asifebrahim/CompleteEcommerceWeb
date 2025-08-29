@@ -64,12 +64,12 @@ public class AdminController {
 
     @GetMapping("/admin/categories/update/{id}")
     public String updateCat(@PathVariable int id,Model model){
-        Optional temp=categoryservice.findCategoryById(id);
-        if(temp!=null){
+        Optional<Category> temp=categoryservice.findCategoryById(id);
+        if(temp.isPresent()){
             model.addAttribute("category",temp.get());
             return "categoriesAdd";
         }else
-            return "404";
+            return "error";
     }
 
     @GetMapping("/admin/products")
@@ -87,7 +87,7 @@ public class AdminController {
     @PostMapping("/admin/products/add")
     public String productPostProcess(@ModelAttribute("productDTO") ProductDto productDto,
                                     @RequestParam("productImage")MultipartFile file,
-                                     @RequestParam("imgName") String imgName)throws IOException {
+                                     @RequestParam(value = "imgName", required = false) String imgName)throws IOException {
 
 
         Product product=new Product();
@@ -103,10 +103,15 @@ public class AdminController {
         String imageUUID;
         if(!file.isEmpty()){
             imageUUID=file.getOriginalFilename();
+            // Create directory if it doesn't exist
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
             Path fileNameAndPath= Paths.get(uploadDir,imageUUID);
             Files.write(fileNameAndPath,file.getBytes());
         }else{
-            imageUUID=imgName;
+            imageUUID=imgName != null ? imgName : "default.png";
         }
         product.setImageName(imageUUID);
         productService.Save(product);
@@ -186,5 +191,16 @@ public class AdminController {
             return "paymentView";
         }
         return "redirect:/admin/payment/manage/pending";
+    }
+
+    @GetMapping("/admin/payment/re-approve/{id}")
+    public String reApproveDeclined(@PathVariable int id){
+        var paymentOpt=paymentProofDao.findById(id);
+        if(paymentOpt.isPresent()){
+            var payment=paymentOpt.get();
+            payment.setStatus("Approved");
+            paymentProofDao.save(payment);
+        }
+        return "redirect:/admin/payment/manage/declined";
     }
 }
