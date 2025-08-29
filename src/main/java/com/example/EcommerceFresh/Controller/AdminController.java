@@ -3,8 +3,10 @@ package com.example.EcommerceFresh.Controller;
 
 
 import com.example.EcommerceFresh.Dao.PaymentProofDao;
+import com.example.EcommerceFresh.Dao.UserOrderDao;
 import com.example.EcommerceFresh.Entity.Category;
 import com.example.EcommerceFresh.Entity.Product;
+import com.example.EcommerceFresh.Entity.UserOrder;
 import com.example.EcommerceFresh.Service.CategoryserviceImpl;
 import com.example.EcommerceFresh.Service.ProductServiceImpl;
 import com.example.EcommerceFresh.dto.ProductDto;
@@ -23,14 +25,16 @@ import java.util.Optional;
 public class AdminController {
 
     private final PaymentProofDao paymentProofDao;
-    public String uploadDir = System.getProperty("user.dir") + "/productImages";
-
     private CategoryserviceImpl categoryservice;
     private ProductServiceImpl productService;
-    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao){
+    private UserOrderDao userOrderDao;
+    public String uploadDir = System.getProperty("user.dir") + "/productImages";
+
+    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao){
         this.categoryservice=categoryservice;
         this.productService=productService;
         this.paymentProofDao = paymentProofDao;
+        this.userOrderDao = userOrderDao;
     }
 
     @GetMapping("/admin")
@@ -203,6 +207,23 @@ public class AdminController {
             var payment=paymentOpt.get();
             payment.setStatus("Approved");
             paymentProofDao.save(payment);
+
+            // Update related user orders from Pending -> Paid
+            try {
+                var user = payment.getUsers();
+                var product = payment.getProduct();
+                if (user != null && product != null) {
+                    var orders = userOrderDao.findByUserAndProductAndOrderStatus(user, product, "Pending");
+                    if (orders != null) {
+                        for (UserOrder ord : orders) {
+                            ord.setOrderStatus("Paid");
+                            userOrderDao.save(ord);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         return "redirect:/admin/payment/manage/pending";
     }
@@ -214,6 +235,23 @@ public class AdminController {
             var payment=paymentOpt.get();
             payment.setStatus("Declined");
             paymentProofDao.save(payment);
+
+            // Update related user orders from Pending -> Declined
+            try {
+                var user = payment.getUsers();
+                var product = payment.getProduct();
+                if (user != null && product != null) {
+                    var orders = userOrderDao.findByUserAndProductAndOrderStatus(user, product, "Pending");
+                    if (orders != null) {
+                        for (UserOrder ord : orders) {
+                            ord.setOrderStatus("Declined");
+                            userOrderDao.save(ord);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         return "redirect:/admin/payment/manage/pending";
     }
@@ -235,6 +273,23 @@ public class AdminController {
             var payment=paymentOpt.get();
             payment.setStatus("Approved");
             paymentProofDao.save(payment);
+
+            // Also update related orders
+            try {
+                var user = payment.getUsers();
+                var product = payment.getProduct();
+                if (user != null && product != null) {
+                    var orders = userOrderDao.findByUserAndProductAndOrderStatus(user, product, "Pending");
+                    if (orders != null) {
+                        for (UserOrder ord : orders) {
+                            ord.setOrderStatus("Paid");
+                            userOrderDao.save(ord);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         return "redirect:/admin/payment/manage/declined";
     }
