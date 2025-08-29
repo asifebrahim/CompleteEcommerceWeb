@@ -5,10 +5,12 @@ package com.example.EcommerceFresh.Controller;
 import com.example.EcommerceFresh.Dao.PaymentProofDao;
 import com.example.EcommerceFresh.Dao.UserOrderDao;
 import com.example.EcommerceFresh.Dao.UserProfileDao;
+import com.example.EcommerceFresh.Dao.OrderGroupDao;
 import com.example.EcommerceFresh.Entity.Category;
 import com.example.EcommerceFresh.Entity.Product;
 import com.example.EcommerceFresh.Entity.UserOrder;
 import com.example.EcommerceFresh.Entity.UserProfile;
+import com.example.EcommerceFresh.Entity.OrderGroup;
 import com.example.EcommerceFresh.Global.GlobalData;
 import com.example.EcommerceFresh.Service.CategoryserviceImpl;
 import com.example.EcommerceFresh.Service.ProductServiceImpl;
@@ -33,15 +35,17 @@ public class AdminController {
     private ProductServiceImpl productService;
     private UserOrderDao userOrderDao;
     private UserProfileDao userProfileDao;
+    private OrderGroupDao orderGroupDao;
     @Value("${product.images.dir:${user.dir}/productImages}")
     public String uploadDir;
 
-    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao, UserProfileDao userProfileDao){
+    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao, UserProfileDao userProfileDao, OrderGroupDao orderGroupDao){
         this.categoryservice=categoryservice;
         this.productService=productService;
         this.paymentProofDao = paymentProofDao;
         this.userOrderDao = userOrderDao;
         this.userProfileDao = userProfileDao;
+        this.orderGroupDao = orderGroupDao;
     }
 
     @GetMapping("/admin")
@@ -319,5 +323,13 @@ public class AdminController {
             model.addAttribute("payments", results);
         }
         return "paymentManage"; // reuse template
+    }
+
+    @GetMapping("/admin/orders")
+    public String manageOrders(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        java.util.List<OrderGroup> groups = orderGroupDao.findAll();
+        model.addAttribute("orderGroups", groups);
+        return "adminOrders";
     }
 }

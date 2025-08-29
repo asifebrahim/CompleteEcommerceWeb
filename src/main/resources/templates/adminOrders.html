@@ -67,8 +67,8 @@
                             <tbody>
                             <tr th:each="order : ${orderGroup.userOrders}">
                                 <td>
-                                    <img th:src="@{${'/productImages/' + order.product.imageName}}" 
-                                         style="width: 30px; height: 30px; object-fit: cover;" class="mr-2">
+                                    <img th:src="@{${'/productImages/' + (order.product != null && order.product.imageName != null ? order.product.imageName : 'default.png')}}" 
+                                         style="width: 30px; height: 30px; object-fit: cover;" class="mr-2" th:alt="${order.product != null ? order.product.name : 'Product'}">
                                     <span th:text="${order.product != null ? order.product.name : '-'}"></span>
                                 </td>
                                 <td th:text="${order.quantity}"></td>

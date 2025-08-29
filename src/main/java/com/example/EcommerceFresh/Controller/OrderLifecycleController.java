@@ -326,6 +326,24 @@ public class OrderLifecycleController {
         userOrderDao.save(order);
         otp.setUsed(true);
         deliveryOtpDao.save(otp);
+
+        // If this order is part of an OrderGroup, check if all group orders are delivered -> update group status
+        OrderGroup og = order.getOrderGroup();
+        if (og != null) {
+            boolean allDelivered = true;
+            if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                for (UserOrder uo : og.getUserOrders()) {
+                    String st = uo.getOrderStatus() == null ? "" : uo.getOrderStatus();
+                    if (!st.toLowerCase().contains("delivered")) { allDelivered = false; break; }
+                }
+            } else {
+                allDelivered = false;
+            }
+            if (allDelivered) {
+                og.setGroupStatus("Delivered");
+                orderGroupDao.save(og);
+            }
+        }
         return ResponseEntity.ok("Verified and delivered");
     }
 
