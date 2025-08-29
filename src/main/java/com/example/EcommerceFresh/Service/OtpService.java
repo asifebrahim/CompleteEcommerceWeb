@@ -5,6 +5,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.security.SecureRandom;
@@ -43,12 +44,18 @@ public class OtpService {
         }
     }
 
+    @Async("taskExecutor")
     public void sendOtpEmail(String to, String otp) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject("Your verification code");
-        message.setText("Your OTP code is: " + otp + "\nThis code will expire in " + otpValidityMinutes + " minutes.");
-        mailSender.send(message);
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("Your verification code");
+            message.setText("Your OTP code is: " + otp + "\nThis code will expire in " + otpValidityMinutes + " minutes.");
+            mailSender.send(message);
+        } catch (Exception e) {
+            // best-effort: log and swallow so admin flow is not blocked
+            e.printStackTrace();
+        }
     }
 
     public LocalDateTime computeExpiry() {

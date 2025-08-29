@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return / Replace Requests</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Pending Return / Replace Requests</h2>
+    <div th:if="${requests == null or #lists.isEmpty(requests)}" class="alert alert-info">No pending requests.</div>
+    <div th:if="${requests != null and !#lists.isEmpty(requests)}">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Order</th>
+                <th>Product</th>
+                <th>User</th>
+                <th>Type</th>
+                <th>Reason</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${requests}">
+                <td th:text="${r.id}"></td>
+                <td>#<span th:text="${r.order.id}"></span></td>
+                <td th:text="${r.order.product != null ? r.order.product.name : 'N/A'}"></td>
+                <td th:text="${r.order.user != null ? r.order.user.email : 'N/A'}"></td>
+                <td th:text="${r.requestType}"></td>
+                <td th:text="${r.reason}"></td>
+                <td>
+                    <form th:action="@{'/admin/return/approve/' + ${r.id}}" method="post" style="display:inline-block; margin-right:6px;">
+                        <input type="hidden" name="action" value="RETURN" />
+                        <button class="btn btn-success btn-sm" type="submit">Approve Return</button>
+                    </form>
+                    <form th:action="@{'/admin/return/approve/' + ${r.id}}" method="post" style="display:inline-block; margin-right:6px;">
+                        <input type="hidden" name="action" value="REPLACE" />
+                        <button class="btn btn-primary btn-sm" type="submit">Approve Replace</button>
+                    </form>
+                    <form th:action="@{'/admin/return/approve/' + ${r.id}}" method="post" style="display:inline-block;">
+                        <input type="hidden" name="action" value="REJECT" />
+                        <button class="btn btn-danger btn-sm" type="submit">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

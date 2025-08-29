@@ -3,9 +3,9 @@ package com.example.EcommerceFresh.Controller;
 
 import com.example.EcommerceFresh.Dao.RatingDao;
 import com.example.EcommerceFresh.Dao.UserDao;
+import com.example.EcommerceFresh.Dao.WishlistDao;
 import com.example.EcommerceFresh.Entity.Product;
 import com.example.EcommerceFresh.Entity.Rating;
-import com.example.EcommerceFresh.Entity.Users;
 import com.example.EcommerceFresh.Global.GlobalData;
 import com.example.EcommerceFresh.Service.CategoryserviceImpl;
 import com.example.EcommerceFresh.Service.ProductServiceImpl;
@@ -29,12 +29,14 @@ public class HomeController {
     ProductServiceImpl productService;
     UserDao userDao;
     RatingDao ratingDao;
+    WishlistDao wishlistDao;
 
-    public HomeController(CategoryserviceImpl categoryservice,ProductServiceImpl productService, UserDao userDao, RatingDao ratingDao){
+    public HomeController(CategoryserviceImpl categoryservice,ProductServiceImpl productService, UserDao userDao, RatingDao ratingDao, WishlistDao wishlistDao){
         this.categoryservice=categoryservice;
         this.productService=productService;
         this.userDao = userDao;
         this.ratingDao = ratingDao;
+        this.wishlistDao = wishlistDao;
     }
 
     @GetMapping({"/", "/home"})
@@ -43,7 +45,7 @@ public class HomeController {
         return "redirect:/shop";
     }
     @GetMapping("/shop")
-    public String shop(Model model, @RequestParam(value = "sort", required = false, defaultValue = "") String sort){
+    public String shop(Model model, @RequestParam(value = "sort", required = false, defaultValue = "") String sort, Principal principal){
         model.addAttribute("cartCount",GlobalData.cart.size());
         model.addAttribute("categories",categoryservice.getAllCategory());
         List<Product> products = productService.findAllProduct();
@@ -69,12 +71,23 @@ public class HomeController {
         model.addAttribute("avgRatings", avgRatings);
         model.addAttribute("roundedRatings", roundedRatings);
         model.addAttribute("sort", sort);
+        // add user's wishlist product ids if authenticated
+        java.util.Set<Integer> wishlistIds = java.util.Collections.emptySet();
+        if(principal != null){
+            var userOpt = userDao.findByEmail(principal.getName());
+            if(userOpt.isPresent()){
+                var user = userOpt.get();
+                java.util.List<com.example.EcommerceFresh.Entity.Wishlist> wl = wishlistDao.findByUser(user);
+                wishlistIds = wl.stream().map(w -> w.getProduct() != null ? w.getProduct().getId() : null).filter(java.util.Objects::nonNull).collect(Collectors.toSet());
+            }
+        }
+        model.addAttribute("wishlistIds", wishlistIds);
 
         return "shop";
     }
 
     @GetMapping("/shop/category/{id}")
-    public String shopByCategory(Model model, @PathVariable int id, @RequestParam(value = "sort", required = false, defaultValue = "") String sort){
+    public String shopByCategory(Model model, @PathVariable int id, @RequestParam(value = "sort", required = false, defaultValue = "") String sort, Principal principal){
         model.addAttribute("cartCount",GlobalData.cart.size());
         model.addAttribute("categories",categoryservice.getAllCategory());
         List<Product> products = productService.getProductByCategoryId(id);
@@ -101,10 +114,21 @@ public class HomeController {
         model.addAttribute("avgRatings", avgRatings);
         model.addAttribute("roundedRatings", roundedRatings);
         model.addAttribute("sort", sort);
+        // add user's wishlist product ids if authenticated
+        java.util.Set<Integer> wishlistIds = java.util.Collections.emptySet();
+        if(principal != null){
+            var userOpt = userDao.findByEmail(principal.getName());
+            if(userOpt.isPresent()){
+                var user = userOpt.get();
+                java.util.List<com.example.EcommerceFresh.Entity.Wishlist> wl = wishlistDao.findByUser(user);
+                wishlistIds = wl.stream().map(w -> w.getProduct() != null ? w.getProduct().getId() : null).filter(java.util.Objects::nonNull).collect(Collectors.toSet());
+            }
+        }
+        model.addAttribute("wishlistIds", wishlistIds);
         return "shop";
     }
     @GetMapping("/shop/viewproduct/{id}")
-    public String viewProduct(Model model,@PathVariable int id, @RequestParam(value = "sort", required = false, defaultValue = "recent") String sort){
+    public String viewProduct(Model model,@PathVariable int id, @RequestParam(value = "sort", required = false, defaultValue = "recent") String sort, Principal principal){
         model.addAttribute("cartCount",GlobalData.cart.size());
         var product = productService.findById(id).get();
         model.addAttribute("product",product);
@@ -120,6 +144,17 @@ public class HomeController {
             model.addAttribute("ratings", productService.getRatingsForProduct(product));
         }
         model.addAttribute("sort", sort);
+        // wishlist flag for this product
+        java.util.Set<Integer> wishlistIds = java.util.Collections.emptySet();
+        if(principal != null){
+            var userOpt = userDao.findByEmail(principal.getName());
+            if(userOpt.isPresent()){
+                var user = userOpt.get();
+                java.util.List<com.example.EcommerceFresh.Entity.Wishlist> wl = wishlistDao.findByUser(user);
+                wishlistIds = wl.stream().map(w -> w.getProduct() != null ? w.getProduct().getId() : null).filter(java.util.Objects::nonNull).collect(Collectors.toSet());
+            }
+        }
+        model.addAttribute("wishlistIds", wishlistIds);
         return "viewProduct";
     }
 

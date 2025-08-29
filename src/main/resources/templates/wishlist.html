@@ -1,0 +1,42 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>Wishlist</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Your Wishlist</h1>
+    <div th:if="${items == null or #lists.isEmpty(items)}">
+        <p>Your wishlist is empty.</p>
+        <a th:href="@{/shop}">Continue shopping</a>
+    </div>
+    <div th:if="${items != null and !#lists.isEmpty(items)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Product</th>
+                <th>Added</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="w : ${items}">
+                <td>
+                    <img th:src="@{'/productImages/' + (w.product != null ? w.product.imageName : 'default.png')}" height="80" width="80" alt="">
+                    <span th:text="${w.product != null ? w.product.name : 'Product'}"></span>
+                </td>
+                <td th:text="${#dates.format(w.createdAt, 'dd MMM yyyy')}"></td>
+                <td>
+                    <form th:action="@{'/wishlist/remove/' + (w.product != null ? w.product.id : 0) + '/form'}" method="post">
+                        <button type="submit">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

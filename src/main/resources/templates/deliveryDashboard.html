@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Delivery OTPs</h2>
+    <div th:if="${otps == null or #lists.isEmpty(otps)}" class="alert alert-info">No active OTPs.</div>
+    <div th:if="${otps != null and !#lists.isEmpty(otps)}">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>OTP</th>
+                <th>Order</th>
+                <th>Product</th>
+                <th>Expires At</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="d : ${otps}">
+                <td th:text="${d.otpCode}"></td>
+                <td>#<span th:text="${d.order.id}"></span></td>
+                <td th:text="${d.order.product != null ? d.order.product.name : 'N/A'}"></td>
+                <td th:text="${#temporals.format(d.expiresAt, 'dd MMM yyyy')}"></td>
+                <td>
+                    <form th:action="@{'/delivery/verify/' + ${d.order.id}}" method="post">
+                        <input type="hidden" name="otpCode" th:value="${d.otpCode}" />
+                        <button class="btn btn-success btn-sm" type="submit">Mark Delivered</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

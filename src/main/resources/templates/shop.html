@@ -102,10 +102,22 @@
                             </div>
                             <p th:text="${product.description}" >Suresh Dasari is a founder and technical lead developer in tutlane.</p>
                             <a href="#" th:href="@{/shop/viewproduct/{id}(id=${product.id})}" class="btn btn-primary">View Product</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            <!-- Wishlist buttons -->
+                            <span sec:authorize="isAuthenticated()">
+                                <form th:if="${wishlistIds != null and wishlistIds.contains(product.id)}" th:action="@{'/wishlist/remove/' + ${product.id} + '/form'}" method="post" style="display:inline-block; margin-left:8px;">
+                                    <button class="btn btn-outline-danger btn-sm" type="submit">Remove Wishlist</button>
+                                </form>
+                                <form th:if="${wishlistIds == null or !wishlistIds.contains(product.id)}" th:action="@{'/wishlist/add/' + ${product.id} + '/form'}" method="post" style="display:inline-block; margin-left:8px;">
+                                    <button class="btn btn-outline-primary btn-sm" type="submit">Add to Wishlist</button>
+                                </form>
+                            </span>
+                            <span sec:authorize="isAnonymous()">
+                                <a th:href="@{/login}" class="btn btn-outline-secondary btn-sm" style="margin-left:8px;">Login to wishlist</a>
+                            </span>
+                         </div>
+                     </div>
+                 </div>
+             </div>
         </div>
     </div>
 </div>

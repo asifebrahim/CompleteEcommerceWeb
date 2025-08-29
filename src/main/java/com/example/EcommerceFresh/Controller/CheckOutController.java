@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Controller
 public class CheckOutController {
@@ -140,6 +141,34 @@ public class CheckOutController {
                     ex.printStackTrace();
                 }
 
+                // Create orders for each cart item and mark them as Paid - Awaiting Dispatch
+                try {
+                    if (cartSnapshot != null) {
+                        for (Product product : cartSnapshot) {
+                            Product managedProduct = product;
+                            try {
+                                var pOpt = productDao.findById(product.getId());
+                                if (pOpt.isPresent()) managedProduct = pOpt.get();
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+
+                            UserOrder userOrder = new UserOrder();
+                            userOrder.setUser(user);
+                            userOrder.setProduct(managedProduct);
+                            userOrder.setQuantity(1);
+                            userOrder.setTotalPrice(managedProduct.getPrice());
+                            userOrder.setOrderStatus("Paid - Awaiting Dispatch");
+                            userOrderDao.save(userOrder);
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                // Clear the live cart after creating orders
+                try { GlobalData.cart.clear(); } catch (Exception ex) { ex.printStackTrace(); }
+
                 response.put("status", "success");
                 return ResponseEntity.ok(response);
             } catch (Exception e) {
@@ -167,7 +196,9 @@ public class CheckOutController {
 
         // Get the user's saved addresses for checkout
         if (user != null) {
-            java.util.List<Address> addresses = addressRepository.findByUsers(user);
+            java.util.List<Address> addresses = addressRepository.findAll().stream()
+                    .filter(a -> a.getEmail() != null && a.getEmail().equals(user.getEmail()))
+                    .collect(Collectors.toList());
             model.addAttribute("addresses", addresses);
         }
 
@@ -176,9 +207,9 @@ public class CheckOutController {
 
     @PostMapping("/checkout")
     public String placeOrder(
-            @RequestParam String addressId,
+            @RequestParam int addressId,
             @RequestParam String paymentMode,
-            Principal principal) {
+             Principal principal) {
 
         if (principal == null) {
             return "redirect:/login";
@@ -191,27 +222,39 @@ public class CheckOutController {
 
         // Find the address by ID
         Address address = addressRepository.findById(addressId).orElse(null);
-        if (address == null || !address.getUsers().equals(user)) {
+        if (address == null || !address.getEmail().equals(user.getEmail())) {
             return "redirect:/checkout"; // Address not found or doesn't belong to the user
         }
 
-        // Create a new order
-        UserOrder order = new UserOrder();
-        order.setUsers(user);
-        order.setAddress(address);
-        order.setStatus("Pending");
-        order.setPaymentMode(paymentMode);
+        // Create UserOrder entries (one per cart item) with Pending status
+        try {
+            for (Product prod : new ArrayList<>(GlobalData.cart)) {
+                Product managedProduct = prod;
+                try {
+                    var pOpt = productDao.findById(prod.getId());
+                    if (pOpt.isPresent()) managedProduct = pOpt.get();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
 
-        // Calculate total amount from cart items
-        double totalAmount = GlobalData.cart.stream().mapToDouble(Product::getPrice).sum();
-        order.setAmount(totalAmount);
-
-        // Save the order
-        userOrderDao.save(order);
+                UserOrder userOrder = new UserOrder();
+                userOrder.setUser(user);
+                userOrder.setProduct(managedProduct);
+                userOrder.setQuantity(1);
+                userOrder.setTotalPrice(managedProduct.getPrice());
+                userOrder.setOrderStatus("Pending");
+                // set delivery address string from Address entity
+                String deliveryAddr = String.format("%s, %s, %s", address.getAddress1(), address.getTown(), address.getPinCode());
+                userOrder.setDeliveryAddress(deliveryAddr);
+                userOrderDao.save(userOrder);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
         // Clear the cart
-        GlobalData.cart.clear();
+        try { GlobalData.cart.clear(); } catch (Exception ex) { ex.printStackTrace(); }
 
-        return "redirect:/orders"; // Redirect to orders page after successful checkout
+        return "redirect:/profile/orders"; // Redirect to profile orders page after successful checkout
     }
 }
