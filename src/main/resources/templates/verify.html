@@ -23,6 +23,12 @@
                         </div>
                         <button class="btn btn-primary" type="submit">Verify</button>
                     </form>
+                    <div th:if="${devOtp != null}" class="mt-2">
+                        <div class="alert alert-warning">
+                            <strong>Dev OTP:</strong> <span th:text="${devOtp}"></span>
+                            <div th:if="${warning}" class="text-danger" th:text="${warning}"></div>
+                        </div>
+                    </div>
                     <hr/>
                     <form th:action="@{/resend-otp}" method="post" class="mt-2">
                         <input type="hidden" name="email" th:value="${email}" />

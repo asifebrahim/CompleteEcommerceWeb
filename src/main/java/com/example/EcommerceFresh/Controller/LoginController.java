@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -39,6 +40,9 @@ public class LoginController {
     PendingUserDao pendingUserDao;
     @Autowired
     OtpService otpService;
+
+    @Value("${APP_SHOW_OTP:false}")
+    private boolean appShowOtp;
 
     @GetMapping("/login")
     public String login(){
@@ -87,8 +91,18 @@ public class LoginController {
         // Send email with OTP (async if desired)
         try{
             otpService.sendOtpEmail(pending.getEmail(), otp);
+            if(appShowOtp){
+                redirectAttributes.addFlashAttribute("devOtp", otp);
+            }
         } catch (Exception e){
             e.printStackTrace();
+            if(appShowOtp){
+                // In dev mode, continue flow and show OTP on verify page
+                redirectAttributes.addFlashAttribute("warning","Failed to send OTP via email; showing OTP for development.");
+                redirectAttributes.addFlashAttribute("devOtp", otp);
+                redirectAttributes.addFlashAttribute("message","OTP generated. Check the field below.");
+                return "redirect:/verify?email=" + pending.getEmail();
+            }
             redirectAttributes.addFlashAttribute("error","Failed to send OTP. Try again later.");
             return "redirect:/register";
         }
