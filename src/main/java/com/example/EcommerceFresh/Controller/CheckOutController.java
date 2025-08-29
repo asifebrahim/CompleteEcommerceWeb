@@ -2,10 +2,13 @@ package com.example.EcommerceFresh.Controller;
 
 
 import com.example.EcommerceFresh.Dao.AddressDao;
+import com.example.EcommerceFresh.Dao.OrderGroupDao;
 import com.example.EcommerceFresh.Dao.PaymentProofDao;
+import com.example.EcommerceFresh.Dao.ProductDao;
 import com.example.EcommerceFresh.Dao.UserDao;
 import com.example.EcommerceFresh.Dao.UserOrderDao;
 import com.example.EcommerceFresh.Entity.Address;
+import com.example.EcommerceFresh.Entity.OrderGroup;
 import com.example.EcommerceFresh.Entity.PaymentProof;
 import com.example.EcommerceFresh.Entity.Product;
 import com.example.EcommerceFresh.Entity.UserOrder;
@@ -44,6 +47,9 @@ public class CheckOutController {
 
     @Autowired
     private UserOrderDao userOrderDao;
+
+    @Autowired
+    private OrderGroupDao orderGroupDao;
 
     @Autowired
     private com.example.EcommerceFresh.Dao.ProductDao productDao;
@@ -143,7 +149,21 @@ public class CheckOutController {
 
                 // Create orders for each cart item and mark them as Paid - Awaiting Dispatch
                 try {
-                    if (cartSnapshot != null) {
+                    if (cartSnapshot != null && !cartSnapshot.isEmpty()) {
+                        // Create an OrderGroup to group all products from this payment
+                        OrderGroup orderGroup = new OrderGroup();
+                        orderGroup.setUser(user);
+                        orderGroup.setGroupStatus("Paid - Awaiting Dispatch");
+                        orderGroup.setRazorpayOrderId(orderId);
+                        
+                        // Calculate total amount
+                        double totalAmount = cartSnapshot.stream().mapToDouble(Product::getPrice).sum();
+                        orderGroup.setTotalAmount(totalAmount);
+                        
+                        // Save the order group first
+                        orderGroup = orderGroupDao.save(orderGroup);
+                        
+                        // Create individual UserOrders for each product and link to the group
                         for (Product product : cartSnapshot) {
                             Product managedProduct = product;
                             try {
@@ -156,7 +176,9 @@ public class CheckOutController {
                             UserOrder userOrder = new UserOrder();
                             userOrder.setUser(user);
                             userOrder.setProduct(managedProduct);
+                            userOrder.setOrderGroup(orderGroup);
                             userOrder.setQuantity(1);
+                            userOrder.setProductPriceAtOrder(managedProduct.getPrice()); // Store price at time of order
                             userOrder.setTotalPrice(managedProduct.getPrice());
                             userOrder.setOrderStatus("Paid - Awaiting Dispatch");
                             userOrderDao.save(userOrder);

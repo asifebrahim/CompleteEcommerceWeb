@@ -3,8 +3,10 @@ package com.example.EcommerceFresh.Controller;
 import com.example.EcommerceFresh.Dao.UserDao;
 import com.example.EcommerceFresh.Dao.UserProfileDao;
 import com.example.EcommerceFresh.Dao.UserOrderDao;
+import com.example.EcommerceFresh.Dao.OrderGroupDao;
 import com.example.EcommerceFresh.Entity.UserProfile;
 import com.example.EcommerceFresh.Entity.UserOrder;
+import com.example.EcommerceFresh.Entity.OrderGroup;
 import com.example.EcommerceFresh.Entity.Users;
 import com.example.EcommerceFresh.Global.GlobalData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,9 @@ public class UserProfileController {
     
     @Autowired
     private UserOrderDao userOrderDao;
+    
+    @Autowired
+    private OrderGroupDao orderGroupDao;
     
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -99,10 +104,11 @@ public class UserProfileController {
             return "redirect:/login";
         }
         
-        List<UserOrder> orders = userOrderDao.findByUserOrderByOrderDateDesc(user);
+        // Fetch grouped orders instead of individual user orders
+        List<OrderGroup> orderGroups = orderGroupDao.findByUserOrderByCreatedAtDesc(user);
         
         model.addAttribute("cartCount", GlobalData.cart.size());
-        model.addAttribute("orders", orders);
+        model.addAttribute("orderGroups", orderGroups);
         return "userOrders";
     }
 }

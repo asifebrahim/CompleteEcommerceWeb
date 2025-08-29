@@ -18,8 +18,15 @@ public class UserOrder {
     @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     private Product product;
     
+    @ManyToOne
+    @JoinColumn(name = "order_group_id", referencedColumnName = "id")
+    private OrderGroup orderGroup;
+    
     @Column(name = "quantity")
     private Integer quantity = 1;
+    
+    @Column(name = "product_price_at_order")
+    private Double productPriceAtOrder; // Store the price of the product when the order was placed
     
     @Column(name = "total_price")
     private Double totalPrice;
@@ -46,8 +53,14 @@ public class UserOrder {
     public Product getProduct() { return product; }
     public void setProduct(Product product) { this.product = product; }
 
+    public OrderGroup getOrderGroup() { return orderGroup; }
+    public void setOrderGroup(OrderGroup orderGroup) { this.orderGroup = orderGroup; }
+
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
+
+    public Double getProductPriceAtOrder() { return productPriceAtOrder; }
+    public void setProductPriceAtOrder(Double productPriceAtOrder) { this.productPriceAtOrder = productPriceAtOrder; }
 
     public Double getTotalPrice() { return totalPrice; }
     public void setTotalPrice(Double totalPrice) { this.totalPrice = totalPrice; }

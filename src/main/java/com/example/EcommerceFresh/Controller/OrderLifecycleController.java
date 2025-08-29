@@ -1,26 +1,32 @@
 package com.example.EcommerceFresh.Controller;
 
 import com.example.EcommerceFresh.Dao.DeliveryOtpDao;
+import com.example.EcommerceFresh.Dao.OrderGroupDao;
 import com.example.EcommerceFresh.Dao.ReturnRequestDao;
 import com.example.EcommerceFresh.Dao.UserOrderDao;
 import com.example.EcommerceFresh.Dao.WishlistDao;
 import com.example.EcommerceFresh.Entity.DeliveryOtp;
+import com.example.EcommerceFresh.Entity.OrderGroup;
 import com.example.EcommerceFresh.Entity.ReturnRequest;
 import com.example.EcommerceFresh.Entity.UserOrder;
 import com.example.EcommerceFresh.Entity.Users;
 import com.example.EcommerceFresh.Entity.Wishlist;
 import com.example.EcommerceFresh.Dao.UserDao;
 import com.example.EcommerceFresh.Dao.ProductDao;
+import com.example.EcommerceFresh.Global.GlobalData;
 import com.example.EcommerceFresh.Service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.Random;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -40,6 +46,9 @@ public class OrderLifecycleController {
 
     @Autowired
     private DeliveryOtpDao deliveryOtpDao;
+    
+    @Autowired
+    private OrderGroupDao orderGroupDao;
 
     @Autowired
     private UserDao usersRepository;
@@ -103,6 +112,7 @@ public class OrderLifecycleController {
         Users user = usersRepository.findByEmail(principal.getName()).orElse(null);
         if(user == null) return "redirect:/login";
         java.util.List<Wishlist> items = wishlistDao.findByUser(user);
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("items", items);
         return "wishlist";
     }
@@ -234,6 +244,7 @@ public class OrderLifecycleController {
     @PreAuthorize("hasRole('ADMIN')")
     public String viewReturnRequests(Model model){
         java.util.List<ReturnRequest> requests = returnRequestDao.findByStatus("Pending");
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("requests", requests);
         return "adminReturns";
     }
@@ -243,6 +254,7 @@ public class OrderLifecycleController {
     @PreAuthorize("hasRole('DELIVERY')")
     public String deliveryDashboard(Model model){
         java.util.List<DeliveryOtp> otps = deliveryOtpDao.findAll().stream().filter(d -> !d.isUsed()).collect(Collectors.toList());
+        model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("otps", otps);
         return "deliveryDashboard";
     }
@@ -304,8 +316,12 @@ public class OrderLifecycleController {
     @GetMapping("/admin/orders")
     @PreAuthorize("hasRole('ADMIN')")
     public String adminOrdersPage(Model model){
-        java.util.List<UserOrder> orders = userOrderDao.findAll();
-        model.addAttribute("orders", orders);
+        // Show order groups instead of individual orders for better organization
+        java.util.List<OrderGroup> orderGroups = orderGroupDao.findAll();
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        model.addAttribute("orderGroups", orderGroups);
+        
+        // For OTP generation, we still need to work with individual orders
         // compute orders that already have an active OTP so template can disable generate button
         java.util.Set<Integer> ordersWithActiveOtp = deliveryOtpDao.findAll().stream()
                 .filter(d -> d.getOrder() != null)
