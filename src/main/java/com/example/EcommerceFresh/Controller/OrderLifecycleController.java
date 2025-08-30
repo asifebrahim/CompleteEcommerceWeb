@@ -475,6 +475,16 @@ public class OrderLifecycleController {
         if(ogOpt.isEmpty()) return "redirect:/admin/orders";
         OrderGroup og = ogOpt.get();
 
+        // Ensure userOrders are initialized (in case of LAZY fetch) so template can render full details
+        if (og.getUserOrders() == null || og.getUserOrders().isEmpty()) {
+            try {
+                var orders = userOrderDao.findAll().stream()
+                        .filter(uo -> uo.getOrderGroup() != null && uo.getOrderGroup().getId() != null && uo.getOrderGroup().getId().equals(og.getId()))
+                        .collect(java.util.stream.Collectors.toList());
+                if (!orders.isEmpty()) og.setUserOrders(orders);
+            } catch (Exception ex) { ex.printStackTrace(); }
+        }
+
         // Provide a deliveryAddress fallback for the template if group-level address is blank
         String deliveryAddress = og.getDeliveryAddress();
         if (deliveryAddress == null || deliveryAddress.isBlank()) {

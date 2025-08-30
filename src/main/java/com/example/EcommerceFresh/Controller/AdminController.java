@@ -375,6 +375,52 @@ public class AdminController {
                     .collect(java.util.stream.Collectors.toList());
         }
 
+        // Ensure each group's userOrders and deliveryAddress are populated so templates can render full details
+        for (OrderGroup og : groups) {
+            // if userOrders missing, try to fetch them explicitly
+            if (og.getUserOrders() == null || og.getUserOrders().isEmpty()) {
+                try {
+                    var orders = userOrderDao.findAll().stream()
+                            .filter(uo -> uo.getOrderGroup() != null && uo.getOrderGroup().getId() != null && uo.getOrderGroup().getId().equals(og.getId()))
+                            .collect(java.util.stream.Collectors.toList());
+                    if (!orders.isEmpty()) og.setUserOrders(orders);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            // if deliveryAddress is blank, try to pick from userOrders or user's saved Address
+            if (og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
+                boolean found = false;
+                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                    for (UserOrder uo : og.getUserOrders()) {
+                        String da = uo.getDeliveryAddress();
+                        if (da != null && !da.isBlank()) {
+                            og.setDeliveryAddress(da);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found && og.getUser() != null && og.getUser().getEmail() != null) {
+                    try {
+                        var addrOpt = addressDao.findAll().stream()
+                                .filter(a -> a.getEmail() != null && a.getEmail().equalsIgnoreCase(og.getUser().getEmail()))
+                                .findFirst();
+                        if (addrOpt.isPresent()) {
+                            Address addr = addrOpt.get();
+                            String composed = String.format("%s, %s, %s - %s", addr.getAddress1() == null ? "" : addr.getAddress1(), addr.getTown() == null ? "" : addr.getTown(), addr.getPinCode() == null ? "" : addr.getPinCode(), addr.getPhone() == null ? "" : addr.getPhone());
+                            og.setDeliveryAddress(composed);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+
+                try { orderGroupDao.save(og); } catch (Exception ignored) { }
+            }
+        }
+
         model.addAttribute("orderGroups", groups);
         if (info != null) model.addAttribute("info", info);
 
