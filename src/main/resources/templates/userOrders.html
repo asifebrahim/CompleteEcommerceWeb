@@ -104,26 +104,36 @@
                                         Price at order: ₹<span th:text="${order.productPriceAtOrder}"></span> | 
                                         Total: ₹<span th:text="${order.totalPrice}"></span>
                                     </p>
+
+                                    <!-- Per-item actions -->
+                                    <div class="mt-2">
+                                        <form th:if="${order.orderStatus != null and (order.orderStatus.toLowerCase().contains('pending') or order.orderStatus.toLowerCase().contains('awaiting'))}"
+                                              th:action="@{'/order/cancel/' + ${order.id} + '/form'}" method="post" style="display:inline-block; margin-right:8px;">
+                                            <button class="btn btn-danger btn-sm" type="submit">Cancel Item</button>
+                                        </form>
+
+                                        <!-- Button opens confirmation modal; JS will submit hidden form on confirm -->
+                                        <button type="button"
+                                                th:if="${order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered') and (returnAllowedMap[order.id] == true)}"
+                                                class="btn btn-warning btn-sm btn-return"
+                                                th:attr="data-order-id=${order.id}, data-product-name=${order.product != null ? order.product.name : 'item'}"
+                                                style="display:inline-block; margin-right:4px;">
+                                            Request Return
+                                        </button>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Actions: Cancel (if pending/awaiting) and Request Return for the entire group -->
+                        <!-- Group-level actions like cancel entire group remain available -->
                         <div class="mt-3">
-                            <!-- Note: For simplicity, using the first order in the group for actions -->
                             <div th:if="${orderGroup.userOrders != null and !#lists.isEmpty(orderGroup.userOrders)}">
                                 <div th:with="firstOrder=${orderGroup.userOrders[0]}">
                                     <form th:if="${orderGroup.groupStatus != null and (orderGroup.groupStatus.toLowerCase().contains('pending') or orderGroup.groupStatus.toLowerCase().contains('awaiting'))}"
                                           th:action="@{'/order/cancel/' + ${firstOrder.id} + '/form'}" method="post" style="display:inline-block; margin-right:8px;">
                                         <button class="btn btn-danger btn-sm" type="submit">Cancel Order Group</button>
                                     </form>
-
-                                    <form th:if="${orderGroup.groupStatus != null and orderGroup.groupStatus.toLowerCase().contains('delivered') and (returnAllowedMap[orderGroup.id] == true)}"
-                                          th:action="@{'/order/return/' + ${firstOrder.id} + '/form'}" method="post" style="display:inline-block; margin-right:4px;">
-                                        <input type="hidden" name="type" value="RETURN" />
-                                        <button class="btn btn-warning btn-sm" type="submit">Request Return</button>
-                                    </form>
-
                                 </div>
                             </div>
                         </div>
@@ -137,5 +147,49 @@
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+<script>
+    // Bind return buttons to open confirmation modal and set order id
+    document.addEventListener('DOMContentLoaded', function(){
+        // attach handler to dynamically created buttons
+        document.querySelectorAll('.btn-return').forEach(function(btn){
+            btn.addEventListener('click', function(e){
+                var orderId = btn.getAttribute('data-order-id');
+                var productName = btn.getAttribute('data-product-name') || 'this item';
+                document.getElementById('confirmReturnText').textContent = 'Are you sure you want to request a return for ' + productName + '?';
+                // store selected order id on the confirm button
+                document.getElementById('confirmReturnBtn').setAttribute('data-order-id', orderId);
+                // show modal
+                $('#confirmReturnModal').modal('show');
+            });
+        });
+
+        // When user confirms, hide the return button immediately and submit the hidden form
+        document.getElementById('confirmReturnBtn').addEventListener('click', function(){
+            var orderId = this.getAttribute('data-order-id');
+            var reason = document.getElementById('returnReason').value || '';
+            var form = document.getElementById('returnForm');
+            // set action dynamically
+            form.action = '/order/return/' + encodeURIComponent(orderId) + '/form';
+            // set reason
+            document.getElementById('returnReasonInput').value = reason;
+            // populate CSRF token from meta if available
+            var csrfMeta = document.querySelector('meta[name="_csrf"]');
+            if(csrfMeta){
+                var token = csrfMeta.getAttribute('content');
+                document.getElementById('csrfInput').value = token || '';
+            }
+            // hide the original return button immediately so UI updates without reload
+            try{
+                var btnToHide = document.querySelector('.btn-return[data-order-id="' + orderId + '"]');
+                if(btnToHide){ btnToHide.style.display = 'none'; }
+            } catch(e){ /* ignore */ }
+            // disable confirm button to prevent double submits
+            this.disabled = true;
+            // append form to body and submit
+            form.style.display = 'block';
+            form.submit();
+        });
+    });
+ </script>
 </body>
 </html>

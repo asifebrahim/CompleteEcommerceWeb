@@ -454,29 +454,6 @@ public class OrderLifecycleController {
         return "adminCancelledOrders"; // template may need to be created
     }
 
-    @PostMapping("/admin/order/group/deliver/{groupId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> markGroupDelivered(@PathVariable Integer groupId){
-        Optional<OrderGroup> ogOpt = orderGroupDao.findById(groupId);
-        if(ogOpt.isEmpty()) return ResponseEntity.badRequest().body("Group not found");
-        OrderGroup og = ogOpt.get();
-        // mark every order in the group as Delivered
-        if(og.getUserOrders() != null){
-            for(UserOrder uo : og.getUserOrders()){
-                uo.setOrderStatus("Delivered");
-                uo.setDeliveredAt(java.time.LocalDateTime.now());
-                try { userOrderDao.save(uo); } catch(Exception ex){ ex.printStackTrace(); }
-                // mark any OTPs for this order used
-                deliveryOtpDao.findAll().stream()
-                        .filter(d -> d.getOrder() != null && d.getOrder().getId().equals(uo.getId()))
-                        .forEach(d -> { d.setUsed(true); deliveryOtpDao.save(d); });
-            }
-        }
-        og.setGroupStatus("Delivered");
-        orderGroupDao.save(og);
-        return ResponseEntity.ok("Group delivered");
-    }
-
     @GetMapping("/admin/order/group/view/{groupId}")
     @PreAuthorize("hasRole('ADMIN')")
     public String viewOrderGroup(@PathVariable Integer groupId, Model model){
@@ -486,5 +463,29 @@ public class OrderLifecycleController {
         model.addAttribute("orderGroup", og);
         model.addAttribute("cartCount", GlobalData.cart.size());
         return "adminOrderGroupView";
+    }
+
+    @GetMapping("/delivery/verify")
+    @PreAuthorize("hasRole('DELIVERY')")
+    public String deliveryVerifyPage(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        return "deliveryVerify";
+    }
+
+    @PostMapping("/delivery/verify")
+    @PreAuthorize("hasRole('DELIVERY')")
+    public String deliveryVerifyForm(@RequestParam Integer orderId, @RequestParam String otpCode, RedirectAttributes redirectAttributes){
+        try{
+            ResponseEntity<String> resp = verifyDeliveryOtp(orderId, otpCode);
+            if(resp.getStatusCode().is2xxSuccessful()){
+                redirectAttributes.addFlashAttribute("success", resp.getBody());
+            } else {
+                redirectAttributes.addFlashAttribute("error", resp.getBody());
+            }
+        } catch(Exception ex){
+            ex.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error verifying OTP");
+        }
+        return "redirect:/delivery/verify";
     }
 }

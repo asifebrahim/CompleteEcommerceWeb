@@ -35,7 +35,6 @@
                     </h5>
                     <div>
                         <small class="text-muted">Txn: <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></small>
-                        <a th:href="@{'/admin/order/group/deliver/' + ${orderGroup.id}}" class="btn btn-sm btn-success ml-2" onclick="return confirm('Mark whole group as Delivered?')">Mark Delivered</a>
                         <a th:href="@{'/admin/order/group/view/' + ${orderGroup.id}}" class="btn btn-sm btn-outline-secondary ml-1">View Transaction</a>
                     </div>
                     <span class="badge" 

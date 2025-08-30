@@ -2,10 +2,9 @@ package com.example.EcommerceFresh.Controller;
 
 import com.example.EcommerceFresh.Dao.UserDao;
 import com.example.EcommerceFresh.Dao.UserProfileDao;
-import com.example.EcommerceFresh.Dao.UserOrderDao;
 import com.example.EcommerceFresh.Dao.OrderGroupDao;
+import com.example.EcommerceFresh.Dao.ReturnRequestDao;
 import com.example.EcommerceFresh.Entity.UserProfile;
-import com.example.EcommerceFresh.Entity.UserOrder;
 import com.example.EcommerceFresh.Entity.OrderGroup;
 import com.example.EcommerceFresh.Entity.Users;
 import com.example.EcommerceFresh.Global.GlobalData;
@@ -34,10 +33,10 @@ public class UserProfileController {
     private UserProfileDao userProfileDao;
     
     @Autowired
-    private UserOrderDao userOrderDao;
+    private OrderGroupDao orderGroupDao;
     
     @Autowired
-    private OrderGroupDao orderGroupDao;
+    private ReturnRequestDao returnRequestDao;
     
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -111,20 +110,31 @@ public class UserProfileController {
         // Fetch grouped orders instead of individual user orders
         List<OrderGroup> orderGroups = orderGroupDao.findByUserOrderByCreatedAtDesc(user);
 
-        // Build a map to indicate whether a return is allowed for each order group
+        // Build a map to indicate whether a return is allowed for each individual user order (by order id)
         Map<Integer, Boolean> returnAllowedMap = new HashMap<>();
+        // Collect orders that already have a pending return request so we can hide button for them
+        java.util.Set<Integer> pendingReturnOrderIds = new java.util.HashSet<>();
+        try {
+            java.util.List<com.example.EcommerceFresh.Entity.ReturnRequest> pending = returnRequestDao.findByStatus("Pending");
+            for (com.example.EcommerceFresh.Entity.ReturnRequest rr : pending) {
+                if (rr.getOrder() != null && rr.getOrder().getId() != null) pendingReturnOrderIds.add(rr.getOrder().getId());
+            }
+        } catch(Exception ex){ /* ignore if DAO unavailable */ }
+
         for (OrderGroup og : orderGroups) {
-            boolean allowed = false;
-            if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
-                UserOrder firstOrder = og.getUserOrders().get(0);
-                if (firstOrder.getDeliveredAt() != null) {
-                    Duration sinceDelivered = Duration.between(firstOrder.getDeliveredAt(), LocalDateTime.now());
+            if (og.getUserOrders() == null) continue;
+            for (com.example.EcommerceFresh.Entity.UserOrder uo : og.getUserOrders()){
+                boolean allowed = false;
+                if (uo.getDeliveredAt() != null) {
+                    Duration sinceDelivered = Duration.between(uo.getDeliveredAt(), LocalDateTime.now());
                     if (sinceDelivered.toDays() <= 5) {
                         allowed = true;
                     }
                 }
+                // hide if there's already a pending return request for this specific order
+                if (pendingReturnOrderIds.contains(uo.getId())) allowed = false;
+                returnAllowedMap.put(uo.getId(), allowed);
             }
-            returnAllowedMap.put(og.getId(), allowed);
         }
 
         model.addAttribute("cartCount", GlobalData.cart.size());

@@ -346,4 +346,14 @@ public class AdminController {
         model.addAttribute("ordersWithActiveOtp", ordersWithActiveOtp);
         return "adminOrders";
     }
+
+    @GetMapping("/admin/orders/delivered")
+    public String deliveredOrders(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        java.util.List<OrderGroup> delivered = orderGroupDao.findAll().stream()
+                .filter(og -> og.getGroupStatus() != null && og.getGroupStatus().equalsIgnoreCase("Delivered"))
+                .collect(java.util.stream.Collectors.toList());
+        model.addAttribute("orderGroups", delivered);
+        return "adminOrdersDelivered";
+    }
 }

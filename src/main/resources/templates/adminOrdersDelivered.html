@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <title>Delivered Orders</title>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Delivered Orders</h3>
+        <div>
+            <a th:href="@{/admin/orders}" class="btn btn-secondary mr-2">Back to Active Orders</a>
+            <a th:href="@{/admin}" class="btn btn-secondary">Admin Home</a>
+        </div>
+    </div>
+
+    <div th:if="${orderGroups == null or #lists.isEmpty(orderGroups)}">
+        <div class="alert alert-info">No delivered orders found.</div>
+    </div>
+
+    <div th:if="${orderGroups != null and !#lists.isEmpty(orderGroups)}">
+        <div class="accordion" id="deliveredAccordion">
+            <div class="card" th:each="orderGroup, groupStat : ${orderGroups}">
+                <div class="card-header d-flex justify-content-between align-items-center" 
+                     th:id="'headingDel' + ${groupStat.index}">
+                    <h5 class="mb-0">
+                        Order Group #<span th:text="${orderGroup.id}"></span> - 
+                        <span th:text="${orderGroup.user.email}"></span> - 
+                        ₹<span th:text="${orderGroup.totalAmount}"></span>
+                    </h5>
+                    <span class="badge badge-success">Delivered</span>
+                </div>
+
+                <div th:id="'collapseDel' + ${groupStat.index}" class="collapse" 
+                     th:classappend="${groupStat.first} ? 'show'" 
+                     aria-labelledby="'headingDel' + ${groupStat.index}" 
+                     data-parent="#deliveredAccordion">
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <small class="text-muted">Delivered At: <span th:text="${orderGroup.createdAt}"></span></small>
+                            <span th:if="${orderGroup.deliveryAddress}" class="ml-3">
+                                <small class="text-muted">Address: <span th:text="${orderGroup.deliveryAddress}"></span></small>
+                            </span>
+                        </div>
+                        <table class="table table-sm">
+                            <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Price at Order</th>
+                                <th>Total</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="order : ${orderGroup.userOrders}">
+                                <td>
+                                    <span th:text="${order.product != null ? order.product.name : '-'}"></span>
+                                    <div><small class="text-muted">ID: <span th:text="${order.product != null ? order.product.id : '-'}"></span></small></div>
+                                </td>
+                                <td th:text="${order.quantity}"></td>
+                                <td>₹<span th:text="${order.productPriceAtOrder}"></span></td>
+                                <td>₹<span th:text="${order.totalPrice}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
