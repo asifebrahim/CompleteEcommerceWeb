@@ -112,9 +112,12 @@
                                             <button class="btn btn-danger btn-sm" type="submit">Cancel Item</button>
                                         </form>
 
-                                        <!-- Button opens confirmation modal; JS will submit hidden form on confirm -->
+                                        <!-- If there is a return request for this specific order, show its status instead of the button -->
+                                        <span th:if="${returnStatusMap[order.id] != null}" class="badge badge-info" th:text="${returnStatusMap[order.id] == 'Pending' ? 'Return Requested' : returnStatusMap[order.id]}"></span>
+
+                                        <!-- Otherwise show the Request Return button when allowed -->
                                         <button type="button"
-                                                th:if="${order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered') and (returnAllowedMap[order.id] == true)}"
+                                                th:if="${returnStatusMap[order.id] == null and order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered') and (returnAllowedMap[order.id] == true)}"
                                                 class="btn btn-warning btn-sm btn-return"
                                                 th:attr="data-order-id=${order.id}, data-product-name=${order.product != null ? order.product.name : 'item'}"
                                                 style="display:inline-block; margin-right:4px;">
@@ -181,15 +184,24 @@
             // hide the original return button immediately so UI updates without reload
             try{
                 var btnToHide = document.querySelector('.btn-return[data-order-id="' + orderId + '"]');
-                if(btnToHide){ btnToHide.style.display = 'none'; }
-            } catch(e){ /* ignore */ }
-            // disable confirm button to prevent double submits
-            this.disabled = true;
-            // append form to body and submit
-            form.style.display = 'block';
-            form.submit();
-        });
-    });
- </script>
-</body>
-</html>
+                if(btnToHide){ btnToHide.style.display = 'none';
+                    // insert an immediate status badge so user sees the request state without reload
+                    try{
+                        var container = btnToHide.parentNode;
+                        var badge = document.createElement('span');
+                        badge.className = 'badge badge-info ml-2';
+                        badge.textContent = 'Return Requested';
+                        container.appendChild(badge);
+                    } catch(e){ /* ignore */ }
+                 }
+             } catch(e){ /* ignore */ }
+             // disable confirm button to prevent double submits
+             this.disabled = true;
+             // append form to body and submit
+             form.style.display = 'block';
+             form.submit();
+         });
+     });
+  </script>
+ </body>
+ </html>

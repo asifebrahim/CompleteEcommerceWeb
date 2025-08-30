@@ -261,9 +261,7 @@ public class OrderLifecycleController {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            // ensure order status indicates out for delivery
-            order.setOrderStatus("Out for Delivery");
-            userOrderDao.save(order);
+            // Do not change order status on OTP generation/resend; delivery staff will verify OTP to mark delivered
             return ResponseEntity.ok("OTP_SENT:" + code);
         }
 
@@ -284,9 +282,7 @@ public class OrderLifecycleController {
             ex.printStackTrace();
         }
 
-        // mark order as out for delivery so UI can reflect it
-        order.setOrderStatus("Out for Delivery");
-        userOrderDao.save(order);
+        // Do not change order status here; the order will be marked Delivered upon OTP verification by delivery staff
         return ResponseEntity.ok("OTP:" + code);
     }
 

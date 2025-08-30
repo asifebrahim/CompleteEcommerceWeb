@@ -17,7 +17,9 @@
 
     <div class="card">
         <div class="card-body">
-            <p><strong>User:</strong> <span th:text="${orderGroup.user.email}"></span></p>
+            <p><strong>User:</strong> <span th:text="${orderGroup.user.firstName} + ' ' + ${orderGroup.user.lastName}"></span>
+                <br/><small class="text-muted" th:text="${orderGroup.user.email}"></small>
+            </p>
             <p><strong>Transaction:</strong> <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></p>
             <p><strong>Total:</strong> ₹<span th:text="${orderGroup.totalAmount}"></span></p>
             <p><strong>Address:</strong> <span th:text="${orderGroup.deliveryAddress}"></span></p>

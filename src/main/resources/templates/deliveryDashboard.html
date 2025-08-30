@@ -38,10 +38,7 @@
                 </td>
                 <td th:text="${#temporals.format(d.expiresAt, 'dd MMM yyyy')}"></td>
                 <td>
-                    <form th:action="@{'/delivery/verify/' + ${d.order.id}}" method="post">
-                        <input type="hidden" name="otpCode" th:value="${d.otpCode}" />
-                        <button class="btn btn-success btn-sm" type="submit">Mark Delivered</button>
-                    </form>
+                    <small class="text-muted">Use Delivery Verify page to confirm: <a th:href="@{/delivery/verify}">Verify</a></small>
                 </td>
             </tr>
             </tbody>

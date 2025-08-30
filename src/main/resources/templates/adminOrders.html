@@ -28,14 +28,19 @@
                         <button class="btn btn-link" type="button" data-toggle="collapse" 
                                 th:data-target="'#collapse' + ${groupStat.index}" 
                                 aria-expanded="true" th:aria-controls="'collapse' + ${groupStat.index}">
-                            Order Group #<span th:text="${orderGroup.id}"></span> - 
-                            <span th:text="${orderGroup.user.email}"></span> - 
-                            ₹<span th:text="${orderGroup.totalAmount}"></span>
+                            Order Group #<span th:text="${orderGroup.id}"></span> -
+                            <span th:text="${orderGroup.user.firstName} + ' ' + ${orderGroup.user.lastName}"></span>
+                            <br/>
+                            <small class="text-muted" th:text="${orderGroup.user.email}"></small>
+                            &nbsp; - &nbsp;₹<span th:text="${orderGroup.totalAmount}"></span>
                         </button>
                     </h5>
                     <div>
                         <small class="text-muted">Txn: <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></small>
                         <a th:href="@{'/admin/order/group/view/' + ${orderGroup.id}}" class="btn btn-sm btn-outline-secondary ml-1">View Transaction</a>
+                        <div th:if="${orderGroup.deliveryAddress}" class="mt-1">
+                            <small class="text-muted">Address: <span th:text="${orderGroup.deliveryAddress}"></span></small>
+                        </div>
                     </div>
                     <span class="badge" 
                           th:classappend="${orderGroup.groupStatus == 'Delivered'} ? 'badge-success' : 

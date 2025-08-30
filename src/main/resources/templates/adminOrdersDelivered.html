@@ -27,8 +27,10 @@
                      th:id="'headingDel' + ${groupStat.index}">
                     <h5 class="mb-0">
                         Order Group #<span th:text="${orderGroup.id}"></span> - 
-                        <span th:text="${orderGroup.user.email}"></span> - 
-                        ₹<span th:text="${orderGroup.totalAmount}"></span>
+                        <span th:text="${orderGroup.user.firstName} + ' ' + ${orderGroup.user.lastName}"></span>
+                        <br/>
+                        <small class="text-muted" th:text="${orderGroup.user.email}"></small>
+                        &nbsp; - &nbsp;₹<span th:text="${orderGroup.totalAmount}"></span>
                     </h5>
                     <span class="badge badge-success">Delivered</span>
                 </div>

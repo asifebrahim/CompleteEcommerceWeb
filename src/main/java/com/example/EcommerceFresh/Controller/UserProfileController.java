@@ -137,9 +137,25 @@ public class UserProfileController {
             }
         }
 
+        // Build a map of orderId -> return request status (if any) so UI can display status labels
+        Map<Integer, String> returnStatusMap = new HashMap<>();
+        try {
+            java.util.List<com.example.EcommerceFresh.Entity.ReturnRequest> allReqs = returnRequestDao.findAll();
+            for (com.example.EcommerceFresh.Entity.ReturnRequest rr : allReqs) {
+                if (rr.getOrder() != null && rr.getOrder().getUser() != null && rr.getOrder().getUser().getEmail() != null
+                        && rr.getOrder().getUser().getEmail().equals(user.getEmail())) {
+                    Integer oid = rr.getOrder().getId();
+                    if (oid != null && !returnStatusMap.containsKey(oid)) {
+                        returnStatusMap.put(oid, rr.getStatus());
+                    }
+                }
+            }
+        } catch (Exception ex) { /* ignore */ }
+        
         model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("orderGroups", orderGroups);
         model.addAttribute("returnAllowedMap", returnAllowedMap);
+        model.addAttribute("returnStatusMap", returnStatusMap);
         return "userOrders";
     }
 }
