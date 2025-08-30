@@ -127,7 +127,7 @@ public class UserProfileController {
                 boolean allowed = false;
                 if (uo.getDeliveredAt() != null) {
                     Duration sinceDelivered = Duration.between(uo.getDeliveredAt(), LocalDateTime.now());
-                    if (sinceDelivered.toDays() <= 5) {
+                    if (sinceDelivered.toDays() <= 7) {
                         allowed = true;
                     }
                 }
