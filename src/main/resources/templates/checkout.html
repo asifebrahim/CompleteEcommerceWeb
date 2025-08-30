@@ -310,11 +310,35 @@
         const verifyHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
         if (csrfToken && csrfHeader) verifyHeaders[csrfHeader] = csrfToken;
 
+        // collect address and customer fields from the form to send to server
+        const firstNameVal = encodeURIComponent(document.getElementById('firstName').value || '');
+        const lastNameVal = encodeURIComponent(document.getElementById('lastName').value || '');
+        const address1Val = encodeURIComponent(document.getElementById('form14').value || '');
+        const address2Val = encodeURIComponent(document.getElementById('form15').value || '');
+        const pinCodeVal = encodeURIComponent(document.getElementById('form16').value || '');
+        const townVal = encodeURIComponent(document.getElementById('form17').value || '');
+        const phoneVal = encodeURIComponent(document.getElementById('form18').value || '');
+        const emailVal = encodeURIComponent(document.getElementById('form19').value || '');
+        const additionalInfoVal = encodeURIComponent(document.getElementById('form76').value || '');
+
+        const bodyPayload = 'paymentId=' + encodeURIComponent(paymentId) +
+            '&orderId=' + encodeURIComponent(orderId) +
+            '&signature=' + encodeURIComponent(signature) +
+            '&firstName=' + firstNameVal +
+            '&lastName=' + lastNameVal +
+            '&address1=' + address1Val +
+            '&address2=' + address2Val +
+            '&pinCode=' + pinCodeVal +
+            '&town=' + townVal +
+            '&phone=' + phoneVal +
+            '&email=' + emailVal +
+            '&additionalInfo=' + additionalInfoVal;
+
         fetch('/verify-payment', {
             method: 'POST',
             credentials: 'same-origin', // important: include cookies to preserve session/principal
             headers: verifyHeaders,
-            body: 'paymentId=' + encodeURIComponent(paymentId) + '&orderId=' + encodeURIComponent(orderId) + '&signature=' + encodeURIComponent(signature)
+            body: bodyPayload
         })
         .then(response => response.json())
         .then(data => {

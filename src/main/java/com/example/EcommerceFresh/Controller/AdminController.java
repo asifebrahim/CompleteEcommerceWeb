@@ -330,12 +330,50 @@ public class AdminController {
     }
 
     @GetMapping("/admin/orders")
-    public String manageOrders(Model model){
+    public String manageOrders(@RequestParam(value = "orderId", required = false) Integer orderId,
+                               @RequestParam(value = "groupId", required = false) Integer groupId,
+                               Model model){
         model.addAttribute("cartCount", GlobalData.cart.size());
-        java.util.List<OrderGroup> groups = orderGroupDao.findAll().stream()
-                .filter(og -> og.getGroupStatus() == null || !og.getGroupStatus().equalsIgnoreCase("Delivered"))
-                .collect(Collectors.toList());
+
+        java.util.List<OrderGroup> groups;
+        String info = null;
+        // If groupId provided, show that specific group
+        if (groupId != null) {
+            java.util.Optional<OrderGroup> g = orderGroupDao.findById(groupId);
+            groups = g.map(java.util.Collections::singletonList).orElse(java.util.Collections.emptyList());
+            if (groups.isEmpty()) {
+                info = "No order group found with id: " + groupId;
+            }
+        }
+        // If orderId provided, show the group that contains that order (if any)
+        else if (orderId != null) {
+            try {
+                var uoOpt = userOrderDao.findById(orderId);
+                if (uoOpt.isPresent()) {
+                    OrderGroup og = uoOpt.get().getOrderGroup();
+                    groups = og != null ? java.util.Collections.singletonList(og) : java.util.Collections.emptyList();
+                    if (groups.isEmpty()) {
+                        info = "No order group found containing order id: " + orderId;
+                    }
+                } else {
+                    groups = java.util.Collections.emptyList();
+                    info = "No order found with id: " + orderId;
+                }
+            } catch (Exception ex) {
+                groups = java.util.Collections.emptyList();
+                info = "Error searching for order id: " + orderId;
+            }
+        }
+        // default: show active groups (exclude Delivered and Cancelled)
+        else {
+            groups = orderGroupDao.findAll().stream()
+                    .filter(og -> og.getGroupStatus() == null || (!og.getGroupStatus().equalsIgnoreCase("Delivered") && !og.getGroupStatus().equalsIgnoreCase("Cancelled")))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
         model.addAttribute("orderGroups", groups);
+        if (info != null) model.addAttribute("info", info);
+
         // compute orders that have active OTPs so template can label Resend OTP
         java.util.Set<Integer> ordersWithActiveOtp = deliveryOtpDao.findAll().stream()
                 .filter(d -> !d.isUsed())

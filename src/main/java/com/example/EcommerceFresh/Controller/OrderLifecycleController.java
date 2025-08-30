@@ -445,9 +445,27 @@ public class OrderLifecycleController {
         java.util.List<OrderGroup> cancelled = orderGroupDao.findAll().stream()
                 .filter(og -> og.getGroupStatus() != null && og.getGroupStatus().equalsIgnoreCase("Cancelled"))
                 .collect(java.util.stream.Collectors.toList());
+
+        // Ensure deliveryAddress is populated for display in admin list. If missing on the group,
+        // try to pick the first non-empty deliveryAddress from the group's UserOrders and persist it.
+        for (OrderGroup og : cancelled) {
+            if (og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
+                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                    for (UserOrder uo : og.getUserOrders()) {
+                        String da = uo.getDeliveryAddress();
+                        if (da != null && !da.isBlank()) {
+                            og.setDeliveryAddress(da);
+                            try { orderGroupDao.save(og); } catch (Exception ignored) { }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("orderGroups", cancelled);
-        return "adminCancelledOrders"; // template may need to be created
+        return "adminCancelledOrders";
     }
 
     @GetMapping("/admin/order/group/view/{groupId}")
@@ -456,7 +474,20 @@ public class OrderLifecycleController {
         Optional<OrderGroup> ogOpt = orderGroupDao.findById(groupId);
         if(ogOpt.isEmpty()) return "redirect:/admin/orders";
         OrderGroup og = ogOpt.get();
+
+        // Provide a deliveryAddress fallback for the template if group-level address is blank
+        String deliveryAddress = og.getDeliveryAddress();
+        if (deliveryAddress == null || deliveryAddress.isBlank()) {
+            if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                for (UserOrder uo : og.getUserOrders()) {
+                    String da = uo.getDeliveryAddress();
+                    if (da != null && !da.isBlank()) { deliveryAddress = da; break; }
+                }
+            }
+        }
+
         model.addAttribute("orderGroup", og);
+        model.addAttribute("deliveryAddress", deliveryAddress);
         model.addAttribute("cartCount", GlobalData.cart.size());
         return "adminOrderGroupView";
     }
