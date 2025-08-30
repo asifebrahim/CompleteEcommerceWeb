@@ -79,6 +79,7 @@
                         <table class="table table-sm">
                             <thead>
                             <tr>
+                                <th>Order ID</th>
                                 <th>Product</th>
                                 <th>Qty</th>
                                 <th>Price at Order</th>
@@ -89,27 +90,29 @@
                             </thead>
                             <tbody>
                             <tr th:each="order : ${orderGroup.userOrders}">
+                                <td th:text="${order.id}"></td>
                                 <td>
-                                    <img th:src="@{${'/productImages/' + (order.product != null && order.product.imageName != null ? order.product.imageName : 'default.png')}}" 
-                                         style="width: 30px; height: 30px; object-fit: cover;" class="mr-2" th:alt="${order.product != null ? order.product.name : 'Product'}">
-                                    <div>
-                                        <span th:text="${order.product != null ? order.product.name : '-'}"></span>
-                                        <div><small class="text-muted">ID: <span th:text="${order.product != null ? order.product.id : '-'}"></span></small></div>
-                                    </div>
+                                    <span th:text="${order.product != null ? order.product.name : '-'}"></span>
                                 </td>
-                                <td th:text="${order.quantity}"></td>
-                                <td>₹<span th:text="${order.productPriceAtOrder}"></span></td>
-                                <td>₹<span th:text="${order.totalPrice}"></span></td>
-                                <td th:text="${order.orderStatus}"></td>
                                 <td>
-                                    <div th:if="${order.orderStatus == null or !order.orderStatus.toLowerCase().contains('delivered')}">
+                                    <span th:text="${order.quantity}"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${order.productPriceAtOrder}"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${order.totalPrice}"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${order.orderStatus}"></span>
+                                </td>
+                                <td>
+                                    <div>
                                         <form th:action="@{'/admin/order/generate-otp/' + ${order.id}}" method="post" style="display:inline-block;">
-                                            <button class="btn btn-sm btn-primary" type="submit" 
+                                            <button class="btn btn-sm btn-primary" type="submit"
                                                     th:text="${ordersWithActiveOtp != null and ordersWithActiveOtp.contains(order.id)} ? 'Resend OTP' : 'Generate OTP'"></button>
                                         </form>
-                                    </div>
-                                    <div th:if="${order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered')}">
-                                        <span class="badge badge-success">Delivered</span>
+                                        <a th:href="@{'/admin/order/group/view/' + ${orderGroup.id}}" class="btn btn-sm btn-outline-secondary ml-1">View Transaction</a>
                                     </div>
                                 </td>
                             </tr>

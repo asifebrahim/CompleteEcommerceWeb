@@ -18,6 +18,7 @@
                 <th>User</th>
                 <th>Created At</th>
                 <th>Total Amount</th>
+                <th>Delivery Address</th>
                 <th>Actions</th>
             </tr>
             </thead>
@@ -27,8 +28,9 @@
                 <td th:text="${g.user != null ? g.user.email : '-'}"></td>
                 <td th:text="${#temporals.format(g.createdAt, 'dd MMM yyyy HH:mm')}"></td>
                 <td th:text="${g.totalAmount}"></td>
+                <td th:text="${g.deliveryAddress != null ? g.deliveryAddress : '-'}"></td>
                 <td>
-                    <a th:href="@{'/admin/order/group/' + ${g.id}}" class="btn btn-sm btn-outline-secondary">View</a>
+                    <a th:href="@{'/admin/order/group/view/' + ${g.id}}" class="btn btn-sm btn-outline-secondary">View</a>
                 </td>
             </tr>
             </tbody>

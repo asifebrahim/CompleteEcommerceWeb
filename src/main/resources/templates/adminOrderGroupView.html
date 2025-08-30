@@ -22,16 +22,17 @@
             </p>
             <p><strong>Transaction:</strong> <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></p>
             <p><strong>Total:</strong> ₹<span th:text="${orderGroup.totalAmount}"></span></p>
-            <p><strong>Address:</strong> <span th:text="${orderGroup.deliveryAddress}"></span></p>
+            <p><strong>Address:</strong> <span th:text="${deliveryAddress != null ? deliveryAddress : (orderGroup.deliveryAddress != null ? orderGroup.deliveryAddress : '-')}"></span></p>
             <p><strong>Status:</strong> <span th:text="${orderGroup.groupStatus}"></span></p>
 
             <h5>Products</h5>
             <table class="table">
                 <thead>
-                <tr><th>Product ID</th><th>Name</th><th>Qty</th><th>Price</th><th>Status</th></tr>
+                <tr><th>Order ID</th><th>Product ID</th><th>Name</th><th>Qty</th><th>Price</th><th>Status</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="o : ${orderGroup.userOrders}">
+                    <td th:text="${o.id}"></td>
                     <td th:text="${o.product != null ? o.product.id : '-'}"></td>
                     <td th:text="${o.product != null ? o.product.name : '-'}"></td>
                     <td th:text="${o.quantity}"></td>

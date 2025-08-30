@@ -31,6 +31,7 @@
                 <td th:text="${w.createdAt != null ? #temporals.format(w.createdAt, 'dd MMM yyyy') : ''}"></td>
                 <td>
                     <form th:action="@{'/wishlist/remove/' + (w.product != null ? w.product.id : 0) + '/form'}" method="post">
+                        <input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : '_csrf'}" th:value="${_csrf != null ? _csrf.token : ''}" />
                         <button type="submit">Remove</button>
                     </form>
                 </td>
