@@ -295,4 +295,12 @@ public class CheckOutController {
 
         return "redirect:/profile/orders"; // Redirect to profile orders page after successful checkout
     }
+
+     @GetMapping("/paymentSuccess")
+    public String paymentSuccess(Model model, Principal principal) {
+        // add cart count so header/templates render correctly
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        // optionally add user info if available
+        return "paymentSuccess";
+    }
 }
