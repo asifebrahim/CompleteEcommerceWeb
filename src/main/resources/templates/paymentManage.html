@@ -11,56 +11,12 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 th:text="${viewTitle}">Pending Payments</h3>
         <div>
-            <a th:href="@{/admin/payment/manage/approved}" class="btn btn-outline-success mr-2">View Approved</a>
-            <a th:href="@{/admin/payment/manage/declined}" class="btn btn-outline-danger mr-2">View Declined</a>
-            <a th:href="@{/admin/returns}" class="btn btn-outline-info mr-2">Return Requests</a>
+            <a th:href="@{/admin/orders}" class="btn btn-outline-primary mr-2">Manage Orders</a>
             <a th:href="@{/admin}" class="btn btn-secondary">Back to Admin</a>
         </div>
     </div>
 
-    <div th:if="${payments == null or #lists.isEmpty(payments)}">
-        <div class="alert alert-info">No payments found.</div>
-    </div>
-
-    <div th:if="${payments != null and !#lists.isEmpty(payments)}">
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Transaction ID</th>
-                <th>Product ID</th>
-                <th>User Email</th>
-                <th>Address</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="p : ${payments}">
-                <td th:text="${p.id}">1</td>
-                <td th:text="${p.transactionId}">TX123</td>
-                <td th:text="${p.product != null ? p.product.id : '-'}">-</td>
-                <td th:text="${p.users != null ? p.users.email : '-'}">user@example.com</td>
-                <td>
-                    <div th:if="${p.address != null}">
-                        <span th:text="${p.address.address1}"></span>
-                        <span th:if="${p.address.town}">, <span th:text="${p.address.town}"></span></span>
-                        <span th:if="${p.address.pinCode}">, <span th:text="${p.address.pinCode}"></span></span>
-                    </div>
-                    <div th:if="${p.address == null}">-</div>
-                </td>
-                <td>
-                    <span class="badge badge-warning" th:text="${p.status}">Pending</span>
-                </td>
-                <td>
-                    <a th:href="@{/admin/payment/approve/{id}(id=${p.id})}" class="btn btn-sm btn-primary mr-1" th:if="${p.status == 'Pending'}">Approve</a>
-                    <a th:href="@{/admin/payment/decline/{id}(id=${p.id})}" class="btn btn-sm btn-danger mr-1" th:if="${p.status == 'Pending'}">Decline</a>
-                    <a th:href="@{/admin/payment/view/{id}(id=${p.id})}" class="btn btn-sm btn-outline-secondary">View</a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+    <div class="alert alert-info">Payment management has been merged into the Orders dashboard. Use the Manage Orders page to view transactions, addresses, product IDs and perform OTP/delivery actions.</div>
 </div>
 </body>
 </html>

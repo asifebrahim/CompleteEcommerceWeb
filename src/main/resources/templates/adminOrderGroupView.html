@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <title>Order Group Details</title>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Order Group #<span th:text="${orderGroup.id}"></span></h3>
+        <div>
+            <a th:href="@{/admin/orders}" class="btn btn-secondary">Back to Orders</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <p><strong>User:</strong> <span th:text="${orderGroup.user.email}"></span></p>
+            <p><strong>Transaction:</strong> <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></p>
+            <p><strong>Total:</strong> ₹<span th:text="${orderGroup.totalAmount}"></span></p>
+            <p><strong>Address:</strong> <span th:text="${orderGroup.deliveryAddress}"></span></p>
+            <p><strong>Status:</strong> <span th:text="${orderGroup.groupStatus}"></span></p>
+
+            <h5>Products</h5>
+            <table class="table">
+                <thead>
+                <tr><th>Product ID</th><th>Name</th><th>Qty</th><th>Price</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="o : ${orderGroup.userOrders}">
+                    <td th:text="${o.product != null ? o.product.id : '-'}"></td>
+                    <td th:text="${o.product != null ? o.product.name : '-'}"></td>
+                    <td th:text="${o.quantity}"></td>
+                    <td>₹<span th:text="${o.productPriceAtOrder}"></span></td>
+                    <td th:text="${o.orderStatus}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <form th:action="@{'/admin/order/group/deliver/' + ${orderGroup.id}}" method="post">
+                <button type="submit" class="btn btn-success" onclick="return confirm('Mark group as delivered?')">Mark Delivered</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

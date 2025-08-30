@@ -29,7 +29,10 @@ public class OrderGroup {
     
     @Column(name = "razorpay_order_id")
     private String razorpayOrderId;
-    
+
+    @Column(name = "transaction_id")
+    private String transactionId;
+
     // One group can have multiple user orders
     @OneToMany(mappedBy = "orderGroup", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserOrder> userOrders;
@@ -55,6 +58,9 @@ public class OrderGroup {
 
     public String getRazorpayOrderId() { return razorpayOrderId; }
     public void setRazorpayOrderId(String razorpayOrderId) { this.razorpayOrderId = razorpayOrderId; }
+
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
 
     public List<UserOrder> getUserOrders() { return userOrders; }
     public void setUserOrders(List<UserOrder> userOrders) { this.userOrders = userOrders; }

@@ -453,4 +453,38 @@ public class OrderLifecycleController {
         model.addAttribute("orderGroups", cancelled);
         return "adminCancelledOrders"; // template may need to be created
     }
+
+    @PostMapping("/admin/order/group/deliver/{groupId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> markGroupDelivered(@PathVariable Integer groupId){
+        Optional<OrderGroup> ogOpt = orderGroupDao.findById(groupId);
+        if(ogOpt.isEmpty()) return ResponseEntity.badRequest().body("Group not found");
+        OrderGroup og = ogOpt.get();
+        // mark every order in the group as Delivered
+        if(og.getUserOrders() != null){
+            for(UserOrder uo : og.getUserOrders()){
+                uo.setOrderStatus("Delivered");
+                uo.setDeliveredAt(java.time.LocalDateTime.now());
+                try { userOrderDao.save(uo); } catch(Exception ex){ ex.printStackTrace(); }
+                // mark any OTPs for this order used
+                deliveryOtpDao.findAll().stream()
+                        .filter(d -> d.getOrder() != null && d.getOrder().getId().equals(uo.getId()))
+                        .forEach(d -> { d.setUsed(true); deliveryOtpDao.save(d); });
+            }
+        }
+        og.setGroupStatus("Delivered");
+        orderGroupDao.save(og);
+        return ResponseEntity.ok("Group delivered");
+    }
+
+    @GetMapping("/admin/order/group/view/{groupId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String viewOrderGroup(@PathVariable Integer groupId, Model model){
+        Optional<OrderGroup> ogOpt = orderGroupDao.findById(groupId);
+        if(ogOpt.isEmpty()) return "redirect:/admin/orders";
+        OrderGroup og = ogOpt.get();
+        model.addAttribute("orderGroup", og);
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        return "adminOrderGroupView";
+    }
 }

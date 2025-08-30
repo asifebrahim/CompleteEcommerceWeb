@@ -6,6 +6,9 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- CSRF meta tokens (if Spring Security provides them) -->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
@@ -241,15 +244,21 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+    // Read CSRF token/header if available
+    const csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').getAttribute('content') : null;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').getAttribute('content') : null;
+
     function initiatePayment() {
         const amount = [[${total}]];
         
         // First create order on server
+        const createHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        if (csrfToken && csrfHeader) createHeaders[csrfHeader] = csrfToken;
+
         fetch('/create-order', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
+            credentials: 'same-origin', // send cookies so Principal/session is preserved
+            headers: createHeaders,
             body: 'amount=' + amount
         })
         .then(response => response.json())
@@ -298,17 +307,20 @@
     }
     
     function verifyPayment(paymentId, orderId, signature) {
+        const verifyHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        if (csrfToken && csrfHeader) verifyHeaders[csrfHeader] = csrfToken;
+
         fetch('/verify-payment', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'paymentId=' + paymentId + '&orderId=' + orderId + '&signature=' + signature
+            credentials: 'same-origin', // important: include cookies to preserve session/principal
+            headers: verifyHeaders,
+            body: 'paymentId=' + encodeURIComponent(paymentId) + '&orderId=' + encodeURIComponent(orderId) + '&signature=' + encodeURIComponent(signature)
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
                 alert('Payment successful!');
+                // Redirect to payment success page (session preserved because of cookies)
                 window.location.href = '/paymentSuccess';
             } else {
                 alert('Payment verification failed: ' + data.message);

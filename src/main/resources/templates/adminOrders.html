@@ -33,6 +33,11 @@
                             ₹<span th:text="${orderGroup.totalAmount}"></span>
                         </button>
                     </h5>
+                    <div>
+                        <small class="text-muted">Txn: <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></small>
+                        <a th:href="@{'/admin/order/group/deliver/' + ${orderGroup.id}}" class="btn btn-sm btn-success ml-2" onclick="return confirm('Mark whole group as Delivered?')">Mark Delivered</a>
+                        <a th:href="@{'/admin/order/group/view/' + ${orderGroup.id}}" class="btn btn-sm btn-outline-secondary ml-1">View Transaction</a>
+                    </div>
                     <span class="badge" 
                           th:classappend="${orderGroup.groupStatus == 'Delivered'} ? 'badge-success' : 
                                          (${orderGroup.groupStatus == 'Cancelled'} ? 'badge-danger' : 
@@ -69,7 +74,10 @@
                                 <td>
                                     <img th:src="@{${'/productImages/' + (order.product != null && order.product.imageName != null ? order.product.imageName : 'default.png')}}" 
                                          style="width: 30px; height: 30px; object-fit: cover;" class="mr-2" th:alt="${order.product != null ? order.product.name : 'Product'}">
-                                    <span th:text="${order.product != null ? order.product.name : '-'}"></span>
+                                    <div>
+                                        <span th:text="${order.product != null ? order.product.name : '-'}"></span>
+                                        <div><small class="text-muted">ID: <span th:text="${order.product != null ? order.product.id : '-'}"></span></small></div>
+                                    </div>
                                 </td>
                                 <td th:text="${order.quantity}"></td>
                                 <td>₹<span th:text="${order.productPriceAtOrder}"></span></td>

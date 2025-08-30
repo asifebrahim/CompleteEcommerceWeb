@@ -6,6 +6,7 @@ import com.example.EcommerceFresh.Dao.PaymentProofDao;
 import com.example.EcommerceFresh.Dao.UserOrderDao;
 import com.example.EcommerceFresh.Dao.UserProfileDao;
 import com.example.EcommerceFresh.Dao.OrderGroupDao;
+import com.example.EcommerceFresh.Dao.DeliveryOtpDao;
 import com.example.EcommerceFresh.Entity.Category;
 import com.example.EcommerceFresh.Entity.Product;
 import com.example.EcommerceFresh.Entity.UserOrder;
@@ -26,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 public class AdminController {
@@ -36,16 +38,18 @@ public class AdminController {
     private UserOrderDao userOrderDao;
     private UserProfileDao userProfileDao;
     private OrderGroupDao orderGroupDao;
+    private DeliveryOtpDao deliveryOtpDao;
     @Value("${product.images.dir:${user.dir}/productImages}")
     public String uploadDir;
 
-    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao, UserProfileDao userProfileDao, OrderGroupDao orderGroupDao){
+    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao, UserProfileDao userProfileDao, OrderGroupDao orderGroupDao, DeliveryOtpDao deliveryOtpDao){
         this.categoryservice=categoryservice;
         this.productService=productService;
         this.paymentProofDao = paymentProofDao;
         this.userOrderDao = userOrderDao;
         this.userProfileDao = userProfileDao;
         this.orderGroupDao = orderGroupDao;
+        this.deliveryOtpDao = deliveryOtpDao;
     }
 
     @GetMapping("/admin")
@@ -328,8 +332,18 @@ public class AdminController {
     @GetMapping("/admin/orders")
     public String manageOrders(Model model){
         model.addAttribute("cartCount", GlobalData.cart.size());
-        java.util.List<OrderGroup> groups = orderGroupDao.findAll();
+        java.util.List<OrderGroup> groups = orderGroupDao.findAll().stream()
+                .filter(og -> og.getGroupStatus() == null || !og.getGroupStatus().equalsIgnoreCase("Delivered"))
+                .collect(Collectors.toList());
         model.addAttribute("orderGroups", groups);
+        // compute orders that have active OTPs so template can label Resend OTP
+        java.util.Set<Integer> ordersWithActiveOtp = deliveryOtpDao.findAll().stream()
+                .filter(d -> !d.isUsed())
+                .filter(d -> d.getExpiresAt() == null || d.getExpiresAt().isAfter(java.time.LocalDateTime.now()))
+                .map(d -> d.getOrder() != null ? d.getOrder().getId() : null)
+                .filter(id -> id != null)
+                .collect(java.util.stream.Collectors.toSet());
+        model.addAttribute("ordersWithActiveOtp", ordersWithActiveOtp);
         return "adminOrders";
     }
 }
