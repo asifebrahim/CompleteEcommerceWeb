@@ -7,11 +7,13 @@ import com.example.EcommerceFresh.Dao.UserOrderDao;
 import com.example.EcommerceFresh.Dao.UserProfileDao;
 import com.example.EcommerceFresh.Dao.OrderGroupDao;
 import com.example.EcommerceFresh.Dao.DeliveryOtpDao;
+import com.example.EcommerceFresh.Dao.AddressDao;
 import com.example.EcommerceFresh.Entity.Category;
 import com.example.EcommerceFresh.Entity.Product;
 import com.example.EcommerceFresh.Entity.UserOrder;
 import com.example.EcommerceFresh.Entity.UserProfile;
 import com.example.EcommerceFresh.Entity.OrderGroup;
+import com.example.EcommerceFresh.Entity.Address;
 import com.example.EcommerceFresh.Global.GlobalData;
 import com.example.EcommerceFresh.Service.CategoryserviceImpl;
 import com.example.EcommerceFresh.Service.ProductServiceImpl;
@@ -39,10 +41,11 @@ public class AdminController {
     private UserProfileDao userProfileDao;
     private OrderGroupDao orderGroupDao;
     private DeliveryOtpDao deliveryOtpDao;
+    private AddressDao addressDao;
     @Value("${product.images.dir:${user.dir}/productImages}")
     public String uploadDir;
 
-    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao, UserProfileDao userProfileDao, OrderGroupDao orderGroupDao, DeliveryOtpDao deliveryOtpDao){
+    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao, UserProfileDao userProfileDao, OrderGroupDao orderGroupDao, DeliveryOtpDao deliveryOtpDao, AddressDao addressDao){
         this.categoryservice=categoryservice;
         this.productService=productService;
         this.paymentProofDao = paymentProofDao;
@@ -50,6 +53,7 @@ public class AdminController {
         this.userProfileDao = userProfileDao;
         this.orderGroupDao = orderGroupDao;
         this.deliveryOtpDao = deliveryOtpDao;
+        this.addressDao = addressDao;
     }
 
     @GetMapping("/admin")
@@ -391,7 +395,79 @@ public class AdminController {
         java.util.List<OrderGroup> delivered = orderGroupDao.findAll().stream()
                 .filter(og -> og.getGroupStatus() != null && og.getGroupStatus().equalsIgnoreCase("Delivered"))
                 .collect(java.util.stream.Collectors.toList());
+
+        // Ensure deliveryAddress is populated for display in admin delivered list. If missing on the group,
+        // try to pick the first non-empty deliveryAddress from the group's UserOrders or from saved Address entity and persist it.
+        java.util.Map<Integer, String> groupPhoneMap = new java.util.HashMap<>();
+        java.util.Map<Integer, java.time.LocalDateTime> groupDeliveredAtMap = new java.util.HashMap<>();
+
+        for (OrderGroup og : delivered) {
+            if (og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
+                // try per-order deliveryAddress
+                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                    for (UserOrder uo : og.getUserOrders()) {
+                        String da = uo.getDeliveryAddress();
+                        if (da != null && !da.isBlank()) {
+                            og.setDeliveryAddress(da);
+                            try { orderGroupDao.save(og); } catch (Exception ignored) { }
+                            break;
+                        }
+                    }
+                }
+                // fallback: try Address entity for the user
+                if ((og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) && og.getUser() != null && og.getUser().getEmail() != null) {
+                    try {
+                        var addrOpt = addressDao.findAll().stream()
+                                .filter(a -> a.getEmail() != null && a.getEmail().equalsIgnoreCase(og.getUser().getEmail()))
+                                .findFirst();
+                        if (addrOpt.isPresent()) {
+                            Address addr = addrOpt.get();
+                            String composed = String.format("%s, %s, %s - %s", addr.getAddress1() == null ? "" : addr.getAddress1(), addr.getTown() == null ? "" : addr.getTown(), addr.getPinCode() == null ? "" : addr.getPinCode(), addr.getPhone() == null ? "" : addr.getPhone());
+                            og.setDeliveryAddress(composed);
+                            try { orderGroupDao.save(og); } catch (Exception ignored) { }
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+
+            // compute phone for this group: try UserProfile -> Address -> user's email placeholder
+            String phone = null;
+            try {
+                if (og.getUser() != null) {
+                    var upOpt = userProfileDao.findByUser(og.getUser());
+                    if (upOpt.isPresent() && upOpt.get().getPhone() != null && !upOpt.get().getPhone().isBlank()) phone = upOpt.get().getPhone();
+                }
+            } catch (Exception ignored) { }
+            if ((phone == null || phone.isBlank()) && og.getUser() != null && og.getUser().getEmail() != null) {
+                try {
+                    var addrOpt = addressDao.findAll().stream()
+                            .filter(a -> a.getEmail() != null && a.getEmail().equalsIgnoreCase(og.getUser().getEmail()))
+                            .findFirst();
+                    if (addrOpt.isPresent()) phone = addrOpt.get().getPhone();
+                } catch (Exception ignored) { }
+            }
+            if (phone == null) phone = "-";
+            groupPhoneMap.put(og.getId(), phone);
+
+            // compute deliveredAt for group as the latest deliveredAt among its orders
+            java.time.LocalDateTime latest = null;
+            try {
+                if (og.getUserOrders() != null) {
+                    for (UserOrder uo : og.getUserOrders()) {
+                        if (uo.getDeliveredAt() != null) {
+                            if (latest == null || uo.getDeliveredAt().isAfter(latest)) latest = uo.getDeliveredAt();
+                        }
+                    }
+                }
+            } catch (Exception ignored) { }
+            if (latest != null) groupDeliveredAtMap.put(og.getId(), latest);
+        }
+
         model.addAttribute("orderGroups", delivered);
+        model.addAttribute("groupPhoneMap", groupPhoneMap);
+        model.addAttribute("groupDeliveredAtMap", groupDeliveredAtMap);
         return "adminOrdersDelivered";
     }
 }

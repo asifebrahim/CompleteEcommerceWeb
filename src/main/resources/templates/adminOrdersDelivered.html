@@ -27,10 +27,14 @@
                      th:id="'headingDel' + ${groupStat.index}">
                     <h5 class="mb-0">
                         Order Group #<span th:text="${orderGroup.id}"></span> - 
-                        <span th:text="${orderGroup.user.firstName} + ' ' + ${orderGroup.user.lastName}"></span>
+                        <span th:text="${orderGroup.user != null ? (orderGroup.user.firstName + ' ' + orderGroup.user.lastName) : '-'}"></span>
                         <br/>
-                        <small class="text-muted" th:text="${orderGroup.user.email}"></small>
+                        <small class="text-muted" th:text="${orderGroup.user != null ? orderGroup.user.email : '-'}"></small>
                         &nbsp; - &nbsp;₹<span th:text="${orderGroup.totalAmount}"></span>
+                        <br/>
+                        <small class="text-muted">Txn: <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></small>
+                        <br/>
+                        <small class="text-muted">Phone: <span th:text="${groupPhoneMap != null && groupPhoneMap.containsKey(orderGroup.id) ? groupPhoneMap[orderGroup.id] : '-'}"></span></small>
                     </h5>
                     <span class="badge badge-success">Delivered</span>
                 </div>
@@ -41,14 +45,20 @@
                      data-parent="#deliveredAccordion">
                     <div class="card-body">
                         <div class="mb-2">
-                            <small class="text-muted">Delivered At: <span th:text="${orderGroup.createdAt}"></span></small>
-                            <span th:if="${orderGroup.deliveryAddress}" class="ml-3">
+                            <small class="text-muted">Delivered At: <span th:text="${groupDeliveredAtMap != null && groupDeliveredAtMap.containsKey(orderGroup.id) ? #temporals.format(groupDeliveredAtMap[orderGroup.id], 'dd MMM yyyy HH:mm') : #temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm')}"></span></small>
+                            <span th:if="${orderGroup.deliveryAddress != null and orderGroup.deliveryAddress != ''}" class="ml-3">
                                 <small class="text-muted">Address: <span th:text="${orderGroup.deliveryAddress}"></span></small>
+                            </span>
+                            <span th:if="${(orderGroup.deliveryAddress == null or orderGroup.deliveryAddress == '') and orderGroup.userOrders != null}">
+                                <small class="text-muted">Address: 
+                                    <span th:each="o : ${orderGroup.userOrders}" th:if="${o.deliveryAddress != null and o.deliveryAddress != ''}" th:text="${o.deliveryAddress}"></span>
+                                </small>
                             </span>
                         </div>
                         <table class="table table-sm">
                             <thead>
                             <tr>
+                                <th>Order ID</th>
                                 <th>Product</th>
                                 <th>Qty</th>
                                 <th>Price at Order</th>
@@ -57,6 +67,7 @@
                             </thead>
                             <tbody>
                             <tr th:each="order : ${orderGroup.userOrders}">
+                                <td th:text="${order.id}"></td>
                                 <td>
                                     <span th:text="${order.product != null ? order.product.name : '-'}"></span>
                                     <div><small class="text-muted">ID: <span th:text="${order.product != null ? order.product.id : '-'}"></span></small></div>
