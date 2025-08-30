@@ -22,7 +22,16 @@
             </p>
             <p><strong>Transaction:</strong> <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></p>
             <p><strong>Total:</strong> ₹<span th:text="${orderGroup.totalAmount}"></span></p>
-            <p><strong>Address:</strong> <span th:text="${deliveryAddress != null ? deliveryAddress : (orderGroup.deliveryAddress != null ? orderGroup.deliveryAddress : '-')}"></span></p>
+            <p><strong>Address:</strong> 
+                <span th:if="${deliveryAddress != null and deliveryAddress != ''}" th:text="${deliveryAddress}"></span>
+                <span th:if="${(deliveryAddress == null or deliveryAddress == '') and orderGroup.deliveryAddress != null and orderGroup.deliveryAddress != ''}" th:text="${orderGroup.deliveryAddress}"></span>
+                <span th:if="${(deliveryAddress == null or deliveryAddress == '') and (orderGroup.deliveryAddress == null or orderGroup.deliveryAddress == '')}">-
+                    <!-- fallback: show first non-empty per-order delivery address if available -->
+                    <span th:if="${orderGroup.userOrders != null}">
+                        <span th:each="o : ${orderGroup.userOrders}" th:if="${o.deliveryAddress != null and o.deliveryAddress != ''}" th:text="${o.deliveryAddress}"></span>
+                    </span>
+                </span>
+            </p>
             <p><strong>Status:</strong> <span th:text="${orderGroup.groupStatus}"></span></p>
 
             <h5>Products</h5>
@@ -42,11 +51,9 @@
                 </tbody>
             </table>
 
-            <form th:action="@{'/admin/order/group/deliver/' + ${orderGroup.id}}" method="post">
-                <button type="submit" class="btn btn-success" onclick="return confirm('Mark group as delivered?')">Mark Delivered</button>
-            </form>
-        </div>
-    </div>
-</div>
+            <!-- Mark Delivered action removed: delivery lifecycle is controlled via OTP verification -->
+         </div>
+     </div>
+ </div>
 </body>
 </html>
