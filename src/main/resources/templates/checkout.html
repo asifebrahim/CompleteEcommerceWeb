@@ -95,7 +95,8 @@
                                 <!-- First name -->
                                 <div class="md-form md-outline mb-0 mb-lg-4">
                                     <label for="firstName">First name <span class="required-field">*</span></label>
-                                    <input type="text" id="firstName" name="firstName" required class="form-control mb-0 mb-lg-2">
+                                    <input type="text" id="firstName" name="firstName" required class="form-control mb-0 mb-lg-2" 
+                                           th:value="${user != null ? user.firstName : ''}">
                                 </div>
 
                             </div>
@@ -107,7 +108,8 @@
                                 <!-- Last name -->
                                 <div class="md-form md-outline">
                                     <label for="lastName">Last name</label>
-                                    <input type="text" id="lastName" name="lastName" required class="form-control">
+                                    <input type="text" id="lastName" name="lastName" required class="form-control"
+                                           th:value="${user != null ? user.lastName : ''}">
                                 </div>
 
                             </div>
@@ -162,13 +164,31 @@
                         <!-- Email address -->
                         <div class="md-form md-outline mt-2">
                             <label for="form19">Email address</label>
-                            <input type="email" required id="form19" name="email" class="form-control">
+                            <input type="email" required id="form19" name="email" class="form-control"
+                                   th:value="${user != null ? user.email : ''}">
                         </div>
 
                         <!-- Additional information -->
                         <div class="md-form md-outline mt-2">
                             <label for="form76">Additional information</label>
                             <textarea id="form76" name="additionalInfo" class="md-textarea form-control" rows="4"></textarea>
+                        </div>
+
+                        <!-- Auto-fill from saved address if available -->
+                        <div th:if="${addresses != null and !addresses.empty}" class="mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="fillFromSavedAddress()">
+                                Fill from saved address
+                            </button>
+                        </div>
+                        
+                        <!-- Hidden data for JavaScript -->
+                        <div th:if="${addresses != null and !addresses.empty}" style="display: none;">
+                            <span id="savedAddressData" 
+                                  th:data-address1="${addresses[0].address1}"
+                                  th:data-address2="${addresses[0].address2}"
+                                  th:data-pincode="${addresses[0].pinCode}"
+                                  th:data-town="${addresses[0].town}"
+                                  th:data-phone="${addresses[0].phone}"></span>
                         </div>
 
 
@@ -425,6 +445,28 @@
             console.error('Error:', error);
             alert('Error verifying payment');
         });
+    }
+    
+    function fillFromSavedAddress() {
+        const savedData = document.getElementById('savedAddressData');
+        if (savedData) {
+            const address1 = savedData.getAttribute('data-address1');
+            const address2 = savedData.getAttribute('data-address2');
+            const pincode = savedData.getAttribute('data-pincode');
+            const town = savedData.getAttribute('data-town');
+            const phone = savedData.getAttribute('data-phone');
+            
+            if (address1) document.getElementById('form14').value = address1;
+            if (address2) document.getElementById('form15').value = address2;
+            if (pincode) document.getElementById('form16').value = pincode;
+            if (town) document.getElementById('form17').value = town;
+            if (phone) document.getElementById('form18').value = phone;
+            
+            // Trigger validation check after filling
+            if (typeof updatePaymentButtonState === 'function') {
+                updatePaymentButtonState();
+            }
+        }
     }
 </script>
 <!-- Add real-time validation script -->
