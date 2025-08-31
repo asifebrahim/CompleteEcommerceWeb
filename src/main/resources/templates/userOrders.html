@@ -86,8 +86,27 @@
                               th:text="${orderGroup.groupStatus}">Status</span>
                     </div>
                     <div class="card-body">
-                        <div th:if="${orderGroup.deliveryAddress}" class="mb-2">
-                            <small class="text-muted">Delivery Address: <span th:text="${orderGroup.deliveryAddress}"></span></small>
+                        <!-- Display checkout details instead of delivery address only -->
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <strong>Delivery Details:</strong><br>
+                                <span th:if="${orderGroup.firstName != null and !#strings.isEmpty(orderGroup.firstName)}">
+                                    Name: <span th:text="${orderGroup.firstName}"></span>
+                                    <span th:if="${orderGroup.lastName != null and !#strings.isEmpty(orderGroup.lastName)}" th:text="' ' + ${orderGroup.lastName}"></span><br>
+                                </span>
+                                <span th:if="${orderGroup.emailAddress != null and !#strings.isEmpty(orderGroup.emailAddress)}">
+                                    Email: <span th:text="${orderGroup.emailAddress}"></span><br>
+                                </span>
+                                <span th:if="${orderGroup.mobile != null and !#strings.isEmpty(orderGroup.mobile)}">
+                                    Mobile: <span th:text="${orderGroup.mobile}"></span><br>
+                                </span>
+                                <span th:if="${orderGroup.deliveryAddress != null and !#strings.isEmpty(orderGroup.deliveryAddress)}">
+                                    Address: <span th:text="${orderGroup.deliveryAddress}"></span><br>
+                                </span>
+                                <span th:if="${orderGroup.pinCode != null and !#strings.isEmpty(orderGroup.pinCode)}">
+                                    Pin Code: <span th:text="${orderGroup.pinCode}"></span>
+                                </span>
+                            </small>
                         </div>
                         
                         <!-- Display each product in the order group -->

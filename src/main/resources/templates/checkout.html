@@ -14,6 +14,21 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
 
     <title>Document</title>
+    <style>
+        .required-field {
+            color: red;
+            font-weight: bold;
+        }
+        .field-error {
+            border: 2px solid red !important;
+        }
+        .field-valid {
+            border: 2px solid green !important;
+        }
+        .btn:disabled {
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
 
@@ -79,7 +94,7 @@
 
                                 <!-- First name -->
                                 <div class="md-form md-outline mb-0 mb-lg-4">
-                                    <label for="firstName">First name</label>
+                                    <label for="firstName">First name <span class="required-field">*</span></label>
                                     <input type="text" id="firstName" name="firstName" required class="form-control mb-0 mb-lg-2">
                                 </div>
 
@@ -114,7 +129,7 @@
 
                         <!-- Address Part 1 -->
                         <div class="md-form md-outline mt-2">
-                            <label for="form14">Address (Line 1)</label>
+                            <label for="form14">Address (Line 1) <span class="required-field">*</span></label>
                             <input type="text" required id="form14" name="address1" placeholder="House number and street name" class="form-control">
                         </div>
 
@@ -127,7 +142,7 @@
 
                         <!-- Postcode / ZIP -->
                         <div class="md-form md-outline mt-3">
-                            <label for="form16">Postcode / ZIP</label>
+                            <label for="form16">Postcode / ZIP <span class="required-field">*</span></label>
                             <input type="text" maxlength="6" minlength="6" required id="form16" name="pinCode" class="form-control">
                         </div>
 
@@ -140,7 +155,7 @@
 
                         <!-- Phone -->
                         <div class="md-form md-outline mt-2">
-                            <label for="form18">Phone</label>
+                            <label for="form18">Phone <span class="required-field">*</span></label>
                             <input type="text" minlength="10" maxlength="10" required id="form18" name="phone" class="form-control">
                         </div>
 
@@ -194,7 +209,7 @@
                                 <span><strong>₹<span th:text="${total}"></span></strong></span>
                             </li>
 
-                            <button type="button" class="btn btn-primary btn-block waves-effect waves-light" onclick="initiatePayment()">Pay with Razorpay</button>
+                            <button type="button" id="razorpayBtn" class="btn btn-primary btn-block waves-effect waves-light" onclick="initiatePayment()">Pay with Razorpay</button>
                             <button type="submit" class="btn btn-outline-secondary btn-block mt-2">Pay with QR Code (Old Method)</button>
 
                     </div>
@@ -249,6 +264,11 @@
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').getAttribute('content') : null;
 
     function initiatePayment() {
+        // Validate required fields before initiating payment
+        if (!validateRequiredFields()) {
+            return;
+        }
+        
         const amount = [[${total}]];
         
         // First create order on server
@@ -306,6 +326,57 @@
         });
     }
     
+    function validateRequiredFields() {
+        const firstName = document.getElementById('firstName').value.trim();
+        const address1 = document.getElementById('form14').value.trim();
+        const phone = document.getElementById('form18').value.trim();
+        const pinCode = document.getElementById('form16').value.trim();
+        
+        const missingFields = [];
+        
+        if (!firstName) missingFields.push('First Name');
+        if (!address1) missingFields.push('Address Line 1');
+        if (!phone) missingFields.push('Mobile/Phone');
+        if (!pinCode) missingFields.push('Pin Code');
+        
+        if (missingFields.length > 0) {
+            alert('Please fill the following required fields: ' + missingFields.join(', '));
+            
+            // Highlight missing fields
+            if (!firstName) {
+                document.getElementById('firstName').style.borderColor = 'red';
+                document.getElementById('firstName').classList.add('field-error');
+            }
+            if (!address1) {
+                document.getElementById('form14').style.borderColor = 'red';
+                document.getElementById('form14').classList.add('field-error');
+            }
+            if (!phone) {
+                document.getElementById('form18').style.borderColor = 'red';
+                document.getElementById('form18').classList.add('field-error');
+            }
+            if (!pinCode) {
+                document.getElementById('form16').style.borderColor = 'red';
+                document.getElementById('form16').classList.add('field-error');
+            }
+            
+            return false;
+        }
+        
+        // Reset border colors and classes
+        document.getElementById('firstName').style.borderColor = '';
+        document.getElementById('form14').style.borderColor = '';
+        document.getElementById('form18').style.borderColor = '';
+        document.getElementById('form16').style.borderColor = '';
+        
+        document.getElementById('firstName').classList.remove('field-error');
+        document.getElementById('form14').classList.remove('field-error');
+        document.getElementById('form18').classList.remove('field-error');
+        document.getElementById('form16').classList.remove('field-error');
+        
+        return true;
+    }
+    
     function verifyPayment(paymentId, orderId, signature) {
         const verifyHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
         if (csrfToken && csrfHeader) verifyHeaders[csrfHeader] = csrfToken;
@@ -355,6 +426,65 @@
             alert('Error verifying payment');
         });
     }
+</script>
+<!-- Add real-time validation script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const requiredFields = ['firstName', 'form14', 'form18', 'form16'];
+        
+        requiredFields.forEach(function(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.style.borderColor = '';
+                        this.classList.remove('field-error');
+                        this.classList.add('field-valid');
+                    } else {
+                        this.classList.remove('field-valid');
+                    }
+                });
+                
+                field.addEventListener('blur', function() {
+                    if (!this.value.trim()) {
+                        this.style.borderColor = 'red';
+                        this.classList.add('field-error');
+                        this.classList.remove('field-valid');
+                    }
+                });
+            }
+        });
+        
+        // Disable/enable payment button based on field validation
+        function updatePaymentButtonState() {
+            const firstName = document.getElementById('firstName').value.trim();
+            const address1 = document.getElementById('form14').value.trim();
+            const phone = document.getElementById('form18').value.trim();
+            const pinCode = document.getElementById('form16').value.trim();
+            
+            const razorpayBtn = document.getElementById('razorpayBtn');
+            if (firstName && address1 && phone && pinCode) {
+                razorpayBtn.disabled = false;
+                razorpayBtn.style.opacity = '1';
+                razorpayBtn.title = '';
+            } else {
+                razorpayBtn.disabled = true;
+                razorpayBtn.style.opacity = '0.6';
+                razorpayBtn.title = 'Please fill all required fields: First Name, Address Line 1, Mobile, and Pin Code';
+            }
+        }
+        
+        // Check initial state
+        updatePaymentButtonState();
+        
+        // Add event listeners to update button state
+        requiredFields.forEach(function(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('input', updatePaymentButtonState);
+            }
+        });
+    });
 </script>
 </body>
 </html>

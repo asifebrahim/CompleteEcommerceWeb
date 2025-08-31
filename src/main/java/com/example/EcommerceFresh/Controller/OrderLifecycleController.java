@@ -451,54 +451,22 @@ public class OrderLifecycleController {
         // Also collect delivery name/mobile/pin for display (from group or first UserOrder fallback).
         java.util.Map<Integer, java.util.Map<String,String>> groupDeliveryInfo = new java.util.HashMap<>();
         for (OrderGroup og : cancelled) {
-            if (og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
-                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
-                    for (UserOrder uo : og.getUserOrders()) {
-                        String da = safeExtractString(uo,
-                                "getDeliveryAddress", "getAddress", "getFullAddress");
-                        if (da != null && !da.isBlank()) {
-                            og.setDeliveryAddress(da);
-                            try { orderGroupDao.save(og); } catch (Exception ignored) { }
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // build per-group delivery info used by the template
+            // Use new checkout fields from OrderGroup
             java.util.Map<String,String> info = new java.util.HashMap<>();
             String addr = og.getDeliveryAddress();
-            String name = null;
-            String mobile = null;
-            String pin = null;
-            if (addr == null || addr.isBlank()) addr = null;
-            // Try group-level fields first
-            if (addr == null) {
-                // look into UserOrders for address/name/mobile/pin
-                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
-                    for (UserOrder uo : og.getUserOrders()) {
-                        if (addr == null) {
-                            addr = safeExtractString(uo, "getDeliveryAddress", "getAddress", "getFullAddress");
-                        }
-                        if (name == null) {
-                            name = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
-                        }
-                        if (mobile == null) {
-                            mobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
-                        }
-                        if (pin == null) {
-                            pin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
-                        }
-                        if (addr != null && name != null && mobile != null && pin != null) break;
-                    }
-                }
-            } else {
-                // group has address: still try to get name/mobile/pin from group's first order
+            String name = og.getFirstName();
+            String mobile = og.getMobile();
+            String pin = og.getPinCode();
+            
+            // If group fields are missing, fallback to first order
+            if ((addr == null || addr.isBlank()) || (name == null || name.isBlank()) || 
+                (mobile == null || mobile.isBlank()) || (pin == null || pin.isBlank())) {
                 if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
                     UserOrder uo = og.getUserOrders().get(0);
-                    if (name == null) name = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
-                    if (mobile == null) mobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
-                    if (pin == null) pin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
+                    if (addr == null || addr.isBlank()) addr = uo.getDeliveryAddress();
+                    if (name == null || name.isBlank()) name = uo.getFirstName();
+                    if (mobile == null || mobile.isBlank()) mobile = uo.getMobile();
+                    if (pin == null || pin.isBlank()) pin = uo.getPinCode();
                 }
             }
 
@@ -542,27 +510,29 @@ public class OrderLifecycleController {
 
         // Provide a deliveryAddress fallback for the template if group-level address is blank
         String deliveryAddress = og.getDeliveryAddress();
-        String deliveryName = null;
-        String deliveryMobile = null;
-        String deliveryPin = null;
+        String deliveryName = og.getFirstName();
+        String deliveryMobile = og.getMobile();
+        String deliveryPin = og.getPinCode();
 
-        if (deliveryAddress == null || deliveryAddress.isBlank()) {
-            if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
-                for (UserOrder uo : og.getUserOrders()) {
-                    String da = safeExtractString(uo, "getDeliveryAddress", "getAddress", "getFullAddress");
-                    if (da != null && !da.isBlank()) { deliveryAddress = da; }
-                    if (deliveryName == null) deliveryName = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
-                    if (deliveryMobile == null) deliveryMobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
-                    if (deliveryPin == null) deliveryPin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
-                    if (deliveryAddress != null && deliveryName != null && deliveryMobile != null && deliveryPin != null) break;
-                }
-            }
-        } else {
+        // If group fields are missing, fallback to first order
+        if ((deliveryAddress == null || deliveryAddress.isBlank()) || 
+            (deliveryName == null || deliveryName.isBlank()) ||
+            (deliveryMobile == null || deliveryMobile.isBlank()) ||
+            (deliveryPin == null || deliveryPin.isBlank())) {
             if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
                 UserOrder uo = og.getUserOrders().get(0);
-                deliveryName = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
-                deliveryMobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
-                deliveryPin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
+                if (deliveryAddress == null || deliveryAddress.isBlank()) {
+                    deliveryAddress = uo.getDeliveryAddress();
+                }
+                if (deliveryName == null || deliveryName.isBlank()) {
+                    deliveryName = uo.getFirstName();
+                }
+                if (deliveryMobile == null || deliveryMobile.isBlank()) {
+                    deliveryMobile = uo.getMobile();
+                }
+                if (deliveryPin == null || deliveryPin.isBlank()) {
+                    deliveryPin = uo.getPinCode();
+                }
             }
         }
 
@@ -590,15 +560,20 @@ public class OrderLifecycleController {
         UserOrder order = o.get();
 
         java.util.List<String> missing = new java.util.ArrayList<>();
-        String fn = safeExtractString(order, "getFirstName", "getDeliveryName", "getName");
-        String mobile = safeExtractString(order, "getMobile", "getPhone", "getContactNumber");
-        String pin = safeExtractString(order, "getPincode", "getPin", "getZip", "getPostalCode");
-        String addr = safeExtractString(order, "getDeliveryAddress", "getAddress", "getFullAddress");
-
-        if (fn == null || fn.isBlank()) missing.add("firstName");
-        if (mobile == null || mobile.isBlank()) missing.add("mobile");
-        if (pin == null || pin.isBlank()) missing.add("pin");
-        if (addr == null || addr.isBlank()) missing.add("deliveryAddress");
+        
+        // Check the new checkout fields first
+        if (order.getFirstName() == null || order.getFirstName().isBlank()) {
+            missing.add("firstName");
+        }
+        if (order.getMobile() == null || order.getMobile().isBlank()) {
+            missing.add("mobile");
+        }
+        if (order.getPinCode() == null || order.getPinCode().isBlank()) {
+            missing.add("pinCode");
+        }
+        if (order.getDeliveryAddress() == null || order.getDeliveryAddress().isBlank()) {
+            missing.add("deliveryAddress");
+        }
 
         // Also check linked user email as contact identifier (if available)
         if ((order.getUser() == null || order.getUser().getEmail() == null || order.getUser().getEmail().isBlank())) {
@@ -617,51 +592,25 @@ public class OrderLifecycleController {
         if (ogOpt.isEmpty()) return ResponseEntity.badRequest().body("Order group not found");
         OrderGroup og = ogOpt.get();
 
-        // prefer group-level fields, fall back to first order
-        String fn = safeExtractString(og, "getFirstName", "getDeliveryName", "getName");
-        String mobile = safeExtractString(og, "getMobile", "getPhone", "getContactNumber");
-        String pin = safeExtractString(og, "getPincode", "getPin", "getZip", "getPostalCode");
-        String addr = safeExtractString(og, "getDeliveryAddress", "getAddress", "getFullAddress");
-
-        if ((addr == null || addr.isBlank()) && og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
-            for (UserOrder uo : og.getUserOrders()) {
-                if (addr == null || addr.isBlank()) addr = safeExtractString(uo, "getDeliveryAddress", "getAddress", "getFullAddress");
-                if (fn == null || fn.isBlank()) fn = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
-                if (mobile == null || mobile.isBlank()) mobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
-                if (pin == null || pin.isBlank()) pin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
-                if (addr != null && fn != null && mobile != null && pin != null) break;
-            }
-        }
-
         java.util.List<String> missing = new java.util.ArrayList<>();
-        if (fn == null || fn.isBlank()) missing.add("firstName");
-        if (mobile == null || mobile.isBlank()) missing.add("mobile");
-        if (pin == null || pin.isBlank()) missing.add("pin");
-        if (addr == null || addr.isBlank()) missing.add("deliveryAddress");
+        
+        // Check the new checkout fields first
+        if (og.getFirstName() == null || og.getFirstName().isBlank()) {
+            missing.add("firstName");
+        }
+        if (og.getMobile() == null || og.getMobile().isBlank()) {
+            missing.add("mobile");
+        }
+        if (og.getPinCode() == null || og.getPinCode().isBlank()) {
+            missing.add("pinCode");
+        }
+        if (og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
+            missing.add("deliveryAddress");
+        }
 
         if (!missing.isEmpty()) {
             return ResponseEntity.badRequest().body("Missing required fields for group: " + String.join(", ", missing));
         }
         return ResponseEntity.ok("OK");
-    }
-
-    // Helper: attempt to call a list of common getters and return first non-blank String result via reflection
-    private String safeExtractString(Object src, String... getters){
-        if (src == null) return null;
-        for (String g : getters) {
-            try {
-                java.lang.reflect.Method m = src.getClass().getMethod(g);
-                Object val = m.invoke(src);
-                if (val != null) {
-                    String s = String.valueOf(val).trim();
-                    if (!s.isBlank()) return s;
-                }
-            } catch (NoSuchMethodException nsme) {
-                // ignore - getter not present on this type
-            } catch (Exception ex) {
-                // reflect invocation issue - ignore and continue
-            }
-        }
-        return null;
     }
 }

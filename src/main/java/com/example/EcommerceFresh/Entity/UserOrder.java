@@ -42,6 +42,25 @@ public class UserOrder {
 
     @Column(name = "delivered_at")
     private LocalDateTime deliveredAt; // timestamp when delivery was confirmed
+    
+    // Checkout details
+    @Column(name = "first_name")
+    private String firstName;
+    
+    @Column(name = "last_name")
+    private String lastName;
+    
+    @Column(name = "mobile")
+    private String mobile;
+    
+    @Column(name = "pin_code")
+    private String pinCode;
+    
+    @Column(name = "town")
+    private String town;
+    
+    @Column(name = "email_address")
+    private String emailAddress;
 
     // Getters and setters
     public Integer getId() { return id; }
@@ -82,4 +101,22 @@ public class UserOrder {
 
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+    
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    
+    public String getMobile() { return mobile; }
+    public void setMobile(String mobile) { this.mobile = mobile; }
+    
+    public String getPinCode() { return pinCode; }
+    public void setPinCode(String pinCode) { this.pinCode = pinCode; }
+    
+    public String getTown() { return town; }
+    public void setTown(String town) { this.town = town; }
+    
+    public String getEmailAddress() { return emailAddress; }
+    public void setEmailAddress(String emailAddress) { this.emailAddress = emailAddress; }
 }
