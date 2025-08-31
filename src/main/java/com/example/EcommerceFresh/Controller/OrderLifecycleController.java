@@ -448,11 +448,14 @@ public class OrderLifecycleController {
 
         // Ensure deliveryAddress is populated for display in admin list. If missing on the group,
         // try to pick the first non-empty deliveryAddress from the group's UserOrders and persist it.
+        // Also collect delivery name/mobile/pin for display (from group or first UserOrder fallback).
+        java.util.Map<Integer, java.util.Map<String,String>> groupDeliveryInfo = new java.util.HashMap<>();
         for (OrderGroup og : cancelled) {
             if (og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
                 if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
                     for (UserOrder uo : og.getUserOrders()) {
-                        String da = uo.getDeliveryAddress();
+                        String da = safeExtractString(uo,
+                                "getDeliveryAddress", "getAddress", "getFullAddress");
                         if (da != null && !da.isBlank()) {
                             og.setDeliveryAddress(da);
                             try { orderGroupDao.save(og); } catch (Exception ignored) { }
@@ -461,10 +464,62 @@ public class OrderLifecycleController {
                     }
                 }
             }
+
+            // build per-group delivery info used by the template
+            java.util.Map<String,String> info = new java.util.HashMap<>();
+            String addr = og.getDeliveryAddress();
+            String name = null;
+            String mobile = null;
+            String pin = null;
+            if (addr == null || addr.isBlank()) addr = null;
+            // Try group-level fields first
+            if (addr == null) {
+                // look into UserOrders for address/name/mobile/pin
+                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                    for (UserOrder uo : og.getUserOrders()) {
+                        if (addr == null) {
+                            addr = safeExtractString(uo, "getDeliveryAddress", "getAddress", "getFullAddress");
+                        }
+                        if (name == null) {
+                            name = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
+                        }
+                        if (mobile == null) {
+                            mobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
+                        }
+                        if (pin == null) {
+                            pin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
+                        }
+                        if (addr != null && name != null && mobile != null && pin != null) break;
+                    }
+                }
+            } else {
+                // group has address: still try to get name/mobile/pin from group's first order
+                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                    UserOrder uo = og.getUserOrders().get(0);
+                    if (name == null) name = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
+                    if (mobile == null) mobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
+                    if (pin == null) pin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
+                }
+            }
+
+            // If still missing name, fall back to user email from first order's user
+            if ((name == null || name.isBlank()) && og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                UserOrder uo = og.getUserOrders().get(0);
+                if (uo.getUser() != null && uo.getUser().getEmail() != null) {
+                    name = uo.getUser().getEmail();
+                }
+            }
+
+            info.put("address", addr == null ? "" : addr);
+            info.put("name", name == null ? "" : name);
+            info.put("mobile", mobile == null ? "" : mobile);
+            info.put("pin", pin == null ? "" : pin);
+            groupDeliveryInfo.put(og.getId() == null ? -1 : og.getId(), info);
         }
 
         model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("orderGroups", cancelled);
+        model.addAttribute("groupDeliveryInfo", groupDeliveryInfo);
         return "adminCancelledOrders";
     }
 
@@ -487,42 +542,126 @@ public class OrderLifecycleController {
 
         // Provide a deliveryAddress fallback for the template if group-level address is blank
         String deliveryAddress = og.getDeliveryAddress();
+        String deliveryName = null;
+        String deliveryMobile = null;
+        String deliveryPin = null;
+
         if (deliveryAddress == null || deliveryAddress.isBlank()) {
             if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
                 for (UserOrder uo : og.getUserOrders()) {
-                    String da = uo.getDeliveryAddress();
-                    if (da != null && !da.isBlank()) { deliveryAddress = da; break; }
+                    String da = safeExtractString(uo, "getDeliveryAddress", "getAddress", "getFullAddress");
+                    if (da != null && !da.isBlank()) { deliveryAddress = da; }
+                    if (deliveryName == null) deliveryName = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
+                    if (deliveryMobile == null) deliveryMobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
+                    if (deliveryPin == null) deliveryPin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
+                    if (deliveryAddress != null && deliveryName != null && deliveryMobile != null && deliveryPin != null) break;
                 }
             }
+        } else {
+            if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                UserOrder uo = og.getUserOrders().get(0);
+                deliveryName = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
+                deliveryMobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
+                deliveryPin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
+            }
+        }
+
+        // If name still missing, prefer the associated user's email as an identifier
+        if ((deliveryName == null || deliveryName.isBlank()) && og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+            UserOrder uo = og.getUserOrders().get(0);
+            if (uo.getUser() != null && uo.getUser().getEmail() != null) deliveryName = uo.getUser().getEmail();
         }
 
         model.addAttribute("orderGroup", og);
         model.addAttribute("deliveryAddress", deliveryAddress);
+        model.addAttribute("deliveryName", deliveryName);
+        model.addAttribute("deliveryMobile", deliveryMobile);
+        model.addAttribute("deliveryPin", deliveryPin);
         model.addAttribute("cartCount", GlobalData.cart.size());
         return "adminOrderGroupView";
     }
 
-    @GetMapping("/delivery/verify")
-    @PreAuthorize("hasRole('DELIVERY')")
-    public String deliveryVerifyPage(Model model){
-        model.addAttribute("cartCount", GlobalData.cart.size());
-        return "deliveryVerify";
+    // New validation endpoints to ensure required checkout fields exist before attempting payment.
+    // These can be called by the frontend prior to initiating Razorpay payment.
+    @PostMapping("/checkout/validate/order/{orderId}")
+    public ResponseEntity<String> validateOrderBeforePay(@PathVariable Integer orderId){
+        Optional<UserOrder> o = userOrderDao.findById(orderId);
+        if (o.isEmpty()) return ResponseEntity.badRequest().body("Order not found");
+        UserOrder order = o.get();
+
+        java.util.List<String> missing = new java.util.ArrayList<>();
+        String fn = safeExtractString(order, "getFirstName", "getDeliveryName", "getName");
+        String mobile = safeExtractString(order, "getMobile", "getPhone", "getContactNumber");
+        String pin = safeExtractString(order, "getPincode", "getPin", "getZip", "getPostalCode");
+        String addr = safeExtractString(order, "getDeliveryAddress", "getAddress", "getFullAddress");
+
+        if (fn == null || fn.isBlank()) missing.add("firstName");
+        if (mobile == null || mobile.isBlank()) missing.add("mobile");
+        if (pin == null || pin.isBlank()) missing.add("pin");
+        if (addr == null || addr.isBlank()) missing.add("deliveryAddress");
+
+        // Also check linked user email as contact identifier (if available)
+        if ((order.getUser() == null || order.getUser().getEmail() == null || order.getUser().getEmail().isBlank())) {
+            missing.add("userEmail");
+        }
+
+        if (!missing.isEmpty()) {
+            return ResponseEntity.badRequest().body("Missing required fields: " + String.join(", ", missing));
+        }
+        return ResponseEntity.ok("OK");
     }
 
-    @PostMapping("/delivery/verify")
-    @PreAuthorize("hasRole('DELIVERY')")
-    public String deliveryVerifyForm(@RequestParam Integer orderId, @RequestParam String otpCode, RedirectAttributes redirectAttributes){
-        try{
-            ResponseEntity<String> resp = verifyDeliveryOtp(orderId, otpCode);
-            if(resp.getStatusCode().is2xxSuccessful()){
-                redirectAttributes.addFlashAttribute("success", resp.getBody());
-            } else {
-                redirectAttributes.addFlashAttribute("error", resp.getBody());
+    @PostMapping("/checkout/validate/group/{groupId}")
+    public ResponseEntity<String> validateGroupBeforePay(@PathVariable Integer groupId){
+        Optional<OrderGroup> ogOpt = orderGroupDao.findById(groupId);
+        if (ogOpt.isEmpty()) return ResponseEntity.badRequest().body("Order group not found");
+        OrderGroup og = ogOpt.get();
+
+        // prefer group-level fields, fall back to first order
+        String fn = safeExtractString(og, "getFirstName", "getDeliveryName", "getName");
+        String mobile = safeExtractString(og, "getMobile", "getPhone", "getContactNumber");
+        String pin = safeExtractString(og, "getPincode", "getPin", "getZip", "getPostalCode");
+        String addr = safeExtractString(og, "getDeliveryAddress", "getAddress", "getFullAddress");
+
+        if ((addr == null || addr.isBlank()) && og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+            for (UserOrder uo : og.getUserOrders()) {
+                if (addr == null || addr.isBlank()) addr = safeExtractString(uo, "getDeliveryAddress", "getAddress", "getFullAddress");
+                if (fn == null || fn.isBlank()) fn = safeExtractString(uo, "getFirstName", "getDeliveryName", "getName");
+                if (mobile == null || mobile.isBlank()) mobile = safeExtractString(uo, "getMobile", "getPhone", "getContactNumber");
+                if (pin == null || pin.isBlank()) pin = safeExtractString(uo, "getPincode", "getPin", "getZip", "getPostalCode");
+                if (addr != null && fn != null && mobile != null && pin != null) break;
             }
-        } catch(Exception ex){
-            ex.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Error verifying OTP");
         }
-        return "redirect:/delivery/verify";
+
+        java.util.List<String> missing = new java.util.ArrayList<>();
+        if (fn == null || fn.isBlank()) missing.add("firstName");
+        if (mobile == null || mobile.isBlank()) missing.add("mobile");
+        if (pin == null || pin.isBlank()) missing.add("pin");
+        if (addr == null || addr.isBlank()) missing.add("deliveryAddress");
+
+        if (!missing.isEmpty()) {
+            return ResponseEntity.badRequest().body("Missing required fields for group: " + String.join(", ", missing));
+        }
+        return ResponseEntity.ok("OK");
+    }
+
+    // Helper: attempt to call a list of common getters and return first non-blank String result via reflection
+    private String safeExtractString(Object src, String... getters){
+        if (src == null) return null;
+        for (String g : getters) {
+            try {
+                java.lang.reflect.Method m = src.getClass().getMethod(g);
+                Object val = m.invoke(src);
+                if (val != null) {
+                    String s = String.valueOf(val).trim();
+                    if (!s.isBlank()) return s;
+                }
+            } catch (NoSuchMethodException nsme) {
+                // ignore - getter not present on this type
+            } catch (Exception ex) {
+                // reflect invocation issue - ignore and continue
+            }
+        }
+        return null;
     }
 }
