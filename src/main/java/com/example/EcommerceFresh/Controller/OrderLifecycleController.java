@@ -303,6 +303,14 @@ public class OrderLifecycleController {
         return "deliveryDashboard";
     }
 
+    // Delivery verify page
+    @GetMapping("/delivery/verify")
+    @PreAuthorize("hasRole('DELIVERY')")
+    public String deliveryVerifyPage(Model model){
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        return "deliveryVerify";
+    }
+
     // Delivery agent verifies OTP
     @PostMapping("/delivery/verify/{orderId}")
     @PreAuthorize("hasRole('DELIVERY')")
@@ -338,6 +346,24 @@ public class OrderLifecycleController {
             }
         }
         return ResponseEntity.ok("Verified and delivered");
+    }
+
+    // Alternative delivery verify endpoint that accepts form data
+    @PostMapping("/delivery/verify")
+    @PreAuthorize("hasRole('DELIVERY')")
+    public String verifyDeliveryOtpForm(@RequestParam Integer orderId, @RequestParam String otpCode, Model model){
+        try {
+            ResponseEntity<String> response = verifyDeliveryOtp(orderId, otpCode);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                model.addAttribute("success", response.getBody());
+            } else {
+                model.addAttribute("error", response.getBody());
+            }
+        } catch (Exception ex) {
+            model.addAttribute("error", "An error occurred: " + ex.getMessage());
+        }
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        return "deliveryVerify";
     }
 
     // Admin approves/declines return requests

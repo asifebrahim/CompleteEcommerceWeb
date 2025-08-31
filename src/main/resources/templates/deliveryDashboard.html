@@ -8,7 +8,12 @@
 </head>
 <body>
 <div class="container mt-4">
-    <h2>Delivery OTPs</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Delivery OTPs</h2>
+        <div>
+            <a href="/delivery/verify" class="btn btn-primary">Verify Delivery OTP</a>
+        </div>
+    </div>
     <div th:if="${otps == null or #lists.isEmpty(otps)}" class="alert alert-info">No active OTPs.</div>
     <div th:if="${otps != null and !#lists.isEmpty(otps)}">
         <table class="table table-bordered">

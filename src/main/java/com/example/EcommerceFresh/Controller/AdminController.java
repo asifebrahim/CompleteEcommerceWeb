@@ -18,6 +18,8 @@ import com.example.EcommerceFresh.Service.CategoryserviceImpl;
 import com.example.EcommerceFresh.Service.ProductServiceImpl;
 import com.example.EcommerceFresh.dto.ProductDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -571,5 +573,242 @@ public class AdminController {
         model.addAttribute("groupPhoneMap", groupPhoneMap);
         model.addAttribute("groupDeliveredAtMap", groupDeliveredAtMap);
         return "adminOrdersDelivered";
+    }
+
+    // Migration method to fix existing orders that are missing checkout data
+    @GetMapping("/admin/migrate-checkout-data")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String migrateCheckoutData(Model model) {
+        int updatedGroups = 0;
+        int updatedOrders = 0;
+        
+        try {
+            // Get all order groups
+            java.util.List<OrderGroup> allGroups = orderGroupDao.findAll();
+            
+            for (OrderGroup og : allGroups) {
+                boolean groupNeedsSave = false;
+                boolean ordersNeedSave = false;
+                
+                // Ensure userOrders are loaded
+                if (og.getUserOrders() == null || og.getUserOrders().isEmpty()) {
+                    try {
+                        var orders = userOrderDao.findAll().stream()
+                                .filter(uo -> uo.getOrderGroup() != null && uo.getOrderGroup().getId() != null && uo.getOrderGroup().getId().equals(og.getId()))
+                                .collect(java.util.stream.Collectors.toList());
+                        if (!orders.isEmpty()) {
+                            og.setUserOrders(orders);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                
+                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                    UserOrder firstOrder = og.getUserOrders().get(0);
+                    
+                    // Update OrderGroup fields if missing
+                    if ((og.getFirstName() == null || og.getFirstName().isBlank()) && firstOrder.getFirstName() != null) {
+                        og.setFirstName(firstOrder.getFirstName());
+                        groupNeedsSave = true;
+                    }
+                    if ((og.getLastName() == null || og.getLastName().isBlank()) && firstOrder.getLastName() != null) {
+                        og.setLastName(firstOrder.getLastName());
+                        groupNeedsSave = true;
+                    }
+                    if ((og.getMobile() == null || og.getMobile().isBlank()) && firstOrder.getMobile() != null) {
+                        og.setMobile(firstOrder.getMobile());
+                        groupNeedsSave = true;
+                    }
+                    if ((og.getPinCode() == null || og.getPinCode().isBlank()) && firstOrder.getPinCode() != null) {
+                        og.setPinCode(firstOrder.getPinCode());
+                        groupNeedsSave = true;
+                    }
+                    if ((og.getEmailAddress() == null || og.getEmailAddress().isBlank()) && firstOrder.getUser() != null && firstOrder.getUser().getEmail() != null) {
+                        og.setEmailAddress(firstOrder.getUser().getEmail());
+                        groupNeedsSave = true;
+                    }
+                    if ((og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) && firstOrder.getDeliveryAddress() != null) {
+                        og.setDeliveryAddress(firstOrder.getDeliveryAddress());
+                        groupNeedsSave = true;
+                    }
+                    
+                    // If OrderGroup fields are still missing, try to get from User or saved Address
+                    if (og.getFirstName() == null || og.getFirstName().isBlank() || 
+                        og.getMobile() == null || og.getMobile().isBlank() ||
+                        og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
+                        
+                        // Try to get data from saved Address
+                        if (og.getUser() != null && og.getUser().getEmail() != null) {
+                            try {
+                                var addrOpt = addressDao.findAll().stream()
+                                        .filter(a -> a.getEmail() != null && a.getEmail().equalsIgnoreCase(og.getUser().getEmail()))
+                                        .findFirst();
+                                if (addrOpt.isPresent()) {
+                                    Address addr = addrOpt.get();
+                                    
+                                    if ((og.getFirstName() == null || og.getFirstName().isBlank()) && addr.getFirstName() != null) {
+                                        og.setFirstName(addr.getFirstName());
+                                        groupNeedsSave = true;
+                                    }
+                                    if ((og.getLastName() == null || og.getLastName().isBlank()) && addr.getLastName() != null) {
+                                        og.setLastName(addr.getLastName());
+                                        groupNeedsSave = true;
+                                    }
+                                    if ((og.getMobile() == null || og.getMobile().isBlank()) && addr.getPhone() != null) {
+                                        og.setMobile(addr.getPhone());
+                                        groupNeedsSave = true;
+                                    }
+                                    if ((og.getPinCode() == null || og.getPinCode().isBlank()) && addr.getPinCode() != null) {
+                                        og.setPinCode(addr.getPinCode());
+                                        groupNeedsSave = true;
+                                    }
+                                    if ((og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank())) {
+                                        String composed = String.format("%s, %s, %s - %s", 
+                                            addr.getAddress1() == null ? "" : addr.getAddress1(), 
+                                            addr.getTown() == null ? "" : addr.getTown(), 
+                                            addr.getPinCode() == null ? "" : addr.getPinCode(), 
+                                            addr.getPhone() == null ? "" : addr.getPhone());
+                                        og.setDeliveryAddress(composed);
+                                        groupNeedsSave = true;
+                                    }
+                                }
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    }
+                    
+                    // Update individual UserOrder fields if missing
+                    for (UserOrder uo : og.getUserOrders()) {
+                        boolean orderNeedsSave = false;
+                        
+                        if ((uo.getFirstName() == null || uo.getFirstName().isBlank()) && og.getFirstName() != null) {
+                            uo.setFirstName(og.getFirstName());
+                            orderNeedsSave = true;
+                        }
+                        if ((uo.getLastName() == null || uo.getLastName().isBlank()) && og.getLastName() != null) {
+                            uo.setLastName(og.getLastName());
+                            orderNeedsSave = true;
+                        }
+                        if ((uo.getMobile() == null || uo.getMobile().isBlank()) && og.getMobile() != null) {
+                            uo.setMobile(og.getMobile());
+                            orderNeedsSave = true;
+                        }
+                        if ((uo.getPinCode() == null || uo.getPinCode().isBlank()) && og.getPinCode() != null) {
+                            uo.setPinCode(og.getPinCode());
+                            orderNeedsSave = true;
+                        }
+                        if ((uo.getEmailAddress() == null || uo.getEmailAddress().isBlank()) && og.getEmailAddress() != null) {
+                            uo.setEmailAddress(og.getEmailAddress());
+                            orderNeedsSave = true;
+                        }
+                        if ((uo.getDeliveryAddress() == null || uo.getDeliveryAddress().isBlank()) && og.getDeliveryAddress() != null) {
+                            uo.setDeliveryAddress(og.getDeliveryAddress());
+                            orderNeedsSave = true;
+                        }
+                        
+                        if (orderNeedsSave) {
+                            try {
+                                userOrderDao.save(uo);
+                                ordersNeedSave = true;
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                
+                if (groupNeedsSave) {
+                    try {
+                        orderGroupDao.save(og);
+                        updatedGroups++;
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                
+                if (ordersNeedSave) {
+                    updatedOrders++;
+                }
+            }
+            
+            model.addAttribute("message", String.format("Migration completed! Updated %d order groups and %d individual orders.", updatedGroups, updatedOrders));
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            model.addAttribute("error", "Migration failed: " + ex.getMessage());
+        }
+        
+        model.addAttribute("cartCount", GlobalData.cart.size());
+        return "redirect:/admin/orders?migration=completed&updated=" + updatedGroups;
+    }
+
+    // Debug method to check current data state
+    @GetMapping("/admin/debug-checkout-data")
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseBody
+    public ResponseEntity<java.util.Map<String, Object>> debugCheckoutData() {
+        java.util.Map<String, Object> debug = new java.util.HashMap<>();
+        
+        try {
+            java.util.List<OrderGroup> groups = orderGroupDao.findAll().stream()
+                    .limit(10) // Just check first 10 for debugging
+                    .collect(java.util.stream.Collectors.toList());
+            
+            java.util.List<java.util.Map<String, Object>> groupData = new java.util.ArrayList<>();
+            
+            for (OrderGroup og : groups) {
+                java.util.Map<String, Object> groupInfo = new java.util.HashMap<>();
+                groupInfo.put("id", og.getId());
+                groupInfo.put("groupFirstName", og.getFirstName());
+                groupInfo.put("groupLastName", og.getLastName());
+                groupInfo.put("groupMobile", og.getMobile());
+                groupInfo.put("groupPinCode", og.getPinCode());
+                groupInfo.put("groupEmailAddress", og.getEmailAddress());
+                groupInfo.put("groupDeliveryAddress", og.getDeliveryAddress());
+                
+                if (og.getUser() != null) {
+                    groupInfo.put("userFirstName", og.getUser().getFirstName());
+                    groupInfo.put("userLastName", og.getUser().getLastName());
+                    groupInfo.put("userEmail", og.getUser().getEmail());
+                }
+                
+                // Check first UserOrder
+                if (og.getUserOrders() == null || og.getUserOrders().isEmpty()) {
+                    try {
+                        var orders = userOrderDao.findAll().stream()
+                                .filter(uo -> uo.getOrderGroup() != null && uo.getOrderGroup().getId() != null && uo.getOrderGroup().getId().equals(og.getId()))
+                                .collect(java.util.stream.Collectors.toList());
+                        if (!orders.isEmpty()) {
+                            og.setUserOrders(orders);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                
+                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                    UserOrder firstOrder = og.getUserOrders().get(0);
+                    groupInfo.put("orderFirstName", firstOrder.getFirstName());
+                    groupInfo.put("orderLastName", firstOrder.getLastName());
+                    groupInfo.put("orderMobile", firstOrder.getMobile());
+                    groupInfo.put("orderPinCode", firstOrder.getPinCode());
+                    groupInfo.put("orderEmailAddress", firstOrder.getEmailAddress());
+                    groupInfo.put("orderDeliveryAddress", firstOrder.getDeliveryAddress());
+                }
+                
+                groupData.add(groupInfo);
+            }
+            
+            debug.put("orderGroups", groupData);
+            debug.put("totalGroups", orderGroupDao.findAll().size());
+            
+        } catch (Exception ex) {
+            debug.put("error", ex.getMessage());
+            ex.printStackTrace();
+        }
+        
+        return ResponseEntity.ok(debug);
     }
 }
