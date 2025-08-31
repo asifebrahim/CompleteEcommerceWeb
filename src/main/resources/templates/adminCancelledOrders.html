@@ -25,9 +25,15 @@
             <tbody>
             <tr th:each="g : ${orderGroups}">
                 <td th:text="${g.id}"></td>
-                <td th:text="${g.user != null ? g.user.email : '-'}"></td>
+                <td>
+                    <span th:text="${g.firstName != null ? g.firstName + ' ' + (g.lastName != null ? g.lastName : '') : (g.user != null ? g.user.firstName + ' ' + g.user.lastName : 'N/A')}"></span>
+                    <br/><small class="text-muted" th:text="${g.emailAddress != null ? g.emailAddress : (g.user != null ? g.user.email : 'N/A')}"></small>
+                    <span th:if="${g.mobile != null and g.mobile != ''}">
+                        <br/><small class="text-muted">Mobile: <span th:text="${g.mobile}"></span></small>
+                    </span>
+                </td>
                 <td th:text="${#temporals.format(g.createdAt, 'dd MMM yyyy HH:mm')}"></td>
-                <td th:text="${g.totalAmount}"></td>
+                <td>₹<span th:text="${g.totalAmount}"></span></td>
                 <td th:text="${g.deliveryAddress != null ? g.deliveryAddress : '-'}"></td>
                 <td>
                     <a th:href="@{'/admin/order/group/view/' + ${g.id}}" class="btn btn-sm btn-outline-secondary">View</a>

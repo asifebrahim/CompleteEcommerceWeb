@@ -11,7 +11,6 @@ import com.example.EcommerceFresh.Dao.AddressDao;
 import com.example.EcommerceFresh.Entity.Category;
 import com.example.EcommerceFresh.Entity.Product;
 import com.example.EcommerceFresh.Entity.UserOrder;
-import com.example.EcommerceFresh.Entity.UserProfile;
 import com.example.EcommerceFresh.Entity.OrderGroup;
 import com.example.EcommerceFresh.Entity.Address;
 import com.example.EcommerceFresh.Global.GlobalData;
@@ -29,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
 public class AdminController {
@@ -375,7 +373,7 @@ public class AdminController {
                     .collect(java.util.stream.Collectors.toList());
         }
 
-        // Ensure each group's userOrders and deliveryAddress are populated so templates can render full details
+        // Ensure each group's userOrders and checkout fields are populated so templates can render full details
         for (OrderGroup og : groups) {
             // if userOrders missing, try to fetch them explicitly
             if (og.getUserOrders() == null || og.getUserOrders().isEmpty()) {
@@ -389,20 +387,40 @@ public class AdminController {
                 }
             }
 
-            // if deliveryAddress is blank, try to pick from userOrders or user's saved Address
-            if (og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
-                boolean found = false;
-                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
-                    for (UserOrder uo : og.getUserOrders()) {
-                        String da = uo.getDeliveryAddress();
-                        if (da != null && !da.isBlank()) {
-                            og.setDeliveryAddress(da);
-                            found = true;
-                            break;
-                        }
-                    }
+            // Populate checkout fields from first UserOrder if missing
+            boolean needsSave = false;
+            if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                UserOrder firstOrder = og.getUserOrders().get(0);
+                
+                if ((og.getFirstName() == null || og.getFirstName().isBlank()) && firstOrder.getFirstName() != null) {
+                    og.setFirstName(firstOrder.getFirstName());
+                    needsSave = true;
                 }
-                if (!found && og.getUser() != null && og.getUser().getEmail() != null) {
+                if ((og.getLastName() == null || og.getLastName().isBlank()) && firstOrder.getLastName() != null) {
+                    og.setLastName(firstOrder.getLastName());
+                    needsSave = true;
+                }
+                if ((og.getMobile() == null || og.getMobile().isBlank()) && firstOrder.getMobile() != null) {
+                    og.setMobile(firstOrder.getMobile());
+                    needsSave = true;
+                }
+                if ((og.getPinCode() == null || og.getPinCode().isBlank()) && firstOrder.getPinCode() != null) {
+                    og.setPinCode(firstOrder.getPinCode());
+                    needsSave = true;
+                }
+                if ((og.getEmailAddress() == null || og.getEmailAddress().isBlank()) && firstOrder.getUser() != null && firstOrder.getUser().getEmail() != null) {
+                    og.setEmailAddress(firstOrder.getUser().getEmail());
+                    needsSave = true;
+                }
+                if ((og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) && firstOrder.getDeliveryAddress() != null) {
+                    og.setDeliveryAddress(firstOrder.getDeliveryAddress());
+                    needsSave = true;
+                }
+            }
+
+            // if deliveryAddress is still blank, try to pick from user's saved Address
+            if (og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
+                if (og.getUser() != null && og.getUser().getEmail() != null) {
                     try {
                         var addrOpt = addressDao.findAll().stream()
                                 .filter(a -> a.getEmail() != null && a.getEmail().equalsIgnoreCase(og.getUser().getEmail()))
@@ -411,12 +429,15 @@ public class AdminController {
                             Address addr = addrOpt.get();
                             String composed = String.format("%s, %s, %s - %s", addr.getAddress1() == null ? "" : addr.getAddress1(), addr.getTown() == null ? "" : addr.getTown(), addr.getPinCode() == null ? "" : addr.getPinCode(), addr.getPhone() == null ? "" : addr.getPhone());
                             og.setDeliveryAddress(composed);
+                            needsSave = true;
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 }
+            }
 
+            if (needsSave) {
                 try { orderGroupDao.save(og); } catch (Exception ignored) { }
             }
         }
@@ -448,6 +469,37 @@ public class AdminController {
         java.util.Map<Integer, java.time.LocalDateTime> groupDeliveredAtMap = new java.util.HashMap<>();
 
         for (OrderGroup og : delivered) {
+            // Populate checkout fields from first UserOrder if missing
+            boolean needsSave = false;
+            if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                UserOrder firstOrder = og.getUserOrders().get(0);
+                
+                if ((og.getFirstName() == null || og.getFirstName().isBlank()) && firstOrder.getFirstName() != null) {
+                    og.setFirstName(firstOrder.getFirstName());
+                    needsSave = true;
+                }
+                if ((og.getLastName() == null || og.getLastName().isBlank()) && firstOrder.getLastName() != null) {
+                    og.setLastName(firstOrder.getLastName());
+                    needsSave = true;
+                }
+                if ((og.getMobile() == null || og.getMobile().isBlank()) && firstOrder.getMobile() != null) {
+                    og.setMobile(firstOrder.getMobile());
+                    needsSave = true;
+                }
+                if ((og.getPinCode() == null || og.getPinCode().isBlank()) && firstOrder.getPinCode() != null) {
+                    og.setPinCode(firstOrder.getPinCode());
+                    needsSave = true;
+                }
+                if ((og.getEmailAddress() == null || og.getEmailAddress().isBlank()) && firstOrder.getUser() != null && firstOrder.getUser().getEmail() != null) {
+                    og.setEmailAddress(firstOrder.getUser().getEmail());
+                    needsSave = true;
+                }
+                if ((og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) && firstOrder.getDeliveryAddress() != null) {
+                    og.setDeliveryAddress(firstOrder.getDeliveryAddress());
+                    needsSave = true;
+                }
+            }
+            
             if (og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) {
                 // try per-order deliveryAddress
                 if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
@@ -470,12 +522,16 @@ public class AdminController {
                             Address addr = addrOpt.get();
                             String composed = String.format("%s, %s, %s - %s", addr.getAddress1() == null ? "" : addr.getAddress1(), addr.getTown() == null ? "" : addr.getTown(), addr.getPinCode() == null ? "" : addr.getPinCode(), addr.getPhone() == null ? "" : addr.getPhone());
                             og.setDeliveryAddress(composed);
-                            try { orderGroupDao.save(og); } catch (Exception ignored) { }
+                            needsSave = true;
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 }
+            }
+
+            if (needsSave) {
+                try { orderGroupDao.save(og); } catch (Exception ignored) { }
             }
 
             // compute phone for this group: try UserProfile -> Address -> user's email placeholder

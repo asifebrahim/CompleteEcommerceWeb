@@ -28,9 +28,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.Random;
-import org.springframework.ui.Model;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.stream.Collectors;
 
 @Controller
 public class OrderLifecycleController {
@@ -446,48 +443,58 @@ public class OrderLifecycleController {
                 .filter(og -> og.getGroupStatus() != null && og.getGroupStatus().equalsIgnoreCase("Cancelled"))
                 .collect(java.util.stream.Collectors.toList());
 
-        // Ensure deliveryAddress is populated for display in admin list. If missing on the group,
-        // try to pick the first non-empty deliveryAddress from the group's UserOrders and persist it.
-        // Also collect delivery name/mobile/pin for display (from group or first UserOrder fallback).
-        java.util.Map<Integer, java.util.Map<String,String>> groupDeliveryInfo = new java.util.HashMap<>();
+        // Populate checkout fields from UserOrders if missing
         for (OrderGroup og : cancelled) {
-            // Use new checkout fields from OrderGroup
-            java.util.Map<String,String> info = new java.util.HashMap<>();
-            String addr = og.getDeliveryAddress();
-            String name = og.getFirstName();
-            String mobile = og.getMobile();
-            String pin = og.getPinCode();
+            boolean needsSave = false;
             
-            // If group fields are missing, fallback to first order
-            if ((addr == null || addr.isBlank()) || (name == null || name.isBlank()) || 
-                (mobile == null || mobile.isBlank()) || (pin == null || pin.isBlank())) {
-                if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
-                    UserOrder uo = og.getUserOrders().get(0);
-                    if (addr == null || addr.isBlank()) addr = uo.getDeliveryAddress();
-                    if (name == null || name.isBlank()) name = uo.getFirstName();
-                    if (mobile == null || mobile.isBlank()) mobile = uo.getMobile();
-                    if (pin == null || pin.isBlank()) pin = uo.getPinCode();
+            // Ensure userOrders are loaded
+            if (og.getUserOrders() == null || og.getUserOrders().isEmpty()) {
+                try {
+                    var orders = userOrderDao.findAll().stream()
+                            .filter(uo -> uo.getOrderGroup() != null && uo.getOrderGroup().getId() != null && uo.getOrderGroup().getId().equals(og.getId()))
+                            .collect(java.util.stream.Collectors.toList());
+                    if (!orders.isEmpty()) og.setUserOrders(orders);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             }
-
-            // If still missing name, fall back to user email from first order's user
-            if ((name == null || name.isBlank()) && og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
-                UserOrder uo = og.getUserOrders().get(0);
-                if (uo.getUser() != null && uo.getUser().getEmail() != null) {
-                    name = uo.getUser().getEmail();
+            
+            if (og.getUserOrders() != null && !og.getUserOrders().isEmpty()) {
+                UserOrder firstOrder = og.getUserOrders().get(0);
+                
+                if ((og.getFirstName() == null || og.getFirstName().isBlank()) && firstOrder.getFirstName() != null) {
+                    og.setFirstName(firstOrder.getFirstName());
+                    needsSave = true;
+                }
+                if ((og.getLastName() == null || og.getLastName().isBlank()) && firstOrder.getLastName() != null) {
+                    og.setLastName(firstOrder.getLastName());
+                    needsSave = true;
+                }
+                if ((og.getMobile() == null || og.getMobile().isBlank()) && firstOrder.getMobile() != null) {
+                    og.setMobile(firstOrder.getMobile());
+                    needsSave = true;
+                }
+                if ((og.getPinCode() == null || og.getPinCode().isBlank()) && firstOrder.getPinCode() != null) {
+                    og.setPinCode(firstOrder.getPinCode());
+                    needsSave = true;
+                }
+                if ((og.getEmailAddress() == null || og.getEmailAddress().isBlank()) && firstOrder.getUser() != null && firstOrder.getUser().getEmail() != null) {
+                    og.setEmailAddress(firstOrder.getUser().getEmail());
+                    needsSave = true;
+                }
+                if ((og.getDeliveryAddress() == null || og.getDeliveryAddress().isBlank()) && firstOrder.getDeliveryAddress() != null) {
+                    og.setDeliveryAddress(firstOrder.getDeliveryAddress());
+                    needsSave = true;
                 }
             }
-
-            info.put("address", addr == null ? "" : addr);
-            info.put("name", name == null ? "" : name);
-            info.put("mobile", mobile == null ? "" : mobile);
-            info.put("pin", pin == null ? "" : pin);
-            groupDeliveryInfo.put(og.getId() == null ? -1 : og.getId(), info);
+            
+            if (needsSave) {
+                try { orderGroupDao.save(og); } catch (Exception ignored) { }
+            }
         }
 
         model.addAttribute("cartCount", GlobalData.cart.size());
         model.addAttribute("orderGroups", cancelled);
-        model.addAttribute("groupDeliveryInfo", groupDeliveryInfo);
         return "adminCancelledOrders";
     }
 

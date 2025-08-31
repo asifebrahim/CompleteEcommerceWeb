@@ -49,9 +49,9 @@
                                 th:data-target="'#collapse' + ${groupStat.index}" 
                                 aria-expanded="true" th:aria-controls="'collapse' + ${groupStat.index}">
                             Order Group #<span th:text="${orderGroup.id}"></span> -
-                            <span th:text="${orderGroup.user.firstName} + ' ' + ${orderGroup.user.lastName}"></span>
+                            <span th:text="${orderGroup.firstName != null ? orderGroup.firstName : (orderGroup.user != null ? orderGroup.user.firstName : 'N/A')} + ' ' + ${orderGroup.lastName != null ? orderGroup.lastName : (orderGroup.user != null ? orderGroup.user.lastName : '')}"></span>
                             <br/>
-                            <small class="text-muted" th:text="${orderGroup.user.email}"></small>
+                            <small class="text-muted" th:text="${orderGroup.emailAddress != null ? orderGroup.emailAddress : (orderGroup.user != null ? orderGroup.user.email : 'N/A')}"></small>
                             &nbsp; - &nbsp;₹<span th:text="${orderGroup.totalAmount}"></span>
                         </button>
                     </h5>
@@ -60,6 +60,12 @@
                         <a th:href="@{'/admin/order/group/view/' + ${orderGroup.id}}" class="btn btn-sm btn-outline-secondary ml-1">View Transaction</a>
                         <div th:if="${orderGroup.deliveryAddress}" class="mt-1">
                             <small class="text-muted">Address: <span th:text="${orderGroup.deliveryAddress}"></span></small>
+                        </div>
+                        <div th:if="${orderGroup.mobile}" class="mt-1">
+                            <small class="text-muted">Mobile: <span th:text="${orderGroup.mobile}"></span></small>
+                        </div>
+                        <div th:if="${orderGroup.pinCode}" class="mt-1">
+                            <small class="text-muted">Pin Code: <span th:text="${orderGroup.pinCode}"></span></small>
                         </div>
                     </div>
                     <span class="badge" 

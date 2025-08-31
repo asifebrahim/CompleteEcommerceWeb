@@ -17,8 +17,15 @@
 
     <div class="card">
         <div class="card-body">
-            <p><strong>User:</strong> <span th:text="${orderGroup.user.firstName} + ' ' + ${orderGroup.user.lastName}"></span>
-                <br/><small class="text-muted" th:text="${orderGroup.user.email}"></small>
+            <p><strong>User:</strong> 
+                <span th:text="${deliveryName != null and deliveryName != '' ? deliveryName : (orderGroup.firstName != null ? orderGroup.firstName + ' ' + (orderGroup.lastName != null ? orderGroup.lastName : '') : (orderGroup.user != null ? orderGroup.user.firstName + ' ' + orderGroup.user.lastName : 'N/A'))}"></span>
+                <br/><small class="text-muted" th:text="${orderGroup.emailAddress != null ? orderGroup.emailAddress : (orderGroup.user != null ? orderGroup.user.email : 'N/A')}"></small>
+                <span th:if="${deliveryMobile != null and deliveryMobile != '' and deliveryMobile != 'N/A'}">
+                    <br/><small class="text-muted">Mobile: <span th:text="${deliveryMobile}"></span></small>
+                </span>
+                <span th:if="${deliveryPin != null and deliveryPin != '' and deliveryPin != 'N/A'}">
+                    <br/><small class="text-muted">Pin Code: <span th:text="${deliveryPin}"></span></small>
+                </span>
             </p>
             <p><strong>Transaction:</strong> <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></p>
             <p><strong>Total:</strong> ₹<span th:text="${orderGroup.totalAmount}"></span></p>

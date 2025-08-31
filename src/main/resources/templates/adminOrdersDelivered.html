@@ -27,14 +27,14 @@
                      th:id="'headingDel' + ${groupStat.index}">
                     <h5 class="mb-0">
                         Order Group #<span th:text="${orderGroup.id}"></span> - 
-                        <span th:text="${orderGroup.user != null ? (orderGroup.user.firstName + ' ' + orderGroup.user.lastName) : '-'}"></span>
+                        <span th:text="${orderGroup.firstName != null ? orderGroup.firstName : (orderGroup.user != null ? orderGroup.user.firstName : 'N/A')} + ' ' + ${orderGroup.lastName != null ? orderGroup.lastName : (orderGroup.user != null ? orderGroup.user.lastName : '')}"></span>
                         <br/>
-                        <small class="text-muted" th:text="${orderGroup.user != null ? orderGroup.user.email : '-'}"></small>
+                        <small class="text-muted" th:text="${orderGroup.emailAddress != null ? orderGroup.emailAddress : (orderGroup.user != null ? orderGroup.user.email : 'N/A')}"></small>
                         &nbsp; - &nbsp;₹<span th:text="${orderGroup.totalAmount}"></span>
                         <br/>
                         <small class="text-muted">Txn: <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></small>
                         <br/>
-                        <small class="text-muted">Phone: <span th:text="${groupPhoneMap != null && groupPhoneMap.containsKey(orderGroup.id) ? groupPhoneMap[orderGroup.id] : '-'}"></span></small>
+                        <small class="text-muted">Phone: <span th:text="${orderGroup.mobile != null ? orderGroup.mobile : (groupPhoneMap != null && groupPhoneMap.containsKey(orderGroup.id) ? groupPhoneMap[orderGroup.id] : '-')}"></span></small>
                     </h5>
                     <span class="badge badge-success">Delivered</span>
                 </div>
