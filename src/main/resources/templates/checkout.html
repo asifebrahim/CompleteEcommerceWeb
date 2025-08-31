@@ -71,7 +71,7 @@
 <div class="container">
 
     <!--Section: Block Content-->
-    <form th:action="@{/payNow}" method="post">
+    <form id="checkoutForm" th:action="@{/checkout-with-form}" method="post">
     <section class="mt-5 mb-4">
 
         <!--Grid row-->
@@ -228,9 +228,10 @@
                                 </div>
                                 <span><strong>₹<span th:text="${total}"></span></strong></span>
                             </li>
+                            <input type="hidden" id="paymentMode" name="paymentMode" value="COD" />
 
                             <button type="button" id="razorpayBtn" class="btn btn-primary btn-block waves-effect waves-light" onclick="initiatePayment()">Pay with Razorpay</button>
-                            <button type="submit" class="btn btn-outline-secondary btn-block mt-2">Pay with QR Code (Old Method)</button>
+                            <button type="button" class="btn btn-outline-secondary btn-block mt-2" onclick="submitCOD()">Cash on Delivery (COD)</button>
 
                     </div>
                 </div>
@@ -395,6 +396,17 @@
         document.getElementById('form16').classList.remove('field-error');
         
         return true;
+    }
+    
+    function submitCOD() {
+        // Validate required fields before submitting COD
+        if (!validateRequiredFields()) {
+            return;
+        }
+        
+        // Set payment mode to COD and submit form
+        document.getElementById('paymentMode').value = 'COD';
+        document.getElementById('checkoutForm').submit();
     }
     
     function verifyPayment(paymentId, orderId, signature) {
