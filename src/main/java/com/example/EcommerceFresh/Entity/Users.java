@@ -27,6 +27,10 @@ public class Users {
     @Column(name="password")
     private String password;
 
+    @Column(name="otps")
+    private String otps;
+
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "userRoles",
@@ -41,6 +45,7 @@ public class Users {
         this.email = user.getEmail();
         this.password = user.getPassword();
         this.roles = new HashSet<>(user.getRoles());
+        this.otps = user.getOtps();
     }
 
     public Users() {

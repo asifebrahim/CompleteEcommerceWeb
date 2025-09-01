@@ -187,25 +187,87 @@ public class LoginController {
 
 
     @GetMapping("/forgotpassword")
-    public String forgotPassword(Model model){
-        model.addAttribute("resetPassword",new Users());
+    public String forgotPassword(){
         return "forgotPasswordPage";
     }
 
     @PostMapping("/resetPassword")
-    public String finalResetSubmission(@ModelAttribute("resetPassword") Users user) {
-        String emailOfTheUser = user.getEmail();
-        System.out.println("The email is: " + emailOfTheUser);
+    public String finalResetSubmission(@RequestParam("email") String email, RedirectAttributes redirectAttributes,Model model){
+        Optional<Users> userOpt = userDao.findByEmail(email);
+        if(userOpt.isPresent()){
+            Users user=userOpt.get();
+            String otp=otpService.generateNumericOtp();
+            String otpHash=otpService.hashOtp(otp);
+            user.setOtps(otpHash);
+            userDao.save(user);
+            try{
+                otpService.sendOtpEmail(email,otp);
+                redirectAttributes.addFlashAttribute("message","OTP sent to your email.");
+                model.addAttribute("email",email);
+                return "forgotPasswordOtpVerification";
 
-        Optional<Users> userOptional = userDao.findByEmail(emailOfTheUser);
+            }catch(Exception e){
+                e.printStackTrace();
+                redirectAttributes.addFlashAttribute("error","Failed to send OTP. Try again later.");
+                return "redirect:/forgotpassword";
+            }
 
-        if (userOptional.isPresent()) {
-            System.out.println("Email exists, sending reset link...");
-           return "flashSucessResetPassword";
-        } else {
-            System.out.println("Wrong email");
+
+
         }
-        return "redirect:/login";
+        else{
+            redirectAttributes.addFlashAttribute("error","No account found with this email.");
+            return "redirect:/forgotpassword";
+        }
+
+    }
+    @PostMapping("/resetPasswordConfirmation")
+    public String resetPasswordConfirmation(@RequestParam("email") String email,@RequestParam("otp") String otp, RedirectAttributes redirectAttributes,Model model){
+        Optional<Users> userOpt = userDao.findByEmail(email);
+        if(userOpt.isPresent()){
+            Users user=userOpt.get();
+            if(user.getOtps()==null){
+                redirectAttributes.addFlashAttribute("error","No OTP request found. Please initiate password reset again.");
+                return "redirect:/forgotpassword";
+            }
+            if(!otpService.verifyOtp(otp,user.getOtps())){
+                redirectAttributes.addFlashAttribute("error","Invalid OTP. Please try again.");
+                model.addAttribute("email",email);
+                return "forgotPasswordOtpVerification";
+            }
+            // OTP is valid, proceed to reset password page
+            model.addAttribute("email",email);
+            return "resetPasswordPage";
+
+        }
+        else{
+            redirectAttributes.addFlashAttribute("error","No account found with this email.");
+            return "redirect:/forgotpassword";
+        }
+    }
+
+    @PostMapping("/saveNewPass")
+    public String saveNewPass(@RequestParam("email") String email,@RequestParam("password1") String newPassword,@RequestParam("password2") String confirmPassword, RedirectAttributes redirectAttributes){
+        Optional<Users> userOpt = userDao.findByEmail(email);
+        if(userOpt.isPresent()){
+            Users user=userOpt.get();
+            if(!newPassword.equals(confirmPassword)){
+                redirectAttributes.addFlashAttribute("message","Passwords do not match.");
+                redirectAttributes.addFlashAttribute("email",email);
+                return "redirect:/resetPasswordConfirmation?email=" + email;
+            }
+            String encodedPassword=bCryptPasswordEncoder.encode(newPassword);
+            user.setPassword(encodedPassword);
+            user.setOtps(null); // Clear OTP after successful reset
+            userDao.save(user);
+            redirectAttributes.addFlashAttribute("message","Password reset successful. You can log in now.");
+            return "redirect:/login";
+
+        }
+        else{
+            redirectAttributes.addFlashAttribute("error","No account found with this email.");
+            return "redirect:/forgotpassword";
+        }
     }
 
 
