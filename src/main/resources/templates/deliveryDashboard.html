@@ -36,6 +36,9 @@
                     <span th:if="${d.order != null && d.order.user != null && d.order.user.email != null}" th:text="${d.order.user.email}"></span>
                     <div th:if="${d.order != null && (d.order.user == null || d.order.user.email == null)}">
                         <form th:action="@{'/delivery/assign-email/' + ${d.order.id}}" method="post" class="form-inline">
+                            <div th:if="${_csrf != null}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            </div>
                             <input type="email" name="email" placeholder="customer@example.com" class="form-control form-control-sm mr-2" required />
                             <button class="btn btn-sm btn-outline-primary" type="submit">Assign</button>
                         </form>

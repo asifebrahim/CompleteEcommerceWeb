@@ -11,6 +11,9 @@
 <h2>Please provide the transaction ID and confirm your shipping address, then submit...</h2>
 
 <form th:action="@{/ProofUploading}" th:object="${paymentProof}" method="post">
+    <div th:if="${_csrf != null}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    </div>
     <!-- Transaction ID -->
     <div>
         <label for="transactionId">Transaction ID:</label><br>

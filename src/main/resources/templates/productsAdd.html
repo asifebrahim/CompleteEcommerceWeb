@@ -41,6 +41,9 @@
 <div class="container">
     <h3>Add a new Product</h3>
     <form th:action="@{/admin/products/add}" method="post" th:object="${productDTO}" enctype="multipart/form-data">
+        <div th:if="${_csrf != null}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        </div>
         <div class="row">
             <div class="col-sm-5">
 

@@ -72,6 +72,9 @@
 
     <!--Section: Block Content-->
     <form id="checkoutForm" th:action="@{/checkout}" method="post">
+        <div th:if="${_csrf != null}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        </div>
     <section class="mt-5 mb-4">
 
         <!--Grid row-->

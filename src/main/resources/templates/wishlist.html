@@ -32,7 +32,9 @@
                 <td>
                     <div th:if="${w.product != null}">
                         <form th:action="@{/wishlist/remove/{id}/form(id=${w.product.id})}" method="post">
-                            <input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : '_csrf'}" th:value="${_csrf != null ? _csrf.token : ''}" />
+                            <div th:if="${_csrf != null}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            </div>
                             <button type="submit">Remove</button>
                         </form>
                     </div>
