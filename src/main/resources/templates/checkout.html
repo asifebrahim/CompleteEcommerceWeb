@@ -134,8 +134,11 @@
 
                         <!-- Address Part 1 -->
                         <div class="md-form md-outline mt-2">
-                            <label for="form14">Address (Line 1) <span class="required-field">*</span></label>
+                            <label for="form14">Address (Line 1) <span class="required-field">*</span>
+                                <button type="button" id="useLocationBtn" class="btn btn-sm btn-outline-info ml-2" style="vertical-align:middle;" onclick="useMyLocation()">Use my location</button>
+                            </label>
                             <input type="text" required id="form14" name="address1" placeholder="House number and street name" class="form-control">
+                            <small id="locationStatus" class="form-text text-muted" style="display:none;margin-top:6px;"></small>
                         </div>
 
                         <!-- Address Part 2 -->
@@ -483,6 +486,85 @@
             }
         }
     }
+
+    // New: Use browser geolocation and reverse-geocode to auto-fill address fields
+    async function reverseGeocode(lat, lon) {
+        try {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('Reverse geocoding failed');
+            return await res.json();
+        } catch (e) {
+            console.error('Reverse geocode error', e);
+            return null;
+        }
+    }
+
+    function useMyLocation() {
+        const btn = document.getElementById('useLocationBtn');
+        const status = document.getElementById('locationStatus');
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser');
+            return;
+        }
+
+        btn.disabled = true;
+        const previousText = btn.innerText;
+        btn.innerText = 'Locating...';
+        status.style.display = 'block';
+        status.innerText = 'Acquiring location...';
+
+        navigator.geolocation.getCurrentPosition(async function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            status.innerText = 'Resolving address from coordinates...';
+            const data = await reverseGeocode(lat, lon);
+            if (data && data.address) {
+                const addr = data.address;
+                const road = addr.road || addr.pedestrian || addr.cycleway || '';
+                const house = addr.house_number || '';
+                const line1 = [house, road].filter(Boolean).join(' ').trim();
+                if (line1) document.getElementById('form14').value = line1;
+
+                const line2Parts = [];
+                if (addr.neighbourhood) line2Parts.push(addr.neighbourhood);
+                if (addr.suburb) line2Parts.push(addr.suburb);
+                if (addr.county) line2Parts.push(addr.county);
+                if (addr.state) line2Parts.push(addr.state);
+                if (line2Parts.length) document.getElementById('form15').value = line2Parts.join(', ');
+
+                const postcode = addr.postcode || '';
+                if (postcode) document.getElementById('form16').value = postcode;
+
+                const city = addr.city || addr.town || addr.village || addr.hamlet || addr.county || '';
+                if (city) document.getElementById('form17').value = city;
+
+                status.innerText = 'Address auto-filled from your location.';
+                btn.innerText = 'Location used';
+                btn.classList.remove('btn-outline-info');
+                btn.classList.add('btn-outline-success');
+
+                // Update validation state if function exists
+                if (typeof updatePaymentButtonState === 'function') updatePaymentButtonState();
+            } else {
+                status.innerText = 'Could not resolve address. Please enter manually.';
+                alert('Could not determine a human-readable address for your location. Please enter the address manually.');
+                btn.innerText = previousText;
+            }
+
+            btn.disabled = false;
+
+        }, function(error) {
+            console.error('Geolocation error', error);
+            alert('Could not get your location: ' + (error.message || 'Permission denied or unavailable'));
+            status.style.display = 'none';
+            btn.disabled = false;
+            btn.innerText = previousText;
+        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+    }
+
+<!-- ...existing code... -->
 </script>
 <!-- Add real-time validation script -->
 <script>
