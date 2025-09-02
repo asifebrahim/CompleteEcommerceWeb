@@ -490,7 +490,8 @@
     // New: Use browser geolocation and reverse-geocode to auto-fill address fields
     async function reverseGeocode(lat, lon) {
         try {
-            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+            // Request English language results to avoid local-script (Hindi) values where possible
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&accept-language=en&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
             const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
             if (!res.ok) throw new Error('Reverse geocoding failed');
             return await res.json();
@@ -498,6 +499,21 @@
             console.error('Reverse geocode error', e);
             return null;
         }
+    }
+
+    // Helper: detect Devanagari (Hindi) characters in a string
+    function containsDevanagari(s) {
+        return typeof s === 'string' && /[\u0900-\u097F]/.test(s);
+    }
+
+    // Helper: try to extract Latin (English) parts from display_name if address parts are in local script
+    function extractLatinFromDisplay(displayName) {
+        if (!displayName || typeof displayName !== 'string') return '';
+        const parts = displayName.split(',').map(p => p.trim());
+        for (const p of parts) {
+            if (/[A-Za-z0-9]/.test(p)) return p; // return first part containing Latin letters/digits
+        }
+        return parts.length ? parts[0] : '';
     }
 
     function useMyLocation() {
@@ -522,22 +538,97 @@
             const data = await reverseGeocode(lat, lon);
             if (data && data.address) {
                 const addr = data.address;
-                const road = addr.road || addr.pedestrian || addr.cycleway || '';
+
+                // gather candidate components
                 const house = addr.house_number || '';
-                const line1 = [house, road].filter(Boolean).join(' ').trim();
-                if (line1) document.getElementById('form14').value = line1;
+                const road = addr.road || addr.pedestrian || addr.cycleway || '';
+                const neighbourhood = addr.neighbourhood || '';
+                const suburb = addr.suburb || '';
+                const county = addr.county || '';
+                const state = addr.state || '';
+                const cityAddr = addr.city || addr.town || addr.village || addr.hamlet || addr.county || '';
+                const postcode = addr.postcode || '';
+
+                // Helper to choose first english-friendly candidate from list
+                function choosePrimaryCandidate(candidates) {
+                    for (let c of candidates) {
+                        if (!c) continue;
+                        if (containsDevanagari(c)) continue; // prefer non-Devanagari
+                        return c;
+                    }
+                    // if none non-Devanagari found, try to extract from display_name
+                    if (data.display_name) {
+                        const ex = extractLatinFromDisplay(data.display_name);
+                        if (ex) return ex;
+                    }
+                    // lastly return first available candidate
+                    for (let c of candidates) if (c) return c;
+                    return '';
+                }
+
+                // Determine primary address for Line 1: prefer house + road, then road, then display_name, then neighbourhood/suburb
+                let primary = '';
+                if (house && road) {
+                    // both present - prefer them together
+                    primary = `${house} ${road}`;
+                    if (containsDevanagari(primary) && data.display_name) {
+                        // fallback to english chunk
+                        primary = extractLatinFromDisplay(data.display_name) || primary;
+                    }
+                } else if (road) {
+                    // road exists - prefer road (english-first)
+                    primary = choosePrimaryCandidate([road]);
+                } else {
+                    // fallback to other candidates for primary
+                    primary = choosePrimaryCandidate([neighbourhood, suburb, county, cityAddr, state]);
+                }
+
+                // If primary is still empty, try display_name chunk
+                if (!primary && data.display_name) {
+                    primary = extractLatinFromDisplay(data.display_name) || '';
+                }
+
+                // Fill Address Line 1 first
+                if (primary) {
+                    document.getElementById('form14').value = primary;
+                }
+
+                // Build Address Line 2 from remaining parts, avoiding duplication of primary
+                const usedValues = new Set();
+                if (primary) usedValues.add(primary.toString().toLowerCase());
 
                 const line2Parts = [];
-                if (addr.neighbourhood) line2Parts.push(addr.neighbourhood);
-                if (addr.suburb) line2Parts.push(addr.suburb);
-                if (addr.county) line2Parts.push(addr.county);
-                if (addr.state) line2Parts.push(addr.state);
+                const candidatesForLine2 = [road, neighbourhood, suburb, county, state];
+                for (let c of candidatesForLine2) {
+                    if (!c) continue;
+                    const lower = c.toString().toLowerCase();
+                    if (usedValues.has(lower)) continue; // avoid duplicate
+
+                    // if candidate is Devanagari, try to use english chunk instead
+                    if (containsDevanagari(c) && data.display_name) {
+                        const alt = extractLatinFromDisplay(data.display_name);
+                        if (alt && !usedValues.has(alt.toLowerCase())) {
+                            line2Parts.push(alt);
+                            usedValues.add(alt.toLowerCase());
+                            continue;
+                        }
+                    }
+
+                    line2Parts.push(c);
+                    usedValues.add(lower);
+                }
+
                 if (line2Parts.length) document.getElementById('form15').value = line2Parts.join(', ');
 
-                const postcode = addr.postcode || '';
+                // Postcode
                 if (postcode) document.getElementById('form16').value = postcode;
 
-                const city = addr.city || addr.town || addr.village || addr.hamlet || addr.county || '';
+                // City / Town - prefer non-Devanagari value or english fallback
+                let city = cityAddr;
+                if (containsDevanagari(city) && data.display_name) {
+                    const ex = extractLatinFromDisplay(data.display_name);
+                    if (ex) city = ex;
+                }
                 if (city) document.getElementById('form17').value = city;
 
                 status.innerText = 'Address auto-filled from your location.';
