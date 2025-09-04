@@ -11,6 +11,51 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
           integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="../static/css/custom.css">
+    <style>
+        .discount-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+        }
+        .price-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .original-price {
+            text-decoration: line-through;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .discount-price {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .time-remaining {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #495057;
+            margin-top: 5px;
+        }
+        .time-remaining.urgent {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+    </style>
     <title>EcommerceFresh - Shop</title>
 </head>
 <body>
@@ -101,7 +146,31 @@
                     <div class="col-sm-7 d-flex justify-content-center">
                         <div class="card-body">
                             <h5 class="card-title" th:text="${product.name}"></h5>
-                            <h4>₹ <span th:text="${product.price}"></span></h4>
+                            
+                            <!-- Discount Badge -->
+                            <div th:if="${activeDiscounts.containsKey(product.id)}">
+                                <span class="discount-badge" th:text="${activeDiscounts.get(product.id).calculateDiscountPercentage() + '% OFF'}">20% OFF</span>
+                            </div>
+                            
+                            <!-- Price Section -->
+                            <div class="price-section">
+                                <div th:if="${activeDiscounts.containsKey(product.id)}">
+                                    <span class="original-price">₹<span th:text="${product.price}"></span></span>
+                                    <span class="discount-price">₹<span th:text="${#numbers.formatDecimal(effectivePrices.get(product.id), 0, 2)}"></span></span>
+                                </div>
+                                <div th:unless="${activeDiscounts.containsKey(product.id)}">
+                                    <h4>₹ <span th:text="${product.price}"></span></h4>
+                                </div>
+                            </div>
+                            
+                            <!-- Time Remaining -->
+                            <div th:if="${activeDiscounts.containsKey(product.id)}" 
+                                 class="time-remaining" 
+                                 th:classappend="${activeDiscounts.get(product.id).getTimeRemaining().contains('hour') or activeDiscounts.get(product.id).getTimeRemaining().contains('minute')} ? 'urgent' : ''"
+                                 th:text="'Discount ends in ' + ${activeDiscounts.get(product.id).getTimeRemaining()}">
+                                Discount ends in 2 hours 30 minutes
+                            </div>
+                            
                             <div class="text-warning">
                                 <i th:each="i: ${#numbers.sequence(1, roundedRatings[product.id]?:0)}" class="fas fa-star"></i>
                             </div>

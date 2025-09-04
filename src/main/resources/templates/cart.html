@@ -106,7 +106,16 @@
                                                         class="fas fa-trash-alt mr-1"></i> Remove item </a>
 
                                             </div>
-                                            <p class="mb-0"><span><strong>₹<span th:text="${item.price}"></span></strong></span></p>
+                                            <!-- Show price with discount if available -->
+                                            <div th:if="${discountService.getActiveDiscount(item.id).isPresent()}">
+                                                <p class="mb-0">
+                                                    <span class="text-muted" style="text-decoration: line-through; font-size: 0.9rem;">₹<span th:text="${item.price}"></span></span>
+                                                    <span><strong class="text-danger">₹<span th:text="${#numbers.formatDecimal(discountService.getEffectivePrice(item), 0, 2)}"></span></strong></span>
+                                                </p>
+                                            </div>
+                                            <div th:unless="${discountService.getActiveDiscount(item.id).isPresent()}">
+                                                <p class="mb-0"><span><strong>₹<span th:text="${item.price}"></span></strong></span></p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

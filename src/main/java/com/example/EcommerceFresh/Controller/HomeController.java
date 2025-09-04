@@ -5,10 +5,13 @@ import com.example.EcommerceFresh.Dao.RatingDao;
 import com.example.EcommerceFresh.Dao.UserDao;
 import com.example.EcommerceFresh.Dao.WishlistDao;
 import com.example.EcommerceFresh.Entity.Product;
+import com.example.EcommerceFresh.Entity.ProductDiscount;
 import com.example.EcommerceFresh.Entity.Rating;
+import com.example.EcommerceFresh.Entity.Users;
 import com.example.EcommerceFresh.Global.GlobalData;
 import com.example.EcommerceFresh.Service.CategoryserviceImpl;
 import com.example.EcommerceFresh.Service.ProductServiceImpl;
+import com.example.EcommerceFresh.Service.DiscountService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -30,13 +34,15 @@ public class HomeController {
     UserDao userDao;
     RatingDao ratingDao;
     WishlistDao wishlistDao;
+    DiscountService discountService;
 
-    public HomeController(CategoryserviceImpl categoryservice,ProductServiceImpl productService, UserDao userDao, RatingDao ratingDao, WishlistDao wishlistDao){
+    public HomeController(CategoryserviceImpl categoryservice,ProductServiceImpl productService, UserDao userDao, RatingDao ratingDao, WishlistDao wishlistDao, DiscountService discountService){
         this.categoryservice=categoryservice;
         this.productService=productService;
         this.userDao = userDao;
         this.ratingDao = ratingDao;
         this.wishlistDao = wishlistDao;
+        this.discountService = discountService;
     }
 
     @GetMapping({"/", "/home"})
@@ -58,11 +64,23 @@ public class HomeController {
         Map<Integer, Integer> roundedRatings = avgRatings.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> (int) Math.round(e.getValue())));
 
+        // compute discount information for each product
+        Map<Integer, ProductDiscount> activeDiscounts = new java.util.HashMap<>();
+        Map<Integer, Double> effectivePrices = new java.util.HashMap<>();
+        
+        for (Product product : products) {
+            Optional<ProductDiscount> discount = discountService.getActiveDiscount(product.getId());
+            if (discount.isPresent()) {
+                activeDiscounts.put(product.getId(), discount.get());
+            }
+            effectivePrices.put(product.getId(), discountService.getEffectivePrice(product));
+        }
+
         // apply sorting
         if("price_asc".equals(sort)){
-            products.sort(Comparator.comparingDouble(Product::getPrice));
+            products.sort(Comparator.comparingDouble(p -> effectivePrices.get(p.getId())));
         } else if("price_desc".equals(sort)){
-            products.sort(Comparator.comparingDouble(Product::getPrice).reversed());
+            products.sort(Comparator.comparingDouble((Product p) -> effectivePrices.get(p.getId())).reversed());
         } else if("rating".equals(sort)){
             products.sort(Comparator.comparingDouble((Product p) -> avgRatings.getOrDefault(p.getId(), 0.0)).reversed());
         }
@@ -70,6 +88,8 @@ public class HomeController {
         model.addAttribute("products",products);
         model.addAttribute("avgRatings", avgRatings);
         model.addAttribute("roundedRatings", roundedRatings);
+        model.addAttribute("activeDiscounts", activeDiscounts);
+        model.addAttribute("effectivePrices", effectivePrices);
         model.addAttribute("sort", sort);
         // add user's wishlist product ids if authenticated
         java.util.Set<Integer> wishlistIds = java.util.Collections.emptySet();
@@ -101,11 +121,23 @@ public class HomeController {
         Map<Integer, Integer> roundedRatings = avgRatings.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> (int) Math.round(e.getValue())));
 
+        // compute discount information for each product
+        Map<Integer, ProductDiscount> activeDiscounts = new java.util.HashMap<>();
+        Map<Integer, Double> effectivePrices = new java.util.HashMap<>();
+        
+        for (Product product : products) {
+            Optional<ProductDiscount> discount = discountService.getActiveDiscount(product.getId());
+            if (discount.isPresent()) {
+                activeDiscounts.put(product.getId(), discount.get());
+            }
+            effectivePrices.put(product.getId(), discountService.getEffectivePrice(product));
+        }
+
         // apply sorting same as /shop
         if("price_asc".equals(sort)){
-            products.sort(Comparator.comparingDouble(Product::getPrice));
+            products.sort(Comparator.comparingDouble(p -> effectivePrices.get(p.getId())));
         } else if("price_desc".equals(sort)){
-            products.sort(Comparator.comparingDouble(Product::getPrice).reversed());
+            products.sort(Comparator.comparingDouble((Product p) -> effectivePrices.get(p.getId())).reversed());
         } else if("rating".equals(sort)){
             products.sort(Comparator.comparingDouble((Product p) -> avgRatings.getOrDefault(p.getId(), 0.0)).reversed());
         }
@@ -113,6 +145,8 @@ public class HomeController {
         model.addAttribute("products", products);
         model.addAttribute("avgRatings", avgRatings);
         model.addAttribute("roundedRatings", roundedRatings);
+        model.addAttribute("activeDiscounts", activeDiscounts);
+        model.addAttribute("effectivePrices", effectivePrices);
         model.addAttribute("sort", sort);
         // add user's wishlist product ids if authenticated
         java.util.Set<Integer> wishlistIds = java.util.Collections.emptySet();
@@ -138,6 +172,14 @@ public class HomeController {
         // add formatted string to avoid Thymeleaf format functions
         String formatted = String.format(Locale.US, "%.1f", avg);
         model.addAttribute("formattedAverage", formatted);
+        
+        // Add discount information
+        Optional<ProductDiscount> activeDiscount = discountService.getActiveDiscount(product.getId());
+        if (activeDiscount.isPresent()) {
+            model.addAttribute("activeDiscount", activeDiscount.get());
+        }
+        model.addAttribute("effectivePrice", discountService.getEffectivePrice(product));
+        
         if("top".equals(sort)){
             model.addAttribute("ratings", productService.getRatingsForProductSortedByScore(product));
         } else {

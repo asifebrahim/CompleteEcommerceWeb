@@ -73,7 +73,26 @@
         <div class="col-sm-7 mt-5">
             <h2 th:text="${product.name}"></h2>
             <p th:text="${product.category.name}"></p>
-            <h2>₹ <span th:text="${product.price}"></span></h2>
+            
+            <!-- Discount Badge -->
+            <div th:if="${activeDiscount != null}">
+                <span class="badge badge-danger" th:text="${activeDiscount.calculateDiscountPercentage() + '% OFF'}">20% OFF</span>
+            </div>
+            
+            <!-- Price Section -->
+            <div th:if="${activeDiscount != null}">
+                <h2>
+                    <span class="text-muted" style="text-decoration: line-through;">₹<span th:text="${product.price}"></span></span>
+                    <span class="text-danger ml-2">₹<span th:text="${#numbers.formatDecimal(effectivePrice, 0, 2)}"></span></span>
+                </h2>
+                <div class="alert alert-info" th:text="'Discount ends in ' + ${activeDiscount.getTimeRemaining()}">
+                    Discount ends in 2 hours 30 minutes
+                </div>
+            </div>
+            <div th:unless="${activeDiscount != null}">
+                <h2>₹ <span th:text="${product.price}"></span></h2>
+            </div>
+            
             <h5>Weight:
                 <spna th:text="${product.weight}"></spna> grams.
             </h5>

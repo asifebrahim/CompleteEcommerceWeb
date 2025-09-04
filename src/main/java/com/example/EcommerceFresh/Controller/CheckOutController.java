@@ -54,6 +54,9 @@ public class CheckOutController {
     @Autowired
     private com.example.EcommerceFresh.Dao.ProductDao productDao;
 
+    @Autowired
+    private com.example.EcommerceFresh.Service.DiscountService discountService;
+
     // In-memory map to hold cart snapshots keyed by razorpay order id
     private static final ConcurrentHashMap<String, java.util.List<Product>> pendingCartMap = new ConcurrentHashMap<>();
 
@@ -220,8 +223,8 @@ public class CheckOutController {
                         // record gateway transaction id on the group so admin sees it
                         orderGroup.setTransactionId(paymentId);
 
-                        // Calculate total amount
-                        double totalAmount = cartSnapshot.stream().mapToDouble(Product::getPrice).sum();
+                        // Calculate total amount with discounts applied
+                        double totalAmount = cartSnapshot.stream().mapToDouble(product -> discountService.getEffectivePrice(product)).sum();
                         orderGroup.setTotalAmount(totalAmount);
 
                         // set delivery address if captured from paymentProof/address or client
@@ -274,8 +277,10 @@ public class CheckOutController {
                             userOrder.setProduct(managedProduct);
                             userOrder.setOrderGroup(orderGroup);
                             userOrder.setQuantity(1);
-                            userOrder.setProductPriceAtOrder(managedProduct.getPrice()); // Store price at time of order
-                            userOrder.setTotalPrice(managedProduct.getPrice());
+                            // Store effective price at time of order (with discount applied)
+                            double effectivePrice = discountService.getEffectivePrice(managedProduct);
+                            userOrder.setProductPriceAtOrder(effectivePrice);
+                            userOrder.setTotalPrice(effectivePrice);
                             userOrder.setOrderStatus("Paid - Awaiting Dispatch");
                             // set delivery address on each order for admin convenience
                             if (deliveryAddressStr != null && !deliveryAddressStr.isBlank()) {
@@ -350,7 +355,7 @@ public class CheckOutController {
 
         // add cart count and total so templates and JS have values
         model.addAttribute("cartCount", GlobalData.cart.size());
-        double total = GlobalData.cart.stream().mapToDouble(Product::getPrice).sum();
+        double total = GlobalData.cart.stream().mapToDouble(product -> discountService.getEffectivePrice(product)).sum();
         model.addAttribute("total", total);
 
         // Get the user's saved addresses for checkout
@@ -506,8 +511,8 @@ public class CheckOutController {
         orderGroup.setTown(finalTown);
         orderGroup.setEmailAddress(finalEmail);
 
-        // Calculate total amount and save group first
-        double totalAmount = GlobalData.cart.stream().mapToDouble(Product::getPrice).sum();
+        // Calculate total amount and save group first with discounts applied
+        double totalAmount = GlobalData.cart.stream().mapToDouble(product -> discountService.getEffectivePrice(product)).sum();
         orderGroup.setTotalAmount(totalAmount);
         try {
             orderGroup = orderGroupDao.save(orderGroup);
@@ -532,8 +537,10 @@ public class CheckOutController {
                 userOrder.setProduct(managedProduct);
                 userOrder.setOrderGroup(orderGroup);
                 userOrder.setQuantity(1);
-                userOrder.setProductPriceAtOrder(managedProduct.getPrice());
-                userOrder.setTotalPrice(managedProduct.getPrice());
+                // Store effective price at time of order (with discount applied) - placeOrder method
+                double effectivePrice = discountService.getEffectivePrice(managedProduct);
+                userOrder.setProductPriceAtOrder(effectivePrice);
+                userOrder.setTotalPrice(effectivePrice);
                 // set orderStatus based on paymentMode
                 if (paymentMode != null && paymentMode.equalsIgnoreCase("COD")) {
                     userOrder.setOrderStatus("Paid - Awaiting Dispatch");
@@ -673,8 +680,8 @@ public class CheckOutController {
         orderGroup.setTown(town);
         orderGroup.setEmailAddress(email != null && !email.isBlank() ? email : user.getEmail());
 
-        // Calculate total amount and save group first
-        double totalAmount = GlobalData.cart.stream().mapToDouble(Product::getPrice).sum();
+        // Calculate total amount and save group first with discounts applied
+        double totalAmount = GlobalData.cart.stream().mapToDouble(product -> discountService.getEffectivePrice(product)).sum();
         orderGroup.setTotalAmount(totalAmount);
         try {
             orderGroup = orderGroupDao.save(orderGroup);
@@ -699,8 +706,10 @@ public class CheckOutController {
                 userOrder.setProduct(managedProduct);
                 userOrder.setOrderGroup(orderGroup);
                 userOrder.setQuantity(1);
-                userOrder.setProductPriceAtOrder(managedProduct.getPrice());
-                userOrder.setTotalPrice(managedProduct.getPrice());
+                // Store effective price at time of order (with discount applied) - checkout-with-form
+                double effectivePrice = discountService.getEffectivePrice(managedProduct);
+                userOrder.setProductPriceAtOrder(effectivePrice);
+                userOrder.setTotalPrice(effectivePrice);
                 // set orderStatus based on paymentMode
                 if (paymentMode != null && paymentMode.equalsIgnoreCase("COD")) {
                     userOrder.setOrderStatus("Paid - Awaiting Dispatch");

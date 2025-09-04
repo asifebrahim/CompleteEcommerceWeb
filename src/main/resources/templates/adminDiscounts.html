@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Discount Management - Admin</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css">
+    <style>
+        .discount-card {
+            border-left: 4px solid #28a745;
+            background: #f8f9fa;
+        }
+        .expired-discount {
+            border-left: 4px solid #dc3545;
+            background: #fff5f5;
+        }
+        .product-search-result {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+        }
+        .discount-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .time-remaining {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .original-price {
+            text-decoration: line-through;
+            color: #6c757d;
+            margin-right: 10px;
+        }
+        .discount-price {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin">
+            <img th:src="@{/images/logo.png}" src="../static/images/logo.png" width="auto" height="40" class="d-inline-block align-top" alt=""/>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item"><a class="nav-link" href="/admin">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/categories">Categories</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/products">Products</a></li>
+                <li class="nav-item active"><a class="nav-link" href="/admin/discounts">Discounts</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/orders">Orders</a></li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-tags"></i> Discount Management</h4>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Success/Error Messages -->
+                    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+                        <span th:text="${successMessage}"></span>
+                        <button type="button" class="close" data-dismiss="alert">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    
+                    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+                        <span th:text="${errorMessage}"></span>
+                        <button type="button" class="close" data-dismiss="alert">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+
+                    <!-- Create Discount Form -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-plus"></i> Create New Discount</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form th:action="@{/admin/discount/create}" method="post" th:object="${discountDto}">
+                                        
+                                        <!-- Product Search -->
+                                        <div class="form-group">
+                                            <label for="productSearchId">Search Product by ID:</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="productSearchId" placeholder="Enter Product ID">
+                                                <div class="input-group-append">
+                                                    <button type="button" class="btn btn-primary" onclick="searchProduct()">
+                                                        <i class="fas fa-search"></i> Search
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Product Search Result -->
+                                        <div id="productSearchResult" style="display: none;"></div>
+
+                                        <!-- Discount Form (initially hidden) -->
+                                        <div id="discountForm" style="display: none;">
+                                            <input type="hidden" th:field="*{productId}" id="selectedProductId">
+                                            
+                                            <div class="form-group">
+                                                <label for="discountPrice">Discount Price (₹):</label>
+                                                <input type="number" step="0.01" class="form-control" th:field="*{discountPrice}" required>
+                                                <small class="form-text text-muted">Enter the new discounted price</small>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Discount Duration:</label>
+                                                <div class="row">
+                                                    <div class="col-4">
+                                                        <input type="number" class="form-control" th:field="*{durationDays}" placeholder="Days" min="0">
+                                                        <small class="form-text text-muted">Days</small>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <input type="number" class="form-control" th:field="*{durationHours}" placeholder="Hours" min="0" max="23">
+                                                        <small class="form-text text-muted">Hours</small>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <input type="number" class="form-control" th:field="*{durationMinutes}" placeholder="Minutes" min="0" max="59">
+                                                        <small class="form-text text-muted">Minutes</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-tag"></i> Create Discount
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                                <i class="fas fa-undo"></i> Reset
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Discounts Summary -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-line"></i> Active Discounts Summary</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <h3 class="text-success" th:text="${#lists.size(activeDiscounts)}">0</h3>
+                                            <p>Active Discounts</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <h3 class="text-info" th:text="${#lists.size(allDiscounts)}">0</h3>
+                                            <p>Total Discounts</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Discounts Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-fire"></i> Active Discounts</h5>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${#lists.isEmpty(activeDiscounts)}" class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No active discounts found.
+                            </div>
+                            
+                            <div th:if="${!#lists.isEmpty(activeDiscounts)}" class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Category</th>
+                                            <th>Original Price</th>
+                                            <th>Discount Price</th>
+                                            <th>Discount %</th>
+                                            <th>Time Remaining</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="discount : ${activeDiscounts}">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img th:src="@{'/productImages/' + ${discount.product.imageName}}" 
+                                                         class="rounded" width="50" height="50" style="margin-right: 10px;">
+                                                    <div>
+                                                        <strong th:text="${discount.product.name}">Product Name</strong>
+                                                        <br><small class="text-muted">ID: <span th:text="${discount.product.id}">1</span></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td th:text="${discount.product.category.name}">Category</td>
+                                            <td>
+                                                <span class="original-price">₹<span th:text="${#numbers.formatDecimal(discount.originalPrice, 1, 2)}">100.00</span></span>
+                                            </td>
+                                            <td>
+                                                <span class="discount-price">₹<span th:text="${#numbers.formatDecimal(discount.discountPrice, 1, 2)}">80.00</span></span>
+                                            </td>
+                                            <td>
+                                                <span class="discount-badge" th:text="${#numbers.formatDecimal(discount.discountPercentage, 1, 1)} + '%'">20.0%</span>
+                                            </td>
+                                            <td>
+                                                <span class="time-remaining" th:text="${discount.timeRemaining} ?: 'Expired'">2 days 5 hours</span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info" th:onclick="'viewDiscountDetails(' + ${discount.id} + ')'">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                                <form th:action="@{'/admin/discount/remove/' + ${discount.id}}" method="post" style="display: inline;">
+                                                    <button type="submit" class="btn btn-sm btn-danger" 
+                                                            onclick="return confirm('Are you sure you want to remove this discount?')">
+                                                        <i class="fas fa-trash"></i> Remove
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- All Discounts History -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-history"></i> Discount History</h5>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${#lists.isEmpty(allDiscounts)}" class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No discounts found.
+                            </div>
+                            
+                            <div th:if="${!#lists.isEmpty(allDiscounts)}" class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Product</th>
+                                            <th>Discount</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
+                                            <th>Created By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="discount : ${allDiscounts}" 
+                                            th:class="${discount.isCurrentlyActive()} ? 'table-success' : (${discount.isActive} ? 'table-warning' : 'table-secondary')">
+                                            <td th:text="${discount.id}">1</td>
+                                            <td th:text="${discount.product.name}">Product Name</td>
+                                            <td>
+                                                ₹<span th:text="${#numbers.formatDecimal(discount.originalPrice, 1, 2)}">100</span> 
+                                                → ₹<span th:text="${#numbers.formatDecimal(discount.discountPrice, 1, 2)}">80</span>
+                                                (<span th:text="${#numbers.formatDecimal(discount.discountPercentage, 1, 1)} + '%'">20%</span>)
+                                            </td>
+                                            <td>
+                                                <small th:text="${#temporals.format(discount.startDate, 'MMM dd HH:mm')}">Jan 01 10:00</small>
+                                                -
+                                                <small th:text="${#temporals.format(discount.endDate, 'MMM dd HH:mm')}">Jan 02 10:00</small>
+                                            </td>
+                                            <td>
+                                                <span th:if="${discount.isCurrentlyActive()}" class="badge badge-success">Active</span>
+                                                <span th:if="${!discount.isCurrentlyActive() && discount.isActive && discount.startDate.isAfter(T(java.time.LocalDateTime).now())}" class="badge badge-warning">Scheduled</span>
+                                                <span th:if="${!discount.isCurrentlyActive() && discount.isActive && discount.endDate.isBefore(T(java.time.LocalDateTime).now())}" class="badge badge-secondary">Expired</span>
+                                                <span th:if="${!discount.isActive}" class="badge badge-danger">Deactivated</span>
+                                            </td>
+                                            <td th:text="${discount.createdBy}">admin@example.com</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Discount Details Modal -->
+<div class="modal fade" id="discountDetailsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Discount Details</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="discountDetailsContent">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+<script>
+function searchProduct() {
+    const productId = document.getElementById('productSearchId').value;
+    if (!productId) {
+        alert('Please enter a product ID');
+        return;
+    }
+
+    $.get('/admin/discount/search-product/' + productId, function(response) {
+        const resultDiv = document.getElementById('productSearchResult');
+        
+        if (response.success) {
+            const product = response.product;
+            
+            let html = '<div class="product-search-result">';
+            html += '<h6><i class="fas fa-box"></i> Product Found:</h6>';
+            html += '<div class="row">';
+            html += '<div class="col-2"><img src="/productImages/' + product.imageName + '" class="img-fluid rounded"></div>';
+            html += '<div class="col-10">';
+            html += '<h5>' + product.name + '</h5>';
+            html += '<p><strong>Category:</strong> ' + product.category + ' | <strong>Current Price:</strong> ₹' + product.price + '</p>';
+            
+            if (response.hasActiveDiscount) {
+                const discount = response.activeDiscount;
+                html += '<div class="alert alert-warning">';
+                html += '<i class="fas fa-exclamation-triangle"></i> This product already has an active discount!<br>';
+                html += '<strong>Current Discount:</strong> ₹' + product.price + ' → ₹' + discount.discountPrice + ' (' + discount.discountPercentage + '% off)<br>';
+                html += '<strong>Time Remaining:</strong> ' + (discount.timeRemaining || 'Expired');
+                html += '</div>';
+            } else {
+                html += '<div class="alert alert-success">';
+                html += '<i class="fas fa-check"></i> Product is available for discount creation.';
+                html += '</div>';
+                
+                // Show the discount form
+                document.getElementById('selectedProductId').value = product.id;
+                document.getElementById('discountForm').style.display = 'block';
+            }
+            
+            html += '</div></div></div>';
+            
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        } else {
+            resultDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-times"></i> ' + response.message + '</div>';
+            resultDiv.style.display = 'block';
+            document.getElementById('discountForm').style.display = 'none';
+        }
+    });
+}
+
+function resetForm() {
+    document.getElementById('productSearchId').value = '';
+    document.getElementById('productSearchResult').style.display = 'none';
+    document.getElementById('discountForm').style.display = 'none';
+    document.querySelector('form').reset();
+}
+
+function viewDiscountDetails(discountId) {
+    $.get('/admin/discount/details/' + discountId, function(response) {
+        if (response.success) {
+            const discount = response.discount;
+            const product = response.product;
+            
+            let html = '<div class="row">';
+            html += '<div class="col-md-4 text-center">';
+            html += '<img src="/productImages/' + product.imageName + '" class="img-fluid rounded mb-3">';
+            html += '<h5>' + product.name + '</h5>';
+            html += '<p class="text-muted">' + product.category + '</p>';
+            html += '</div>';
+            html += '<div class="col-md-8">';
+            html += '<table class="table">';
+            html += '<tr><th>Original Price:</th><td>₹' + discount.originalPrice + '</td></tr>';
+            html += '<tr><th>Discount Price:</th><td class="text-success"><strong>₹' + discount.discountPrice + '</strong></td></tr>';
+            html += '<tr><th>Discount:</th><td><span class="badge badge-success">' + discount.discountPercentage + '% OFF</span></td></tr>';
+            html += '<tr><th>Start Date:</th><td>' + new Date(discount.startDate).toLocaleString() + '</td></tr>';
+            html += '<tr><th>End Date:</th><td>' + new Date(discount.endDate).toLocaleString() + '</td></tr>';
+            html += '<tr><th>Status:</th><td>';
+            if (discount.isCurrentlyActive) {
+                html += '<span class="badge badge-success">Active</span>';
+                if (discount.timeRemaining) {
+                    html += '<br><small class="text-danger">Time remaining: ' + discount.timeRemaining + '</small>';
+                }
+            } else if (discount.isActive) {
+                html += '<span class="badge badge-warning">Scheduled/Expired</span>';
+            } else {
+                html += '<span class="badge badge-danger">Deactivated</span>';
+            }
+            html += '</td></tr>';
+            html += '<tr><th>Created By:</th><td>' + discount.createdBy + '</td></tr>';
+            html += '<tr><th>Created At:</th><td>' + new Date(discount.createdAt).toLocaleString() + '</td></tr>';
+            html += '</table>';
+            html += '</div></div>';
+            
+            document.getElementById('discountDetailsContent').innerHTML = html;
+            $('#discountDetailsModal').modal('show');
+        } else {
+            alert('Error loading discount details: ' + response.message);
+        }
+    });
+}
+
+// Auto-refresh active discounts every minute
+setInterval(function() {
+    location.reload();
+}, 60000);
+</script>
+
+</body>
+</html>
