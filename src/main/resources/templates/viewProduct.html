@@ -11,6 +11,349 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
           integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="../static/css/custom.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .product-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .product-image-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+        
+        .product-image {
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            background: white;
+            padding: 20px;
+        }
+        
+        .product-image:hover {
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        
+        .product-details {
+            padding: 3rem;
+        }
+        
+        .product-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .category-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }
+        
+        .discount-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 1rem;
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .price-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 8px 25px rgba(240, 147, 251, 0.3);
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            font-size: 1.5rem;
+            opacity: 0.8;
+            margin-right: 1rem;
+        }
+        
+        .discount-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        
+        .regular-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .time-remaining {
+            background: linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            margin: 1rem 0;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(253, 187, 45, 0.3);
+        }
+        
+        .product-info-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 5px solid #667eea;
+        }
+        
+        .rating-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 2px solid #f1f3f4;
+        }
+        
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1.2rem;
+            margin-left: 0.5rem;
+        }
+        
+        .rating-form {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 1rem 0;
+        }
+        
+        .rating-form .form-control {
+            border-radius: 10px;
+            border: none;
+            padding: 0.75rem;
+        }
+        
+        .rating-form .btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .sort-controls {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .sort-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            margin: 0 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .sort-btn.active, .sort-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .reviews-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .review-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .review-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .reviewer-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .review-date {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .action-buttons {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .btn-action {
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid #667eea;
+            color: #667eea;
+            background: white;
+        }
+        
+        .btn-outline-primary:hover {
+            background: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-outline-danger {
+            border: 2px solid #e74c3c;
+            color: #e74c3c;
+            background: white;
+        }
+        
+        .btn-outline-danger:hover {
+            background: #e74c3c;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-outline-secondary {
+            border: 2px solid #95a5a6;
+            color: #95a5a6;
+            background: white;
+        }
+        
+        .btn-outline-secondary:hover {
+            background: #95a5a6;
+            transform: translateY(-3px);
+        }
+        
+        .no-reviews {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+        }
+        
+        .no-reviews i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .breadcrumb-nav {
+            background: white;
+            border-radius: 25px;
+            padding: 1rem 2rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .breadcrumb-nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .breadcrumb-nav a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .product-title {
+                font-size: 2rem;
+            }
+            
+            .product-details {
+                padding: 2rem 1.5rem;
+            }
+            
+            .product-image-section {
+                padding: 2rem;
+            }
+            
+            .discount-price, .regular-price {
+                font-size: 2rem;
+            }
+        }
+    </style>
     <title>EcommerceFresh - Product Details</title>
 </head>
 <body>
@@ -64,109 +407,172 @@
         </div>
     </div>
 </nav>
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-sm-5 d-flex justify-content-center">
-            <img class="mt-5" height="300px" width="300px" src="" th:src="@{${'/productImages/' + product.imageName}}"
-                 alt="">
+<div class="container mt-4">
+    <!-- Breadcrumb Navigation -->
+    <div class="breadcrumb-nav">
+        <a th:href="@{/shop}">← Back to Shop</a>
+        <span class="mx-2">/</span>
+        <span th:text="${product.category.name}"></span>
+        <span class="mx-2">/</span>
+        <strong th:text="${product.name}"></strong>
+    </div>
+
+    <!-- Main Product Container -->
+    <div class="product-container">
+        <div class="row no-gutters">
+            <!-- Product Image Section -->
+            <div class="col-lg-6">
+                <div class="product-image-section">
+                    <img class="product-image" height="300px" width="300px" 
+                         th:src="@{${'/productImages/' + product.imageName}}" 
+                         th:alt="${product.name}">
+                </div>
+            </div>
+            
+            <!-- Product Details Section -->
+            <div class="col-lg-6">
+                <div class="product-details">
+                    <h1 class="product-title" th:text="${product.name}">Product Name</h1>
+                    <span class="category-tag" th:text="${product.category.name}">Category</span>
+                    
+                    <!-- Discount Badge -->
+                    <div th:if="${activeDiscount != null}">
+                        <div class="discount-badge" th:text="${#numbers.formatDecimal(activeDiscount.getDiscountPercentage(), 0, 0) + '% OFF'}">20% OFF</div>
+                    </div>
+                    
+                    <!-- Price Section -->
+                    <div class="price-section" th:if="${activeDiscount != null}">
+                        <div class="d-flex align-items-center">
+                            <span class="original-price">₹<span th:text="${product.price}"></span></span>
+                            <span class="discount-price">₹<span th:text="${#numbers.formatDecimal(effectivePrice, 0, 2)}"></span></span>
+                        </div>
+                        <div class="time-remaining" th:text="'⏰ Discount ends in ' + ${activeDiscount.getTimeRemaining()}">
+                            ⏰ Discount ends in 2 hours 30 minutes
+                        </div>
+                    </div>
+                    <div th:unless="${activeDiscount != null}">
+                        <div class="regular-price">₹ <span th:text="${product.price}"></span></div>
+                    </div>
+                    
+                    <!-- Product Info -->
+                    <div class="product-info-card">
+                        <h5><i class="fas fa-weight mr-2"></i>Weight</h5>
+                        <p><span th:text="${product.weight}"></span> grams</p>
+                        
+                        <h5><i class="fas fa-info-circle mr-2"></i>Description</h5>
+                        <p th:text="${product.description}">Product description goes here...</p>
+                    </div>
+                    
+                    <!-- Rating Section -->
+                    <div class="rating-section">
+                        <div class="d-flex align-items-center">
+                            <strong><i class="fas fa-star-half-alt mr-2"></i>Average Rating:</strong>
+                            <span class="ml-2 h5 mb-0" th:text="${formattedAverage}">0.0</span>
+                            <span class="rating-stars ml-2">
+                                <i th:each="i: ${#numbers.sequence(1, (roundedAverage?:0))}" class="fas fa-star"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Rating Form -->
+                    <div th:if="${#authorization.expression('isAuthenticated()')}" class="rating-form">
+                        <h5 class="mb-3"><i class="fas fa-pencil-alt mr-2"></i>Rate This Product</h5>
+                        <form th:action="@{/product/{id}/rate(id=${product.id})}" method="post" class="form-inline">
+                            <div th:if="${_csrf != null}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            </div>
+                            <div class="form-group mr-3">
+                                <select name="score" class="form-control">
+                                    <option value="1">⭐ 1 Star</option>
+                                    <option value="2">⭐⭐ 2 Stars</option>
+                                    <option value="3">⭐⭐⭐ 3 Stars</option>
+                                    <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                                    <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                                </select>
+                            </div>
+                            <div class="form-group mr-3 flex-grow-1">
+                                <input type="text" name="comment" class="form-control" placeholder="Share your experience (optional)">
+                            </div>
+                            <button class="btn" type="submit">Submit Rating</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <a th:href="@{/addToCart/{id}(id = ${product.id})}" class="btn btn-primary btn-action">
+                            <i class="fas fa-cart-plus mr-2"></i>Add to Cart
+                        </a>
+                        
+                        <span sec:authorize="isAuthenticated()">
+                            <form th:if="${wishlistIds != null and wishlistIds.contains(product.id)}" 
+                                  th:action="@{'/wishlist/remove/' + ${product.id} + '/form'}" 
+                                  method="post" style="display:inline-block;">
+                                <div th:if="${_csrf != null}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                </div>
+                                <button class="btn btn-outline-danger btn-action" type="submit">
+                                    <i class="fas fa-heart-broken mr-2"></i>Remove from Wishlist
+                                </button>
+                            </form>
+                            <form th:if="${wishlistIds == null or !wishlistIds.contains(product.id)}" 
+                                  th:action="@{'/wishlist/add/' + ${product.id} + '/form'}" 
+                                  method="post" style="display:inline-block;">
+                                <div th:if="${_csrf != null}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                </div>
+                                <button class="btn btn-outline-primary btn-action" type="submit">
+                                    <i class="fas fa-heart mr-2"></i>Add to Wishlist
+                                </button>
+                            </form>
+                        </span>
+                        <span sec:authorize="isAnonymous()">
+                            <a th:href="@{/login}" class="btn btn-outline-secondary btn-action">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Login to Wishlist
+                            </a>
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-sm-7 mt-5">
-            <h2 th:text="${product.name}"></h2>
-            <p th:text="${product.category.name}"></p>
-            
-            <!-- Discount Badge -->
-            <div th:if="${activeDiscount != null}">
-                <span class="badge badge-danger" th:text="${#numbers.formatDecimal(activeDiscount.getDiscountPercentage(), 0, 0) + '% OFF'}">20% OFF</span>
-            </div>
-            
-            <!-- Price Section -->
-            <div th:if="${activeDiscount != null}">
-                <h2>
-                    <span class="text-muted" style="text-decoration: line-through;">₹<span th:text="${product.price}"></span></span>
-                    <span class="text-danger ml-2">₹<span th:text="${#numbers.formatDecimal(effectivePrice, 0, 2)}"></span></span>
-                </h2>
-                <div class="alert alert-info" th:text="'Discount ends in ' + ${activeDiscount.getTimeRemaining()}">
-                    Discount ends in 2 hours 30 minutes
-                </div>
-            </div>
-            <div th:unless="${activeDiscount != null}">
-                <h2>₹ <span th:text="${product.price}"></span></h2>
-            </div>
-            
-            <h5>Weight:
-                <spna th:text="${product.weight}"></spna> grams.
-            </h5>
-            <p th:text="${product.description}"></p>
-            <div class="mb-3">
-                <strong>Average rating:</strong>
-                <span th:text="${formattedAverage}">0.0</span>
-                <span class="ml-2 text-warning">
-                    <i th:each="i: ${#numbers.sequence(1, (roundedAverage?:0))}" class="fas fa-star"></i>
-                </span>
-            </div>
-            <div th:if="${#authorization.expression('isAuthenticated()')}">
-                <form th:action="@{/product/{id}/rate(id=${product.id})}" method="post" class="form-inline mb-3">
-                    <div th:if="${_csrf != null}">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    </div>
-                    <label class="mr-2">Rate:</label>
-                    <select name="score" class="form-control mr-2">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                    <input type="text" name="comment" class="form-control mr-2" placeholder="Add a comment (optional)">
-                    <button class="btn btn-primary" type="submit">Submit</button>
-                </form>
-            </div>
+    </div>
+    
+    <!-- Reviews Section -->
+    <div class="reviews-section">
+        <h3 class="mb-4"><i class="fas fa-comments mr-3"></i>Customer Reviews</h3>
+        
+        <!-- Sort Controls -->
+        <div class="sort-controls">
+            <a th:href="@{/shop/viewproduct/{id}(id=${product.id}, sort='recent')}" 
+               class="btn sort-btn" th:classappend="${sort == 'recent'} ? ' active'">
+                <i class="fas fa-clock mr-1"></i>Most Recent
+            </a>
+            <a th:href="@{/shop/viewproduct/{id}(id=${product.id}, sort='top')}" 
+               class="btn sort-btn" th:classappend="${sort == 'top'} ? ' active'">
+                <i class="fas fa-trophy mr-1"></i>Top Rated
+            </a>
+        </div>
 
-            <div class="mb-3">
-                <label>Sort reviews:</label>
-                <a th:href="@{/shop/viewproduct/{id}(id=${product.id}, sort='recent')}" class="btn btn-sm btn-outline-secondary ml-2" th:classappend="${sort == 'recent'} ? ' active'">Recent</a>
-                <a th:href="@{/shop/viewproduct/{id}(id=${product.id}, sort='top')}" class="btn btn-sm btn-outline-secondary ml-1" th:classappend="${sort == 'top'} ? ' active'">Top rated</a>
-            </div>
-
-            <div>
-                <h5>Reviews</h5>
-                <div th:if="${ratings == null or #lists.isEmpty(ratings)}">
-                    <div class="text-muted">No reviews yet.</div>
+        <!-- Reviews List -->
+        <div th:if="${ratings == null or #lists.isEmpty(ratings)}" class="no-reviews">
+            <i class="far fa-comments"></i>
+            <h4>No reviews yet</h4>
+            <p>Be the first to share your experience with this product!</p>
+        </div>
+        
+        <div th:each="r : ${ratings}" class="review-card">
+            <div class="review-header">
+                <div>
+                    <div class="reviewer-name" th:text="${r.users.firstName}">Customer Name</div>
+                    <div class="review-date" th:text="${r.createdAt != null ? r.createdAt.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy HH:mm')) : ''}">Date</div>
                 </div>
-                <div th:each="r : ${ratings}" class="border p-3 mb-2">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <strong th:text="${r.users.firstName}">User</strong>
-                            <small class="text-muted ml-2" th:text="${r.createdAt != null ? r.createdAt.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy HH:mm')) : ''}"></small>
-                        </div>
-                        <div class="text-warning">
-                            <i th:each="i: ${#numbers.sequence(1, r.score)}" class="fas fa-star"></i>
-                        </div>
-                    </div>
-                    <p th:text="${r.comment}" class="mt-2"></p>
+                <div class="rating-stars">
+                    <i th:each="i: ${#numbers.sequence(1, r.score)}" class="fas fa-star"></i>
                 </div>
             </div>
-            <a href="" th:href="@{/addToCart/{id}(id = ${product.id})}" class="btn btn-primary">Add to cart</a>
-            <span sec:authorize="isAuthenticated()">
-                <form th:if="${wishlistIds != null and wishlistIds.contains(product.id)}" th:action="@{'/wishlist/remove/' + ${product.id} + '/form'}" method="post" style="display:inline-block; margin-left:8px;">
-                    <div th:if="${_csrf != null}">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    </div>
-                    <button class="btn btn-outline-danger btn-sm" type="submit">Remove Wishlist</button>
-                </form>
-                <form th:if="${wishlistIds == null or !wishlistIds.contains(product.id)}" th:action="@{'/wishlist/add/' + ${product.id} + '/form'}" method="post" style="display:inline-block; margin-left:8px;">
-                    <div th:if="${_csrf != null}">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    </div>
-                    <button class="btn btn-outline-primary btn-sm" type="submit">Add to Wishlist</button>
-                </form>
-            </span>
-            <span sec:authorize="isAnonymous()">
-                <a th:href="@{/login}" class="btn btn-outline-secondary btn-sm" style="margin-left:8px;">Login to wishlist</a>
-            </span>
-         </div>
-     </div>
- </div>
+            <p class="mb-0" th:text="${r.comment}">Review comment goes here...</p>
+        </div>
+    </div>
+</div>
 
 <!-- Modern Footer -->
 <footer class="modern-footer">
