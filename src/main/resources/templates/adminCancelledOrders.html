@@ -2,48 +2,546 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css">
     <title>Cancelled Orders</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 15px 15px;
+        }
+        
+        .cancelled-container {
+            margin: 2rem 0;
+        }
+        
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .order-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .order-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .order-info h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .order-meta {
+            margin-top: 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .order-meta .meta-item {
+            display: inline-block;
+            margin-right: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .cancelled-badge {
+            background: #fff;
+            color: #dc3545;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .order-body {
+            padding: 1.5rem;
+        }
+        
+        .cancelled-info {
+            background: #f8d7da;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .transaction-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-item label {
+            font-weight: 600;
+            color: #495057;
+            margin: 0;
+        }
+        
+        .transaction-item .amount {
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .user-info-section {
+            background: #e7f3ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #007bff;
+        }
+        
+        .user-detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+        }
+        
+        .user-detail-item label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .products-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        .products-table th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem 0.75rem;
+        }
+        
+        .products-table td {
+            border-color: #e9ecef;
+            padding: 0.75rem;
+            vertical-align: middle;
+        }
+        
+        .product-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .product-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 10px;
+        }
+        
+        .status-cancelled {
+            background: #dc3545;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .empty-orders {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .order-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .order-meta .meta-item {
+                display: block;
+                margin-right: 0;
+                margin-bottom: 0.25rem;
+            }
+            
+            .transaction-item,
+            .user-detail-item {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Search Section Styling */
+        .search-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .search-box input {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+        
+        .search-stats {
+            background: #f8f9fa;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .order-card.hidden {
+            display: none !important;
+        }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-4">
-    <h2>Cancelled Order Groups</h2>
-    <div th:if="${orderGroups == null or #lists.isEmpty(orderGroups)}" class="alert alert-info">No cancelled orders.</div>
-    <div th:if="${orderGroups != null and !#lists.isEmpty(orderGroups)}">
-        <table class="table table-bordered">
-            <thead>
-            <tr>
-                <th>Group ID</th>
-                <th>User</th>
-                <th>Created At</th>
-                <th>Total Amount</th>
-                <th>Delivery Address</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="g : ${orderGroups}">
-                <td th:text="${g.id}"></td>
-                <td>
-                    <span th:text="${g.firstName != null ? g.firstName + ' ' + (g.lastName != null ? g.lastName : '') : (g.user != null ? g.user.firstName + ' ' + g.user.lastName : 'N/A')}"></span>
-                    <br/><small class="text-muted" th:text="${g.emailAddress != null ? g.emailAddress : (g.user != null ? g.user.email : 'N/A')}"></small>
-                    <span th:if="${g.mobile != null and g.mobile != ''}">
-                        <br/><small class="text-muted">Mobile: <span th:text="${g.mobile}"></span></small>
-                    </span>
-                </td>
-                <td th:text="${#temporals.format(g.createdAt, 'dd MMM yyyy HH:mm')}"></td>
-                <td>₹<span th:text="${g.totalAmount}"></span></td>
-                <td th:text="${g.deliveryAddress != null ? g.deliveryAddress : '-'}"></td>
-                <td>
-                    <a th:href="@{'/admin/order/group/view/' + ${g.id}}" class="btn btn-sm btn-outline-secondary">View</a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+
+<div class="header-section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-times-circle mr-2"></i>Cancelled Orders</h2>
+                <p class="mb-0">Orders that have been cancelled by customers or admin</p>
+            </div>
+            <div>
+                <a th:href="@{/admin/orders}" class="btn btn-light mr-2">
+                    <i class="fas fa-arrow-left mr-1"></i>Active Orders
+                </a>
+                <a th:href="@{/admin}" class="btn btn-outline-light">
+                    <i class="fas fa-home mr-1"></i>Admin Home
+                </a>
+            </div>
+        </div>
     </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+<div class="container cancelled-container">
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="search-box">
+                    <label for="searchTxnId"><i class="fas fa-receipt"></i> Transaction ID</label>
+                    <input type="text" id="searchTxnId" class="form-control" placeholder="Enter transaction ID">
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="search-box">
+                    <label for="searchMobile"><i class="fas fa-phone"></i> Mobile Number</label>
+                    <input type="text" id="searchMobile" class="form-control" placeholder="Enter mobile number">
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="d-flex align-items-end">
+                    <button id="clearFilters" class="btn btn-outline-danger mr-2">
+                        <i class="fas fa-eraser"></i> Clear Filters
+                    </button>
+                    <div class="search-stats">
+                        <small class="text-muted">
+                            <span id="filteredCount">0</span> of <span id="totalCount">0</span> orders shown
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${orderGroups == null or #lists.isEmpty(orderGroups)}" class="empty-orders">
+        <div class="empty-icon">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <h3>No Cancelled Orders</h3>
+        <p>No orders have been cancelled yet.</p>
+        <a th:href="@{/admin/orders}" class="btn btn-primary">
+            <i class="fas fa-list mr-1"></i>View Active Orders
+        </a>
+    </div>
+
+    <div th:if="${orderGroups != null and !#lists.isEmpty(orderGroups)}">
+        <div class="order-card" th:each="orderGroup : ${orderGroups}"
+             th:data-txn-id="${orderGroup.transactionId != null ? orderGroup.transactionId : (orderGroup.razorpayOrderId != null ? orderGroup.razorpayOrderId : '')}"
+             th:data-mobile="${orderGroup.mobile != null ? orderGroup.mobile : ''}">
+            <div class="order-header">
+                <div class="order-info">
+                    <h5>
+                        <i class="fas fa-times-circle mr-2"></i>Order #<span th:text="${orderGroup.id}"></span>
+                    </h5>
+                    <div class="order-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-user mr-1"></i>
+                            <span th:text="${orderGroup.firstName != null ? orderGroup.firstName : (orderGroup.user != null ? orderGroup.user.firstName : 'N/A')} + ' ' + ${orderGroup.lastName != null ? orderGroup.lastName : (orderGroup.user != null ? orderGroup.user.lastName : '')}"></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-envelope mr-1"></i>
+                            <span th:text="${orderGroup.emailAddress != null ? orderGroup.emailAddress : (orderGroup.user != null ? orderGroup.user.email : 'N/A')}"></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-phone mr-1"></i>
+                            <span th:text="${orderGroup.mobile != null ? orderGroup.mobile : '-'}"></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-rupee-sign mr-1"></i>
+                            <strong th:text="${orderGroup.totalAmount}"></strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="cancelled-badge">
+                    <i class="fas fa-times mr-1"></i>Cancelled
+                </div>
+            </div>
+
+            <div class="order-body">
+                <!-- Cancellation Information -->
+                <div class="cancelled-info">
+                    <h6><i class="fas fa-exclamation-triangle mr-2"></i>Cancellation Details</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Order Date:</strong> <span th:text="${#temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm')}"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Status:</strong> <span class="status-cancelled">Cancelled</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Details -->
+                <div class="transaction-section">
+                    <h6><i class="fas fa-credit-card mr-2"></i>Transaction Information</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="transaction-item">
+                                <label>Transaction ID:</label>
+                                <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : (orderGroup.razorpayOrderId != null ? orderGroup.razorpayOrderId : 'N/A')}"></span>
+                            </div>
+                            <div class="transaction-item">
+                                <label>Order ID:</label>
+                                <span th:text="${orderGroup.id}"></span>
+                            </div>
+                            <div class="transaction-item">
+                                <label>Payment Status:</label>
+                                <span th:text="${orderGroup.paymentStatus != null ? orderGroup.paymentStatus : 'Cancelled'}"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="transaction-item">
+                                <label>Total Amount:</label>
+                                <span class="amount">₹<span th:text="${orderGroup.totalAmount}"></span></span>
+                            </div>
+                            <div class="transaction-item">
+                                <label>Order Date:</label>
+                                <span th:text="${#temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm:ss')}"></span>
+                            </div>
+                            <div class="transaction-item">
+                                <label>Items Count:</label>
+                                <span th:text="${#lists.size(orderGroup.userOrders)}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Information -->
+                <div class="user-info-section">
+                    <h6><i class="fas fa-user-circle mr-2"></i>Customer Information</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="user-detail-item">
+                                <label>Full Name:</label>
+                                <span th:text="${orderGroup.firstName != null ? orderGroup.firstName : (orderGroup.user != null ? orderGroup.user.firstName : 'N/A')} + ' ' + ${orderGroup.lastName != null ? orderGroup.lastName : (orderGroup.user != null ? orderGroup.user.lastName : '')}"></span>
+                            </div>
+                            <div class="user-detail-item">
+                                <label>Email:</label>
+                                <span th:text="${orderGroup.emailAddress != null ? orderGroup.emailAddress : (orderGroup.user != null ? orderGroup.user.email : 'N/A')}"></span>
+                            </div>
+                            <div class="user-detail-item">
+                                <label>Mobile:</label>
+                                <span th:text="${orderGroup.mobile != null ? orderGroup.mobile : '-'}"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="user-detail-item">
+                                <label>Delivery Address:</label>
+                                <span th:text="${orderGroup.deliveryAddress != null ? orderGroup.deliveryAddress : 'N/A'}"></span>
+                            </div>
+                            <div class="user-detail-item">
+                                <label>PIN Code:</label>
+                                <span th:text="${orderGroup.pinCode != null ? orderGroup.pinCode : 'N/A'}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <div>
+                    <h6><i class="fas fa-box mr-2"></i>Cancelled Items</h6>
+                    <div class="products-table">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                            <tr>
+                                <th>Item ID</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Price at Order</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="order : ${orderGroup.userOrders}">
+                                <td>
+                                    <strong th:text="${order.id}"></strong>
+                                </td>
+                                <td>
+                                    <div class="product-info">
+                                        <img th:src="@{${'/productImages/' + (order.product?.imageName ?: 'default.png')}}" 
+                                             alt="Product" class="product-image">
+                                        <div>
+                                            <strong th:text="${order.product != null ? order.product.name : 'Product'}"></strong>
+                                            <div><small class="text-muted">ID: <span th:text="${order.product != null ? order.product.id : 'N/A'}"></span></small></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:text="${order.product?.category?.name ?: 'N/A'}"></span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-secondary" th:text="${order.quantity}"></span>
+                                </td>
+                                <td>
+                                    <strong>₹<span th:text="${order.productPriceAtOrder}"></span></strong>
+                                </td>
+                                <td>
+                                    <strong class="amount">₹<span th:text="${order.totalPrice}"></span></strong>
+                                </td>
+                                <td>
+                                    <span class="status-cancelled">Cancelled</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+<script>
+// Enhanced search functionality for cancelled orders
+document.addEventListener('DOMContentLoaded', function() {
+    const orderCards = document.querySelectorAll('.order-card');
+    const searchTxnId = document.getElementById('searchTxnId');
+    const searchMobile = document.getElementById('searchMobile');
+    const clearFilters = document.getElementById('clearFilters');
+    const filteredCount = document.getElementById('filteredCount');
+    const totalCount = document.getElementById('totalCount');
+    
+    // Set total count
+    totalCount.textContent = orderCards.length;
+    filteredCount.textContent = orderCards.length;
+    
+    function filterOrders() {
+        const txnIdQuery = searchTxnId.value.toLowerCase().trim();
+        const mobileQuery = searchMobile.value.toLowerCase().trim();
+        
+        let visibleCount = 0;
+        
+        orderCards.forEach(function(card) {
+            const txnId = (card.getAttribute('data-txn-id') || '').toLowerCase();
+            const mobile = (card.getAttribute('data-mobile') || '').toLowerCase();
+            
+            const txnMatch = !txnIdQuery || txnId.includes(txnIdQuery);
+            const mobileMatch = !mobileQuery || mobile.includes(mobileQuery);
+            
+            if (txnMatch && mobileMatch) {
+                card.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+        
+        filteredCount.textContent = visibleCount;
+    }
+    
+    // Add event listeners
+    searchTxnId.addEventListener('input', filterOrders);
+    searchMobile.addEventListener('input', filterOrders);
+    
+    clearFilters.addEventListener('click', function() {
+        searchTxnId.value = '';
+        searchMobile.value = '';
+        filterOrders();
+    });
+});
+</script>
+
 </body>
 </html>

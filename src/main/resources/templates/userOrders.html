@@ -11,6 +11,113 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="../static/css/custom.css">
+    <style>
+        /* Enhanced Orders Styling */        
+        .transaction-details {
+            margin-top: 0.5rem;
+            padding: 0.5rem 0;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .txn-id {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .order-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .view-details-btn, .view-transaction-btn {
+            min-width: 100px;
+        }
+        
+        .collapsible-content {
+            border-top: 2px solid #e9ecef;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .transaction-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .transaction-info {
+            margin-top: 1rem;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .transaction-item label {
+            font-weight: 600;
+            color: #495057;
+            margin: 0;
+        }
+        
+        .transaction-item .amount {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .payment-status, .order-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .modal .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .modal .info-item label {
+            font-weight: 600;
+            color: #495057;
+            margin: 0;
+        }
+        
+        .modal .price {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .view-product-btn {
+            margin-top: 0.5rem;
+        }
+        
+        /* Enhanced responsive design */
+        @media (max-width: 768px) {
+            .order-actions {
+                align-items: stretch;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -112,77 +219,264 @@
                                 <span th:text="${orderGroup.totalAmount}"></span>
                             </span>
                         </div>
-                    </div>
-                    <div class="order-status">
-                        <span class="status-badge" 
-                              th:classappend="${orderGroup.groupStatus == 'Delivered'} ? 'status-delivered' : 
-                                             (${orderGroup.groupStatus == 'Cancelled'} ? 'status-cancelled' : 
-                                             (${orderGroup.groupStatus == 'Shipped'} ? 'status-shipped' : 'status-pending'))"
-                              th:text="${orderGroup.groupStatus}">Status</span>
-                    </div>
-                </div>
-
-                <div class="delivery-details">
-                    <h4><i class="fas fa-truck"></i> Delivery Information</h4>
-                    <div class="delivery-info">
-                        <p th:if="${orderGroup.firstName != null and !#strings.isEmpty(orderGroup.firstName)}">
-                            <strong>Name:</strong> 
-                            <span th:text="${orderGroup.firstName}"></span>
-                            <span th:if="${orderGroup.lastName != null and !#strings.isEmpty(orderGroup.lastName)}" th:text="' ' + ${orderGroup.lastName}"></span>
-                        </p>
-                        <p th:if="${orderGroup.emailAddress != null and !#strings.isEmpty(orderGroup.emailAddress)}">
-                            <strong>Email:</strong> <span th:text="${orderGroup.emailAddress}"></span>
-                        </p>
-                        <p th:if="${orderGroup.mobile != null and !#strings.isEmpty(orderGroup.mobile)}">
-                            <strong>Mobile:</strong> <span th:text="${orderGroup.mobile}"></span>
-                        </p>
-                        <p th:if="${orderGroup.deliveryAddress != null and !#strings.isEmpty(orderGroup.deliveryAddress)}">
-                            <strong>Address:</strong> <span th:text="${orderGroup.deliveryAddress}"></span>
-                            <span th:if="${orderGroup.pinCode != null and !#strings.isEmpty(orderGroup.pinCode)}" 
-                                  th:text="' - ' + ${orderGroup.pinCode}"></span>
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="order-items">
-                    <h4><i class="fas fa-box"></i> Order Items</h4>
-                    <div class="item-card" th:each="order : ${orderGroup.userOrders}">
-                        <div class="item-image">
-                            <img th:src="@{${'/productImages/' + (order.product != null ? order.product.imageName : '')}}" 
-                                 alt="Product Image">
-                        </div>
-                        <div class="item-details">
-                            <h5 th:text="${order.product != null ? order.product.name : 'Product'}">Product Name</h5>
-                            <div class="item-info">
-                                <span class="quantity">Qty: <strong th:text="${order.quantity}"></strong></span>
-                                <span class="price">Price: ₹<strong th:text="${order.productPriceAtOrder}"></strong></span>
-                                <span class="total">Total: ₹<strong th:text="${order.totalPrice}"></strong></span>
-                            </div>
-                        </div>
-                        <div class="item-actions">
-                            <!-- Cancel button -->
-                            <form th:if="${order.orderStatus != null and (order.orderStatus.toLowerCase().contains('pending') or order.orderStatus.toLowerCase().contains('awaiting'))}"
-                                  th:action="@{'/order/cancel/' + ${order.id} + '/form'}" method="post" style="display:inline;">
-                                <button class="btn btn-danger btn-sm btn-cancel" type="button" th:attr="data-order-id=${order.id}">
-                                    <i class="fas fa-times"></i> Cancel
-                                </button>
-                            </form>
-
-                            <!-- Return status or button -->
-                            <span th:if="${returnStatusMap[order.id] != null}" 
-                                  class="return-status" 
-                                  th:text="${returnStatusMap[order.id] == 'Pending' ? 'Return Requested' : returnStatusMap[order.id]}">
+                        <!-- Transaction Details -->
+                        <div class="transaction-details">
+                            <span class="txn-id" th:if="${orderGroup.txnId}">
+                                <i class="fas fa-receipt"></i>
+                                Transaction ID: <strong th:text="${orderGroup.txnId}"></strong>
                             </span>
-
-                            <button type="button"
-                                    th:if="${returnStatusMap[order.id] == null and order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered') and (returnAllowedMap[order.id] == true)}"
-                                    class="btn btn-warning btn-sm btn-return"
-                                    th:attr="data-order-id=${order.id}, data-product-name=${order.product != null ? order.product.name : 'item'}">
-                                <i class="fas fa-undo"></i> Return
+                        </div>
+                    </div>
+                    <div class="order-actions">
+                        <div class="order-status">
+                            <span class="status-badge" 
+                                  th:classappend="${orderGroup.groupStatus == 'Delivered'} ? 'status-delivered' : 
+                                                 (${orderGroup.groupStatus == 'Cancelled'} ? 'status-cancelled' : 
+                                                 (${orderGroup.groupStatus == 'Shipped'} ? 'status-shipped' : 'status-pending'))"
+                                  th:text="${orderGroup.groupStatus}">Status</span>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-info btn-sm view-details-btn" th:data-order-id="${orderGroup.id}">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                            <button class="btn btn-secondary btn-sm view-transaction-btn" th:data-order-id="${orderGroup.id}">
+                                <i class="fas fa-receipt"></i> Transaction
                             </button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Collapsible sections -->
+                <div class="collapsible-content" th:id="'details-' + ${orderGroup.id}" style="display: none;">
+
+                <!-- Collapsible sections -->
+                <div class="collapsible-content" th:id="'details-' + ${orderGroup.id}" style="display: none;">
+                    <div class="delivery-details">
+                        <h4><i class="fas fa-truck"></i> Delivery Information</h4>
+                        <div class="delivery-info">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p th:if="${orderGroup.firstName != null and !#strings.isEmpty(orderGroup.firstName)}">
+                                        <strong>Name:</strong> 
+                                        <span th:text="${orderGroup.firstName}"></span>
+                                        <span th:if="${orderGroup.lastName != null and !#strings.isEmpty(orderGroup.lastName)}" th:text="' ' + ${orderGroup.lastName}"></span>
+                                    </p>
+                                    <p th:if="${orderGroup.emailAddress != null and !#strings.isEmpty(orderGroup.emailAddress)}">
+                                        <strong>Email:</strong> <span th:text="${orderGroup.emailAddress}"></span>
+                                    </p>
+                                    <p th:if="${orderGroup.mobile != null and !#strings.isEmpty(orderGroup.mobile)}">
+                                        <strong>Mobile:</strong> <span th:text="${orderGroup.mobile}"></span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p th:if="${orderGroup.deliveryAddress != null and !#strings.isEmpty(orderGroup.deliveryAddress)}">
+                                        <strong>Address:</strong> <span th:text="${orderGroup.deliveryAddress}"></span>
+                                        <span th:if="${orderGroup.pinCode != null and !#strings.isEmpty(orderGroup.pinCode)}" 
+                                              th:text="' - ' + ${orderGroup.pinCode}"></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-items">
+                        <h4><i class="fas fa-box"></i> Order Items</h4>
+                        <div class="item-card" th:each="order : ${orderGroup.userOrders}">
+                            <div class="item-image">
+                                <img th:src="@{${'/productImages/' + (order.product != null ? order.product.imageName : '')}}" 
+                                     alt="Product Image">
+                            </div>
+                            <div class="item-details">
+                                <h5 th:text="${order.product != null ? order.product.name : 'Product'}">Product Name</h5>
+                                <div class="item-info">
+                                    <span class="quantity">Qty: <strong th:text="${order.quantity}"></strong></span>
+                                    <span class="price">Price: ₹<strong th:text="${order.productPriceAtOrder}"></strong></span>
+                                    <span class="total">Total: ₹<strong th:text="${order.totalPrice}"></strong></span>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn btn-outline-info btn-sm view-product-btn" 
+                                            th:data-product-id="${order.product?.id}" 
+                                            th:data-product-name="${order.product?.name}"
+                                            th:data-product-price="${order.productPriceAtOrder}"
+                                            th:data-product-category="${order.product?.category?.name}"
+                                            th:data-product-image="${order.product?.imageName}">
+                                        <i class="fas fa-info-circle"></i> Product Details
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <!-- Cancel button -->
+                                <form th:if="${order.orderStatus != null and (order.orderStatus.toLowerCase().contains('pending') or order.orderStatus.toLowerCase().contains('awaiting'))}"
+                                      th:action="@{'/order/cancel/' + ${order.id} + '/form'}" method="post" style="display:inline;">
+                                    <button class="btn btn-danger btn-sm btn-cancel" type="button" th:attr="data-order-id=${order.id}">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </form>
+
+                                <!-- Return status or button -->
+                                <span th:if="${returnStatusMap[order.id] != null}" 
+                                      class="return-status" 
+                                      th:text="${returnStatusMap[order.id] == 'Pending' ? 'Return Requested' : returnStatusMap[order.id]}">
+                                </span>
+
+                                <button type="button"
+                                        th:if="${returnStatusMap[order.id] == null and order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered') and (returnAllowedMap[order.id] == true)}"
+                                        class="btn btn-warning btn-sm btn-return"
+                                        th:attr="data-order-id=${order.id}, data-product-name=${order.product != null ? order.product.name : 'item'}">
+                                    <i class="fas fa-undo"></i> Return
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Details Section (Collapsible) -->
+                <div class="transaction-section" th:id="'transaction-' + ${orderGroup.id}" style="display: none;">
+                    <h4><i class="fas fa-credit-card"></i> Transaction Details</h4>
+                    <div class="transaction-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="transaction-item">
+                                    <label>Transaction ID:</label>
+                                    <span th:text="${orderGroup.txnId ?: 'N/A'}"></span>
+                                </div>
+                                <div class="transaction-item">
+                                    <label>Order ID:</label>
+                                    <span th:text="${orderGroup.id}"></span>
+                                </div>
+                                <div class="transaction-item">
+                                    <label>Order Date:</label>
+                                    <span th:text="${#temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm:ss')}"></span>
+                                </div>
+                                <div class="transaction-item">
+                                    <label>Payment Status:</label>
+                                    <span class="payment-status" th:text="${orderGroup.paymentStatus ?: 'Pending'}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="transaction-item">
+                                    <label>Total Amount:</label>
+                                    <span class="amount">₹<span th:text="${orderGroup.totalAmount}"></span></span>
+                                </div>
+                                <div class="transaction-item">
+                                    <label>Order Status:</label>
+                                    <span class="order-status" th:text="${orderGroup.groupStatus}"></span>
+                                </div>
+                                <div class="transaction-item">
+                                    <label>Customer Mobile:</label>
+                                    <span th:text="${orderGroup.mobile}"></span>
+                                </div>
+                                <div class="transaction-item">
+                                    <label>Email:</label>
+                                    <span th:text="${orderGroup.emailAddress}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Details Modal -->
+<div class="modal fade" id="productDetailsModal" tabindex="-1" role="dialog" aria-labelledby="productDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="productDetailsModalLabel">
+                    <i class="fas fa-info-circle mr-2"></i>Product Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <img id="modalProductImage" src="" alt="Product Image" class="img-fluid rounded">
+                    </div>
+                    <div class="col-md-8">
+                        <h4 id="modalProductName">Product Name</h4>
+                        <div class="product-info">
+                            <div class="info-item">
+                                <label>Category:</label>
+                                <span id="modalProductCategory">Category</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Price at Order:</label>
+                                <span class="price">₹<span id="modalProductPrice">0</span></span>
+                            </div>
+                            <div class="info-item">
+                                <label>Product ID:</label>
+                                <span id="modalProductId">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Close
+                </button>
+                <a id="viewProductLink" href="#" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-external-link-alt mr-1"></i>View Full Product
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Info Modal -->
+<div class="modal fade" id="userInfoModal" tabindex="-1" role="dialog" aria-labelledby="userInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="userInfoModalLabel">
+                    <i class="fas fa-user mr-2"></i>Customer Information
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-circle"></i> Personal Details</h6>
+                        <div class="user-info">
+                            <div class="info-item">
+                                <label>Name:</label>
+                                <span id="modalUserName">User Name</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Email:</label>
+                                <span id="modalUserEmail">user@email.com</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Mobile:</label>
+                                <span id="modalUserMobile">Mobile</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-map-marker-alt"></i> Delivery Address</h6>
+                        <div class="address-info">
+                            <div class="info-item">
+                                <label>Address:</label>
+                                <span id="modalUserAddress">Address</span>
+                            </div>
+                            <div class="info-item">
+                                <label>PIN Code:</label>
+                                <span id="modalUserPincode">PIN</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Close
+                </button>
             </div>
         </div>
     </div>
@@ -281,9 +575,69 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script th:src="@{/js/custom.js}" src="../static/js/custom.js"></script>
 <script>
-    // Bind return buttons to open confirmation modal and set order id
+    // Enhanced Orders JavaScript
     document.addEventListener('DOMContentLoaded', function(){
-        // attach handler to dynamically created buttons
+        
+        // Collapsible Details View
+        document.querySelectorAll('.view-details-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const orderId = btn.getAttribute('data-order-id');
+                const detailsSection = document.getElementById('details-' + orderId);
+                const transactionSection = document.getElementById('transaction-' + orderId);
+                
+                if (detailsSection.style.display === 'none' || detailsSection.style.display === '') {
+                    detailsSection.style.display = 'block';
+                    transactionSection.style.display = 'none';
+                    btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Details';
+                } else {
+                    detailsSection.style.display = 'none';
+                    btn.innerHTML = '<i class="fas fa-eye"></i> View Details';
+                }
+            });
+        });
+        
+        // Transaction View
+        document.querySelectorAll('.view-transaction-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const orderId = btn.getAttribute('data-order-id');
+                const detailsSection = document.getElementById('details-' + orderId);
+                const transactionSection = document.getElementById('transaction-' + orderId);
+                
+                if (transactionSection.style.display === 'none' || transactionSection.style.display === '') {
+                    transactionSection.style.display = 'block';
+                    detailsSection.style.display = 'none';
+                    btn.innerHTML = '<i class="fas fa-receipt"></i> Hide Transaction';
+                } else {
+                    transactionSection.style.display = 'none';
+                    btn.innerHTML = '<i class="fas fa-receipt"></i> Transaction';
+                }
+            });
+        });
+        
+        // Product Details Modal
+        document.querySelectorAll('.view-product-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const productId = btn.getAttribute('data-product-id');
+                const productName = btn.getAttribute('data-product-name');
+                const productPrice = btn.getAttribute('data-product-price');
+                const productCategory = btn.getAttribute('data-product-category');
+                const productImage = btn.getAttribute('data-product-image');
+                
+                document.getElementById('modalProductId').textContent = productId;
+                document.getElementById('modalProductName').textContent = productName;
+                document.getElementById('modalProductPrice').textContent = productPrice;
+                document.getElementById('modalProductCategory').textContent = productCategory || 'N/A';
+                
+                const imageUrl = productImage ? '/productImages/' + productImage : '/images/logo.png';
+                document.getElementById('modalProductImage').src = imageUrl;
+                
+                document.getElementById('viewProductLink').href = '/shop/viewproduct/' + productId;
+                
+                $('#productDetailsModal').modal('show');
+            });
+        });
+        
+        // Existing return button functionality
         document.querySelectorAll('.btn-return').forEach(function(btn){
             btn.addEventListener('click', function(e){
                 var orderId = btn.getAttribute('data-order-id');

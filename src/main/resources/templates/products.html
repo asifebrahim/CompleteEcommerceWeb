@@ -176,28 +176,22 @@
 <div class="container-fluid">
     <!-- Statistics Cards -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="stats-card">
                 <div class="stats-number" th:text="${#lists.size(products)}">0</div>
                 <small>Total Products</small>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="stats-card">
                 <div class="stats-number" th:text="${#lists.size(categories)}">0</div>
                 <small>Categories</small>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="stats-card">
                 <div class="stats-number" id="filteredCount" th:text="${#lists.size(products)}">0</div>
                 <small>Filtered Results</small>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number" th:text="${activeDiscounts != null ? #lists.size(activeDiscounts) : 0}">0</div>
-                <small>Active Discounts</small>
             </div>
         </div>
     </div>
@@ -249,7 +243,6 @@
                 <th scope="col" style="width: 12%">Category</th>
                 <th scope="col" style="width: 10%">Price</th>
                 <th scope="col" style="width: 15%">Preview</th>
-                <th scope="col" style="width: 8%">Discount</th>
                 <th scope="col" style="width: 35%">Actions</th>
             </tr>
             </thead>
@@ -275,16 +268,6 @@
                 <td class="text-center">
                     <img class="product-image" height="80px" width="80px" th:src="@{${'/productImages/' + product.imageName}}" th:alt="${product.name}">
                 </td>
-                <td class="text-center">
-                    <span th:if="${activeDiscounts != null and activeDiscounts.containsKey(product.id)}" 
-                          class="badge badge-success">
-                        <i class="fas fa-tags mr-1"></i>Active
-                    </span>
-                    <span th:unless="${activeDiscounts != null and activeDiscounts.containsKey(product.id)}" 
-                          class="badge badge-secondary">
-                        None
-                    </span>
-                </td>
                 <td>
                     <div class="d-flex flex-wrap">
                         <a th:href="@{/shop/viewproduct/{id}(id=${product.id})}" class="btn btn-info btn-action btn-sm" target="_blank">
@@ -292,10 +275,6 @@
                         </a>
                         <a th:href="@{/admin/product/update/{id}(id=${product.id})}" class="btn btn-warning btn-action btn-sm">
                             <i class="fas fa-edit mr-1"></i>Edit
-                        </a>
-                        <a th:href="@{/admin/discounts/create/{id}(id=${product.id})}"
-                            class="btn btn-success btn-action btn-sm">
-                            <i class="fas fa-percentage mr-1"></i>Discount
                         </a>
                         <a th:href="@{/admin/product/delete/{id}(id=${product.id})}" 
                            class="btn btn-danger btn-action btn-sm" 
@@ -311,95 +290,6 @@
             <i class="fas fa-search fa-3x mb-3 text-muted"></i>
             <h4>No products found</h4>
             <p>Try adjusting your search criteria or filters</p>
-        </div>
-    </div>
-</div>
-
-<!-- Discount Modal -->
-<div class="modal fade" id="discountModal" tabindex="-1" role="dialog" aria-labelledby="discountModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="discountModalLabel">
-                    <i class="fas fa-percentage mr-2"></i>Create Product Discount
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="discountForm">
-                    <input type="hidden" id="discountProductId">
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Product Name</label>
-                                <input type="text" id="discountProductName" class="form-control" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Original Price</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">₹</span>
-                                    </div>
-                                    <input type="text" id="discountOriginalPrice" class="form-control" readonly>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Discount Price <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">₹</span>
-                                    </div>
-                                    <input type="number" id="discountPrice" class="form-control" step="0.01" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Discount Percentage</label>
-                                <div class="input-group">
-                                    <input type="text" id="discountPercentage" class="form-control" readonly>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text">%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Start Date <span class="text-danger">*</span></label>
-                                <input type="datetime-local" id="startDate" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>End Date <span class="text-danger">*</span></label>
-                                <input type="datetime-local" id="endDate" class="form-control" required>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times mr-1"></i>Cancel
-                </button>
-                <button type="button" class="btn btn-success" onclick="createDiscount()">
-                    <i class="fas fa-check mr-1"></i>Create Discount
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -468,93 +358,7 @@ $(document).ready(function() {
         $('#searchByName, #searchById, #categoryFilter').val('');
         filterProducts();
     });
-    
-    // Auto-calculate discount percentage
-    $('#discountPrice').on('input', function() {
-        const originalPrice = parseFloat($('#discountOriginalPrice').val());
-        const discountPrice = parseFloat($(this).val());
-        
-        if (originalPrice && discountPrice && discountPrice < originalPrice) {
-            const percentage = ((originalPrice - discountPrice) / originalPrice * 100).toFixed(1);
-            $('#discountPercentage').val(percentage);
-        } else {
-            $('#discountPercentage').val('');
-        }
-    });
-    
-    // Set default start date to now
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    $('#startDate').val(now.toISOString().slice(0, 16));
-    
-    // Set default end date to 7 days from now
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 7);
-    endDate.setMinutes(endDate.getMinutes() - endDate.getTimezoneOffset());
-    $('#endDate').val(endDate.toISOString().slice(0, 16));
 });
-
-function openDiscountModal(productId, productName, originalPrice) {
-    $('#discountProductId').val(productId);
-    $('#discountProductName').val(productName);
-    $('#discountOriginalPrice').val(originalPrice);
-    $('#discountPrice').val('');
-    $('#discountPercentage').val('');
-    $('#discountModal').modal('show');
-}
-
-function createDiscount() {
-    const productId = $('#discountProductId').val();
-    const originalPrice = $('#discountOriginalPrice').val();
-    const discountPrice = $('#discountPrice').val();
-    const startDate = $('#startDate').val();
-    const endDate = $('#endDate').val();
-    
-    if (!discountPrice || !startDate || !endDate) {
-        alert('Please fill in all required fields');
-        return;
-    }
-    
-    if (parseFloat(discountPrice) >= parseFloat(originalPrice)) {
-        alert('Discount price must be less than original price');
-        return;
-    }
-    
-    if (new Date(startDate) >= new Date(endDate)) {
-        alert('End date must be after start date');
-        return;
-    }
-    
-    const discountData = {
-        productId: productId,
-        originalPrice: originalPrice,
-        discountPrice: discountPrice,
-        startDate: startDate,
-        endDate: endDate
-    };
-    
-    $.ajax({
-        url: '/admin/discounts/create',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(discountData),
-        beforeSend: function(xhr) {
-            var token = $('meta[name=_csrf]').attr('content');
-            var header = $('meta[name=_csrf_header]').attr('content');
-            if (token && header) {
-                xhr.setRequestHeader(header, token);
-            }
-        },
-        success: function(response) {
-            alert('Discount created successfully!');
-            $('#discountModal').modal('hide');
-            location.reload(); // Refresh to show updated discount status
-        },
-        error: function(xhr, status, error) {
-            alert('Error creating discount: ' + (xhr.responseJSON ? xhr.responseJSON.message : error));
-        }
-    });
-}
 </script>
 </body>
 </html>

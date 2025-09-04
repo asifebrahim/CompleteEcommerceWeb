@@ -4,85 +4,815 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css">
     <title>Delivered Orders</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 15px 15px;
+        }
+        
+        .delivered-container {
+            margin: 2rem 0;
+        }
+        
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .order-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .order-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .order-info h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .order-meta {
+            margin-top: 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .order-meta .meta-item {
+            display: inline-block;
+            margin-right: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .delivered-badge {
+            background: #fff;
+            color: #28a745;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .order-body {
+            padding: 1.5rem;
+        }
+        
+        .delivered-info {
+            background: #e8f5e9;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-detail {
+            border-radius: 20px;
+            font-weight: 600;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-product {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+        }
+        
+        .btn-product:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004494 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-transaction {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+        
+        .btn-transaction:hover {
+            background: linear-gradient(135deg, #138496 0%, #0f6674 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-user {
+            background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);
+            color: white;
+        }
+        
+        .btn-user:hover {
+            background: linear-gradient(135deg, #563d7c 0%, #452b5d 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .products-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .products-table th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem 0.75rem;
+        }
+        
+        .products-table td {
+            border-color: #e9ecef;
+            padding: 0.75rem;
+            vertical-align: middle;
+        }
+        
+        .product-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .product-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 10px;
+        }
+        
+        .price-badge {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-weight: 600;
+        }
+        
+        /* Modal Enhancements */
+        .modal-header {
+            border: none;
+            padding: 1.5rem 1.5rem 1rem;
+        }
+        
+        .modal-body {
+            padding: 1rem 1.5rem;
+        }
+        
+        .modal-footer {
+            border: none;
+            padding: 1rem 1.5rem 1.5rem;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .detail-value {
+            color: #6c757d;
+        }
+        
+        .amount-value {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .order-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn-detail {
+                width: 100%;
+            }
+            
+            .order-meta .meta-item {
+                display: block;
+                margin-right: 0;
+                margin-bottom: 0.25rem;
+            }
+        }
+
+        /* Search Section Styling */
+        .search-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .search-box input {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+        
+        .search-stats {
+            background: #f8f9fa;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .order-card.hidden {
+            display: none !important;
+        }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Delivered Orders</h3>
-        <div>
-            <a th:href="@{/admin/orders}" class="btn btn-secondary mr-2">Back to Active Orders</a>
-            <a th:href="@{/admin}" class="btn btn-secondary">Admin Home</a>
+<div class="header-section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-check-circle mr-2"></i>Delivered Orders</h2>
+                <p class="mb-0">Successfully completed and delivered orders</p>
+            </div>
+            <div>
+                <a th:href="@{/admin/orders}" class="btn btn-light mr-2">
+                    <i class="fas fa-arrow-left mr-1"></i>Active Orders
+                </a>
+                <a th:href="@{/admin}" class="btn btn-outline-light">
+                    <i class="fas fa-home mr-1"></i>Admin Home
+                </a>
+            </div>
         </div>
     </div>
+</div>
 
-    <div th:if="${orderGroups == null or #lists.isEmpty(orderGroups)}">
-        <div class="alert alert-info">No delivered orders found.</div>
-    </div>
-
-    <div th:if="${orderGroups != null and !#lists.isEmpty(orderGroups)}">
-        <div class="accordion" id="deliveredAccordion">
-            <div class="card" th:each="orderGroup, groupStat : ${orderGroups}">
-                <div class="card-header d-flex justify-content-between align-items-center" 
-                     th:id="'headingDel' + ${groupStat.index}">
-                    <h5 class="mb-0">
-                        Order Group #<span th:text="${orderGroup.id}"></span> - 
-                        <span th:text="${orderGroup.firstName != null ? orderGroup.firstName : (orderGroup.user != null ? orderGroup.user.firstName : 'N/A')} + ' ' + ${orderGroup.lastName != null ? orderGroup.lastName : (orderGroup.user != null ? orderGroup.user.lastName : '')}"></span>
-                        <br/>
-                        <small class="text-muted" th:text="${orderGroup.emailAddress != null ? orderGroup.emailAddress : (orderGroup.user != null ? orderGroup.user.email : 'N/A')}"></small>
-                        &nbsp; - &nbsp;₹<span th:text="${orderGroup.totalAmount}"></span>
-                        <br/>
-                        <small class="text-muted">Txn: <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span></small>
-                        <br/>
-                        <small class="text-muted">Phone: <span th:text="${orderGroup.mobile != null ? orderGroup.mobile : (groupPhoneMap != null && groupPhoneMap.containsKey(orderGroup.id) ? groupPhoneMap[orderGroup.id] : '-')}"></span></small>
-                    </h5>
-                    <span class="badge badge-success">Delivered</span>
+<div class="container delivered-container">
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="search-box">
+                    <label for="searchTxnId"><i class="fas fa-receipt"></i> Transaction ID</label>
+                    <input type="text" id="searchTxnId" class="form-control" placeholder="Enter transaction ID">
                 </div>
-
-                <div th:id="'collapseDel' + ${groupStat.index}" class="collapse" 
-                     th:classappend="${groupStat.first} ? 'show'" 
-                     aria-labelledby="'headingDel' + ${groupStat.index}" 
-                     data-parent="#deliveredAccordion">
-                    <div class="card-body">
-                        <div class="mb-2">
-                            <small class="text-muted">Delivered At: <span th:text="${groupDeliveredAtMap != null && groupDeliveredAtMap.containsKey(orderGroup.id) ? #temporals.format(groupDeliveredAtMap[orderGroup.id], 'dd MMM yyyy HH:mm') : #temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm')}"></span></small>
-                            <span th:if="${orderGroup.deliveryAddress != null and orderGroup.deliveryAddress != ''}" class="ml-3">
-                                <small class="text-muted">Address: <span th:text="${orderGroup.deliveryAddress}"></span></small>
-                            </span>
-                            <span th:if="${(orderGroup.deliveryAddress == null or orderGroup.deliveryAddress == '') and orderGroup.userOrders != null}">
-                                <small class="text-muted">Address: 
-                                    <span th:each="o : ${orderGroup.userOrders}" th:if="${o.deliveryAddress != null and o.deliveryAddress != ''}" th:text="${o.deliveryAddress}"></span>
-                                </small>
-                            </span>
-                        </div>
-                        <table class="table table-sm">
-                            <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Product</th>
-                                <th>Qty</th>
-                                <th>Price at Order</th>
-                                <th>Total</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="order : ${orderGroup.userOrders}">
-                                <td th:text="${order.id}"></td>
-                                <td>
-                                    <span th:text="${order.product != null ? order.product.name : '-'}"></span>
-                                    <div><small class="text-muted">ID: <span th:text="${order.product != null ? order.product.id : '-'}"></span></small></div>
-                                </td>
-                                <td th:text="${order.quantity}"></td>
-                                <td>₹<span th:text="${order.productPriceAtOrder}"></span></td>
-                                <td>₹<span th:text="${order.totalPrice}"></span></td>
-                            </tr>
-                            </tbody>
-                        </table>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="search-box">
+                    <label for="searchMobile"><i class="fas fa-phone"></i> Mobile Number</label>
+                    <input type="text" id="searchMobile" class="form-control" placeholder="Enter mobile number">
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="search-box">
+                    <label for="searchProduct"><i class="fas fa-box"></i> Product Name</label>
+                    <input type="text" id="searchProduct" class="form-control" placeholder="Enter product name">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="search-box">
+                    <label for="searchCustomer"><i class="fas fa-user"></i> Customer Name</label>
+                    <input type="text" id="searchCustomer" class="form-control" placeholder="Enter customer name">
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-end">
+                    <button id="clearFilters" class="btn btn-outline-secondary mr-2">
+                        <i class="fas fa-eraser"></i> Clear Filters
+                    </button>
+                    <div class="search-stats">
+                        <small class="text-muted">
+                            <span id="filteredCount">0</span> of <span id="totalCount">0</span> orders shown
+                        </small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div th:if="${orderGroups == null or #lists.isEmpty(orderGroups)}">
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle mr-2"></i>No delivered orders found.
+        </div>
+    </div>
+
+    <div th:if="${orderGroups != null and !#lists.isEmpty(orderGroups)}">
+        <div class="order-card" th:each="orderGroup, groupStat : ${orderGroups}"
+             th:data-txn-id="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"
+             th:data-mobile="${orderGroup.mobile != null ? orderGroup.mobile : (groupPhoneMap != null && groupPhoneMap.containsKey(orderGroup.id) ? groupPhoneMap[orderGroup.id] : '')}"
+             th:data-customer="${orderGroup.firstName != null ? orderGroup.firstName : (orderGroup.user != null ? orderGroup.user.firstName : '')} + ' ' + ${orderGroup.lastName != null ? orderGroup.lastName : (orderGroup.user != null ? orderGroup.user.lastName : '')}"
+             th:data-products="${#strings.join(#lists.toArray(#sets.toArray(#ctx.orderGroupProducts[orderGroup.id] != null ? #ctx.orderGroupProducts[orderGroup.id] : #sets.newHashSet())), '|')}">
+            <div class="order-header">
+                <div class="order-info">
+                    <h5>
+                        <i class="fas fa-box mr-2"></i>Order #<span th:text="${orderGroup.id}"></span>
+                    </h5>
+                    <div class="order-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-user mr-1"></i>
+                            <span th:text="${orderGroup.firstName != null ? orderGroup.firstName : (orderGroup.user != null ? orderGroup.user.firstName : 'N/A')} + ' ' + ${orderGroup.lastName != null ? orderGroup.lastName : (orderGroup.user != null ? orderGroup.user.lastName : '')}"></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-envelope mr-1"></i>
+                            <span th:text="${orderGroup.emailAddress != null ? orderGroup.emailAddress : (orderGroup.user != null ? orderGroup.user.email : 'N/A')}"></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-phone mr-1"></i>
+                            <span th:text="${orderGroup.mobile != null ? orderGroup.mobile : (groupPhoneMap != null && groupPhoneMap.containsKey(orderGroup.id) ? groupPhoneMap[orderGroup.id] : '-')}"></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-rupee-sign mr-1"></i>
+                            <strong th:text="${orderGroup.totalAmount}"></strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="delivered-badge">
+                    <i class="fas fa-check mr-1"></i>Delivered
+                </div>
+            </div>
+
+            <div class="order-body">
+                <div class="delivered-info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-truck mr-2"></i>Delivered At:</strong>
+                            <span th:text="${groupDeliveredAtMap != null && groupDeliveredAtMap.containsKey(orderGroup.id) ? #temporals.format(groupDeliveredAtMap[orderGroup.id], 'dd MMM yyyy HH:mm') : #temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm')}"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-receipt mr-2"></i>Transaction ID:</strong>
+                            <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-detail btn-product" 
+                            th:data-order-group-id="${orderGroup.id}"
+                            onclick="showProductDetails(this)">
+                        <i class="fas fa-box mr-1"></i>Product Details
+                    </button>
+                    <button class="btn btn-detail btn-transaction" 
+                            th:data-order-group-id="${orderGroup.id}"
+                            onclick="showTransactionDetails(this)">
+                        <i class="fas fa-credit-card mr-1"></i>Transaction Details
+                    </button>
+                    <button class="btn btn-detail btn-user" 
+                            th:data-order-group-id="${orderGroup.id}"
+                            onclick="showUserDetails(this)">
+                        <i class="fas fa-user-circle mr-1"></i>User Details
+                    </button>
+                </div>
+
+                <!-- Products Table -->
+                <div class="products-table">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Price at Order</th>
+                            <th>Total</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="order : ${orderGroup.userOrders}" 
+                            th:data-order-id="${order.id}"
+                            th:data-product-id="${order.product?.id}"
+                            th:data-product-name="${order.product?.name}"
+                            th:data-product-category="${order.product?.category?.name}"
+                            th:data-product-image="${order.product?.imageName}"
+                            th:data-quantity="${order.quantity}"
+                            th:data-price="${order.productPriceAtOrder}"
+                            th:data-total="${order.totalPrice}">
+                            <td>
+                                <strong th:text="${order.id}"></strong>
+                            </td>
+                            <td>
+                                <div class="product-info">
+                                    <img th:src="@{${'/productImages/' + (order.product?.imageName ?: 'default.png')}}" 
+                                         alt="Product" class="product-image">
+                                    <div>
+                                        <strong th:text="${order.product != null ? order.product.name : '-'}"></strong>
+                                        <div><small class="text-muted">ID: <span th:text="${order.product != null ? order.product.id : '-'}"></span></small></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-secondary" th:text="${order.quantity}"></span>
+                            </td>
+                            <td>
+                                <span class="price-badge">₹<span th:text="${order.productPriceAtOrder}"></span></span>
+                            </td>
+                            <td>
+                                <strong class="amount-value">₹<span th:text="${order.totalPrice}"></span></strong>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Hidden data for modals -->
+                <div style="display: none;" 
+                     th:data-group-id="${orderGroup.id}"
+                     th:data-txn-id="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"
+                     th:data-total-amount="${orderGroup.totalAmount}"
+                     th:data-created-at="${#temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm:ss')}"
+                     th:data-delivered-at="${groupDeliveredAtMap != null && groupDeliveredAtMap.containsKey(orderGroup.id) ? #temporals.format(groupDeliveredAtMap[orderGroup.id], 'dd MMM yyyy HH:mm:ss') : ''}"
+                     th:data-user-name="${orderGroup.firstName != null ? orderGroup.firstName : (orderGroup.user != null ? orderGroup.user.firstName : 'N/A')} + ' ' + ${orderGroup.lastName != null ? orderGroup.lastName : (orderGroup.user != null ? orderGroup.user.lastName : '')}"
+                     th:data-user-email="${orderGroup.emailAddress != null ? orderGroup.emailAddress : (orderGroup.user != null ? orderGroup.user.email : 'N/A')}"
+                     th:data-user-mobile="${orderGroup.mobile != null ? orderGroup.mobile : (groupPhoneMap != null && groupPhoneMap.containsKey(orderGroup.id) ? groupPhoneMap[orderGroup.id] : '-')}"
+                     th:data-delivery-address="${orderGroup.deliveryAddress != null ? orderGroup.deliveryAddress : ''}"
+                     th:data-pin-code="${orderGroup.pinCode != null ? orderGroup.pinCode : ''}"
+                     class="order-data">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Product Details Modal -->
+<div class="modal fade" id="productDetailsModal" tabindex="-1" role="dialog" aria-labelledby="productDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="productDetailsModalLabel">
+                    <i class="fas fa-box mr-2"></i>Product Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="productDetailsList">
+                    <!-- Products will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Details Modal -->
+<div class="modal fade" id="transactionDetailsModal" tabindex="-1" role="dialog" aria-labelledby="transactionDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="transactionDetailsModalLabel">
+                    <i class="fas fa-credit-card mr-2"></i>Transaction Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <span class="detail-label">Order ID:</span>
+                            <span class="detail-value" id="txnOrderId">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Transaction ID:</span>
+                            <span class="detail-value" id="txnTransactionId">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Order Date:</span>
+                            <span class="detail-value" id="txnOrderDate">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Delivered Date:</span>
+                            <span class="detail-value" id="txnDeliveredDate">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <span class="detail-label">Total Amount:</span>
+                            <span class="detail-value amount-value" id="txnTotalAmount">₹0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Payment Status:</span>
+                            <span class="detail-value" id="txnPaymentStatus">Completed</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Order Status:</span>
+                            <span class="detail-value" id="txnOrderStatus">Delivered</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Items Count:</span>
+                            <span class="detail-value" id="txnItemsCount">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1" role="dialog" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%); color: white;">
+                <h5 class="modal-title" id="userDetailsModalLabel">
+                    <i class="fas fa-user-circle mr-2"></i>Customer Details
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="mb-3"><i class="fas fa-user mr-2"></i>Personal Information</h6>
+                        <div class="detail-item">
+                            <span class="detail-label">Full Name:</span>
+                            <span class="detail-value" id="userFullName">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Email Address:</span>
+                            <span class="detail-value" id="userEmail">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Mobile Number:</span>
+                            <span class="detail-value" id="userMobile">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-3"><i class="fas fa-map-marker-alt mr-2"></i>Delivery Information</h6>
+                        <div class="detail-item">
+                            <span class="detail-label">Delivery Address:</span>
+                            <span class="detail-value" id="userAddress">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">PIN Code:</span>
+                            <span class="detail-value" id="userPinCode">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Order ID:</span>
+                            <span class="detail-value" id="userOrderId">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+<script>
+// Enhanced search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const orderCards = document.querySelectorAll('.order-card');
+    const searchTxnId = document.getElementById('searchTxnId');
+    const searchMobile = document.getElementById('searchMobile');
+    const searchProduct = document.getElementById('searchProduct');
+    const searchCustomer = document.getElementById('searchCustomer');
+    const clearFilters = document.getElementById('clearFilters');
+    const filteredCount = document.getElementById('filteredCount');
+    const totalCount = document.getElementById('totalCount');
+    
+    // Set total count
+    totalCount.textContent = orderCards.length;
+    filteredCount.textContent = orderCards.length;
+    
+    function filterOrders() {
+        const txnIdQuery = searchTxnId.value.toLowerCase().trim();
+        const mobileQuery = searchMobile.value.toLowerCase().trim();
+        const productQuery = searchProduct.value.toLowerCase().trim();
+        const customerQuery = searchCustomer.value.toLowerCase().trim();
+        
+        let visibleCount = 0;
+        
+        orderCards.forEach(function(card) {
+            const txnId = (card.getAttribute('data-txn-id') || '').toLowerCase();
+            const mobile = (card.getAttribute('data-mobile') || '').toLowerCase();
+            const customer = (card.getAttribute('data-customer') || '').toLowerCase();
+            const products = (card.getAttribute('data-products') || '').toLowerCase();
+            
+            const txnMatch = !txnIdQuery || txnId.includes(txnIdQuery);
+            const mobileMatch = !mobileQuery || mobile.includes(mobileQuery);
+            const productMatch = !productQuery || products.includes(productQuery);
+            const customerMatch = !customerQuery || customer.includes(customerQuery);
+            
+            if (txnMatch && mobileMatch && productMatch && customerMatch) {
+                card.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+        
+        filteredCount.textContent = visibleCount;
+    }
+    
+    // Add event listeners
+    searchTxnId.addEventListener('input', filterOrders);
+    searchMobile.addEventListener('input', filterOrders);
+    searchProduct.addEventListener('input', filterOrders);
+    searchCustomer.addEventListener('input', filterOrders);
+    
+    clearFilters.addEventListener('click', function() {
+        searchTxnId.value = '';
+        searchMobile.value = '';
+        searchProduct.value = '';
+        searchCustomer.value = '';
+        filterOrders();
+    });
+});
+
+function showProductDetails(button) {
+    const orderGroupId = button.getAttribute('data-order-group-id');
+    const orderCard = button.closest('.order-card');
+    const productRows = orderCard.querySelectorAll('tbody tr');
+    
+    let productListHtml = '';
+    let totalItems = 0;
+    
+    productRows.forEach(function(row) {
+        const productId = row.getAttribute('data-product-id');
+        const productName = row.getAttribute('data-product-name');
+        const productCategory = row.getAttribute('data-product-category');
+        const productImage = row.getAttribute('data-product-image');
+        const quantity = row.getAttribute('data-quantity');
+        const price = row.getAttribute('data-price');
+        const total = row.getAttribute('data-total');
+        const orderId = row.getAttribute('data-order-id');
+        
+        totalItems += parseInt(quantity);
+        
+        productListHtml += `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <img src="/productImages/${productImage || 'default.png'}" 
+                                 alt="Product" class="img-fluid rounded" style="max-height: 120px;">
+                        </div>
+                        <div class="col-md-9">
+                            <h6 class="card-title">${productName || 'N/A'}</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Product ID:</span>
+                                        <span class="detail-value">${productId || 'N/A'}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Category:</span>
+                                        <span class="detail-value">${productCategory || 'N/A'}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Order ID:</span>
+                                        <span class="detail-value">${orderId}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Quantity:</span>
+                                        <span class="detail-value">${quantity}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Price at Order:</span>
+                                        <span class="detail-value amount-value">₹${price}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Total:</span>
+                                        <span class="detail-value amount-value">₹${total}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    document.getElementById('productDetailsList').innerHTML = productListHtml;
+    document.getElementById('productDetailsModalLabel').innerHTML = 
+        `<i class="fas fa-box mr-2"></i>Product Details - Order #${orderGroupId} (${totalItems} items)`;
+    
+    $('#productDetailsModal').modal('show');
+}
+
+function showTransactionDetails(button) {
+    const orderGroupId = button.getAttribute('data-order-group-id');
+    const orderCard = button.closest('.order-card');
+    const orderData = orderCard.querySelector('.order-data');
+    const productRows = orderCard.querySelectorAll('tbody tr');
+    
+    const txnId = orderData.getAttribute('data-txn-id');
+    const totalAmount = orderData.getAttribute('data-total-amount');
+    const createdAt = orderData.getAttribute('data-created-at');
+    const deliveredAt = orderData.getAttribute('data-delivered-at');
+    
+    document.getElementById('txnOrderId').textContent = orderGroupId;
+    document.getElementById('txnTransactionId').textContent = txnId || 'N/A';
+    document.getElementById('txnOrderDate').textContent = createdAt;
+    document.getElementById('txnDeliveredDate').textContent = deliveredAt || 'N/A';
+    document.getElementById('txnTotalAmount').textContent = '₹' + totalAmount;
+    document.getElementById('txnPaymentStatus').textContent = 'Completed';
+    document.getElementById('txnOrderStatus').textContent = 'Delivered';
+    document.getElementById('txnItemsCount').textContent = productRows.length;
+    
+    $('#transactionDetailsModal').modal('show');
+}
+
+function showUserDetails(button) {
+    const orderGroupId = button.getAttribute('data-order-group-id');
+    const orderCard = button.closest('.order-card');
+    const orderData = orderCard.querySelector('.order-data');
+    
+    const userName = orderData.getAttribute('data-user-name');
+    const userEmail = orderData.getAttribute('data-user-email');
+    const userMobile = orderData.getAttribute('data-user-mobile');
+    const deliveryAddress = orderData.getAttribute('data-delivery-address');
+    const pinCode = orderData.getAttribute('data-pin-code');
+    
+    document.getElementById('userFullName').textContent = userName || 'N/A';
+    document.getElementById('userEmail').textContent = userEmail || 'N/A';
+    document.getElementById('userMobile').textContent = userMobile || 'N/A';
+    document.getElementById('userAddress').textContent = deliveryAddress || 'N/A';
+    document.getElementById('userPinCode').textContent = pinCode || 'N/A';
+    document.getElementById('userOrderId').textContent = orderGroupId;
+    
+    $('#userDetailsModal').modal('show');
+}
+</script>
+
 </body>
 </html>
