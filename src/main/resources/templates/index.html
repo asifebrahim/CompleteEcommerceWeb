@@ -10,7 +10,8 @@
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
           integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
-    <title>Document</title>
+    <link rel="stylesheet" th:href="@{/css/custom.css}" href="../static/css/custom.css">
+    <title>EcommerceFresh - Home</title>
     
 </head>
 <body>
@@ -34,11 +35,22 @@
                 <li class="nav-item active">
                     <a class="nav-link" th:href="@{/shop}" href="#">shop</a>
                 </li>
+                <li class="nav-item active dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Profile
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" th:href="@{/profile}">My Profile</a>
+                        <a class="dropdown-item" th:href="@{/profile/orders}">My Orders</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" th:href="@{/logout}">Logout</a>
+                    </div>
+                </li>
                 <li class="nav-item active">
                     <a class="nav-link" sec:authorize="isAnonymous()" th:href="@{/login}" href="#">login</a>
                 </li>
-                <li class="nav-item active">
-                    <a class="nav-link" sec:authorize="isAuthenticated()" th:href="@{/logout}" href="#">logout</a>
+                <li class="nav-item active" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/wishlist}" href="#">wishlist</a>
                 </li>
                 <li class="nav-item active">
                     <a class="nav-link" th:href="@{/cart}" href="#">cart</a>
@@ -52,6 +64,123 @@
     </div>
 </nav>
 
+<!-- Hero Section -->
+<div class="hero-section" style="background: linear-gradient(135deg, rgba(102,126,234,0.8), rgba(118,75,162,0.8)), url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3') center/cover; padding: 100px 0; color: white; text-align: center;">
+    <div class="container">
+        <h1 style="font-size: 3.5rem; font-weight: 700; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">Welcome to EcommerceFresh</h1>
+        <p style="font-size: 1.3rem; margin-bottom: 30px; opacity: 0.95;">Discover fresh, quality products delivered right to your doorstep</p>
+        <a th:href="@{/shop}" class="btn btn-primary btn-lg" style="padding: 15px 40px; font-size: 1.2rem;">Shop Now</a>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container" style="margin-top: 50px;">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="feature-card" style="padding: 40px 20px; background: linear-gradient(135deg, #ffffff, #f8f9fa); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <i class="fas fa-shipping-fast" style="font-size: 3rem; color: #3498db; margin-bottom: 20px;"></i>
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">Fast Delivery</h4>
+                <p style="color: #6c757d;">Get your orders delivered quickly and safely to your doorstep with our reliable delivery service.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card" style="padding: 40px 20px; background: linear-gradient(135deg, #ffffff, #f8f9fa); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <i class="fas fa-leaf" style="font-size: 3rem; color: #27ae60; margin-bottom: 20px;"></i>
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">Fresh Quality</h4>
+                <p style="color: #6c757d;">We guarantee the freshest products with the highest quality standards for your satisfaction.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card" style="padding: 40px 20px; background: linear-gradient(135deg, #ffffff, #f8f9fa); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <i class="fas fa-shield-alt" style="font-size: 3rem; color: #e74c3c; margin-bottom: 20px;"></i>
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">Secure Shopping</h4>
+                <p style="color: #6c757d;">Shop with confidence knowing your personal and payment information is always protected.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modern Footer -->
+<footer class="modern-footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h5>EcommerceFresh</h5>
+            <p>Your trusted partner for fresh, quality products delivered right to your doorstep. Experience the convenience of online shopping with our carefully curated selection.</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+        <div class="footer-section">
+            <h5>Quick Links</h5>
+            <ul>
+                <li><a th:href="@{/}">Home</a></li>
+                <li><a th:href="@{/shop}">Shop</a></li>
+                <li><a th:href="@{/cart}">Cart</a></li>
+                <li><a th:href="@{/wishlist}" sec:authorize="isAuthenticated()">Wishlist</a></li>
+                <li><a th:href="@{/profile}" sec:authorize="isAuthenticated()">My Profile</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h5>Customer Service</h5>
+            <ul>
+                <li><a href="#">Help Center</a></li>
+                <li><a href="#">Shipping Info</a></li>
+                <li><a href="#">Returns & Exchanges</a></li>
+                <li><a href="#">Track Your Order</a></li>
+                <li><a href="#">Contact Us</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h5>Contact Info</h5>
+            <p><i class="fas fa-map-marker-alt"></i> 123 Fresh Street, Market City, FC 12345</p>
+            <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+            <p><i class="fas fa-envelope"></i> info@ecommercefresh.com</p>
+            <p><i class="fas fa-clock"></i> Mon - Fri: 9:00 AM - 6:00 PM</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 EcommerceFresh. All rights reserved. | Made with <i class="fas fa-heart" style="color: #e74c3c;"></i> for fresh shopping experience</p>
+    </div>
+</footer>
+
+<!-- Scroll to Top Button -->
+<button class="scroll-to-top" onclick="scrollToTop()" id="scrollBtn" style="display: none;">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<script>
+// Feature cards hover effect
+document.addEventListener('DOMContentLoaded', function() {
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px)';
+            this.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+        });
+    });
+});
+
+// Scroll to Top Functionality
+window.onscroll = function() {
+    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+        document.getElementById("scrollBtn").style.display = "block";
+    } else {
+        document.getElementById("scrollBtn").style.display = "none";
+    }
+};
+
+function scrollToTop() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+</script>
 
 
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>

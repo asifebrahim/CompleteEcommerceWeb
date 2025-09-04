@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
-    
+    <link rel="stylesheet" th:href="@{/css/custom.css}" href="../static/css/custom.css">
 
-    <title>Document</title>
+    <title>EcommerceFresh - Shopping Cart</title>
 </head>
 <body>
 
@@ -34,11 +34,22 @@
                 <li class="nav-item active">
                     <a class="nav-link" th:href="@{/shop}" href="#">shop</a>
                 </li>
+                <li class="nav-item active dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Profile
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" th:href="@{/profile}">My Profile</a>
+                        <a class="dropdown-item" th:href="@{/profile/orders}">My Orders</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" th:href="@{/logout}">Logout</a>
+                    </div>
+                </li>
                 <li class="nav-item active">
                     <a class="nav-link" sec:authorize="isAnonymous()" th:href="@{/login}" href="#">login</a>
                 </li>
-                <li class="nav-item active">
-                    <a class="nav-link" sec:authorize="isAuthenticated()" th:href="@{/logout}" href="#">logout</a>
+                <li class="nav-item active" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/wishlist}" href="#">wishlist</a>
                 </li>
                 <li class="nav-item active">
                     <a class="nav-link" th:href="@{/cart}" href="#">cart</a>
@@ -185,8 +196,72 @@
 </main>
 <!--Main layout-->
 
+<!-- Modern Footer -->
+<footer class="modern-footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h5>EcommerceFresh</h5>
+            <p>Your trusted partner for fresh, quality products delivered right to your doorstep. Experience the convenience of online shopping with our carefully curated selection.</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+        <div class="footer-section">
+            <h5>Quick Links</h5>
+            <ul>
+                <li><a th:href="@{/}">Home</a></li>
+                <li><a th:href="@{/shop}">Shop</a></li>
+                <li><a th:href="@{/cart}">Cart</a></li>
+                <li><a th:href="@{/wishlist}" sec:authorize="isAuthenticated()">Wishlist</a></li>
+                <li><a th:href="@{/profile}" sec:authorize="isAuthenticated()">My Profile</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h5>Customer Service</h5>
+            <ul>
+                <li><a href="#">Help Center</a></li>
+                <li><a href="#">Shipping Info</a></li>
+                <li><a href="#">Returns & Exchanges</a></li>
+                <li><a href="#">Track Your Order</a></li>
+                <li><a href="#">Contact Us</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h5>Contact Info</h5>
+            <p><i class="fas fa-map-marker-alt"></i> 123 Fresh Street, Market City, FC 12345</p>
+            <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+            <p><i class="fas fa-envelope"></i> info@ecommercefresh.com</p>
+            <p><i class="fas fa-clock"></i> Mon - Fri: 9:00 AM - 6:00 PM</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 EcommerceFresh. All rights reserved. | Made with <i class="fas fa-heart" style="color: #e74c3c;"></i> for fresh shopping experience</p>
+    </div>
+</footer>
 
+<!-- Scroll to Top Button -->
+<button class="scroll-to-top" onclick="scrollToTop()" id="scrollBtn" style="display: none;">
+    <i class="fas fa-arrow-up"></i>
+</button>
 
+<script>
+// Scroll to Top Functionality
+window.onscroll = function() {
+    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+        document.getElementById("scrollBtn").style.display = "block";
+    } else {
+        document.getElementById("scrollBtn").style.display = "none";
+    }
+};
+
+function scrollToTop() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+</script>
 
 
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
