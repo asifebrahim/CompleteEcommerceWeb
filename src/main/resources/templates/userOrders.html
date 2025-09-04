@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders</title>
+    <title>My Orders - EcommerceFresh</title>
     <!-- CSRF meta tokens for fetch/ajax to read when available -->
     <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}" />
     <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}" />
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" crossorigin="anonymous">
- 
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
+    <link rel="stylesheet" th:href="@{/css/custom.css}" href="../static/css/custom.css">
 </head>
 <body>
 
@@ -25,7 +25,7 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-navbar" id="navbarSupportedContent">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto"></ul>
             <ul class="navbar-nav">
                 <li class="nav-item active">
@@ -48,121 +48,139 @@
                 <li class="nav-item active">
                     <a class="nav-link" sec:authorize="isAnonymous()" th:href="@{/login}" href="#">login</a>
                 </li>
+                <li class="nav-item active" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/wishlist}" href="#">wishlist</a>
+                </li>
                 <li class="nav-item active">
                     <a class="nav-link" th:href="@{/cart}" href="#">cart</a>
                 </li>
                 <li class="nav-item active">
-                    <span class="nav-link" th:text="${cartCount}"></span>
+                    <span class="nav-link" th:text="${cartCount}">0</span>
                 </li>
             </ul>
         </div>
     </div>
 </nav>
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2>My Orders</h2>
-                <a th:href="@{/profile}" class="btn btn-outline-secondary">Back to Profile</a>
+<div class="container-fluid main-content">
+    <div class="orders-container">
+        <div class="orders-header">
+            <div class="header-content">
+                <h1><i class="fas fa-shopping-bag"></i> My Orders</h1>
+                <p>Track and manage your order history</p>
             </div>
+            <a th:href="@{/profile}" class="btn btn-outline-primary">
+                <i class="fas fa-user"></i> Back to Profile
+            </a>
+        </div>
 
-            <!-- Flash messages from actions -->
-            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-            
-            <div th:if="${orderGroups == null or #lists.isEmpty(orderGroups)}" class="alert alert-info">
-                You have no orders yet. <a th:href="@{/shop}">Start shopping!</a>
+        <!-- Flash messages -->
+        <div th:if="${success}" class="alert alert-success modern-alert">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-danger modern-alert">
+            <i class="fas fa-exclamation-circle"></i>
+            <span th:text="${error}"></span>
+        </div>
+        
+        <!-- No orders state -->
+        <div th:if="${orderGroups == null or #lists.isEmpty(orderGroups)}" class="empty-orders">
+            <div class="empty-icon">
+                <i class="fas fa-shopping-cart"></i>
             </div>
-            
-            <div th:if="${orderGroups != null and !#lists.isEmpty(orderGroups)}">
-                <div class="card mb-3" th:each="orderGroup : ${orderGroups}">
-                    <div class="card-header d-flex justify-content-between">
-                        <div>
-                            <strong>Order Group #<span th:text="${orderGroup.id}"></span></strong>
-                            <span class="text-muted">- <span th:text="${#temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm')}"></span></span>
-                            <span class="text-muted">- Total: ₹<span th:text="${orderGroup.totalAmount}"></span></span>
+            <h3>No Orders Yet</h3>
+            <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+            <a th:href="@{/shop}" class="btn btn-primary">
+                <i class="fas fa-store"></i> Start Shopping
+            </a>
+        </div>
+        
+        <!-- Orders list -->
+        <div th:if="${orderGroups != null and !#lists.isEmpty(orderGroups)}" class="orders-list">
+            <div class="order-card" th:each="orderGroup : ${orderGroups}">
+                <div class="order-header">
+                    <div class="order-info">
+                        <h3>Order #<span th:text="${orderGroup.id}"></span></h3>
+                        <div class="order-meta">
+                            <span class="order-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span th:text="${#temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm')}"></span>
+                            </span>
+                            <span class="order-total">
+                                <i class="fas fa-rupee-sign"></i>
+                                <span th:text="${orderGroup.totalAmount}"></span>
+                            </span>
                         </div>
-                        <span class="badge" 
-                              th:classappend="${orderGroup.groupStatus == 'Delivered'} ? 'badge-success' : 
-                                             (${orderGroup.groupStatus == 'Cancelled'} ? 'badge-danger' : 
-                                             (${orderGroup.groupStatus == 'Shipped'} ? 'badge-info' : 'badge-warning'))"
+                    </div>
+                    <div class="order-status">
+                        <span class="status-badge" 
+                              th:classappend="${orderGroup.groupStatus == 'Delivered'} ? 'status-delivered' : 
+                                             (${orderGroup.groupStatus == 'Cancelled'} ? 'status-cancelled' : 
+                                             (${orderGroup.groupStatus == 'Shipped'} ? 'status-shipped' : 'status-pending'))"
                               th:text="${orderGroup.groupStatus}">Status</span>
                     </div>
-                    <div class="card-body">
-                        <!-- Display checkout details instead of delivery address only -->
-                        <div class="mb-2">
-                            <small class="text-muted">
-                                <strong>Delivery Details:</strong><br>
-                                <span th:if="${orderGroup.firstName != null and !#strings.isEmpty(orderGroup.firstName)}">
-                                    Name: <span th:text="${orderGroup.firstName}"></span>
-                                    <span th:if="${orderGroup.lastName != null and !#strings.isEmpty(orderGroup.lastName)}" th:text="' ' + ${orderGroup.lastName}"></span><br>
-                                </span>
-                                <span th:if="${orderGroup.emailAddress != null and !#strings.isEmpty(orderGroup.emailAddress)}">
-                                    Email: <span th:text="${orderGroup.emailAddress}"></span><br>
-                                </span>
-                                <span th:if="${orderGroup.mobile != null and !#strings.isEmpty(orderGroup.mobile)}">
-                                    Mobile: <span th:text="${orderGroup.mobile}"></span><br>
-                                </span>
-                                <span th:if="${orderGroup.deliveryAddress != null and !#strings.isEmpty(orderGroup.deliveryAddress)}">
-                                    Address: <span th:text="${orderGroup.deliveryAddress}"></span><br>
-                                </span>
-                                <span th:if="${orderGroup.pinCode != null and !#strings.isEmpty(orderGroup.pinCode)}">
-                                    Pin Code: <span th:text="${orderGroup.pinCode}"></span>
-                                </span>
-                            </small>
+                </div>
+
+                <div class="delivery-details">
+                    <h4><i class="fas fa-truck"></i> Delivery Information</h4>
+                    <div class="delivery-info">
+                        <p th:if="${orderGroup.firstName != null and !#strings.isEmpty(orderGroup.firstName)}">
+                            <strong>Name:</strong> 
+                            <span th:text="${orderGroup.firstName}"></span>
+                            <span th:if="${orderGroup.lastName != null and !#strings.isEmpty(orderGroup.lastName)}" th:text="' ' + ${orderGroup.lastName}"></span>
+                        </p>
+                        <p th:if="${orderGroup.emailAddress != null and !#strings.isEmpty(orderGroup.emailAddress)}">
+                            <strong>Email:</strong> <span th:text="${orderGroup.emailAddress}"></span>
+                        </p>
+                        <p th:if="${orderGroup.mobile != null and !#strings.isEmpty(orderGroup.mobile)}">
+                            <strong>Mobile:</strong> <span th:text="${orderGroup.mobile}"></span>
+                        </p>
+                        <p th:if="${orderGroup.deliveryAddress != null and !#strings.isEmpty(orderGroup.deliveryAddress)}">
+                            <strong>Address:</strong> <span th:text="${orderGroup.deliveryAddress}"></span>
+                            <span th:if="${orderGroup.pinCode != null and !#strings.isEmpty(orderGroup.pinCode)}" 
+                                  th:text="' - ' + ${orderGroup.pinCode}"></span>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="order-items">
+                    <h4><i class="fas fa-box"></i> Order Items</h4>
+                    <div class="item-card" th:each="order : ${orderGroup.userOrders}">
+                        <div class="item-image">
+                            <img th:src="@{${'/productImages/' + (order.product != null ? order.product.imageName : '')}}" 
+                                 alt="Product Image">
                         </div>
-                        
-                        <!-- Display each product in the order group -->
-                        <div th:each="order : ${orderGroup.userOrders}" class="border-bottom pb-2 mb-2">
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <img th:src="@{${'/productImages/' + (order.product != null ? order.product.imageName : '')}}" 
-                                         class="img-fluid rounded" alt="Product Image" style="max-height: 60px;">
-                                </div>
-                                <div class="col-md-10">
-                                    <h6 th:text="${order.product != null ? order.product.name : 'Product'}">Product Name</h6>
-                                    <p class="text-muted mb-1">
-                                        Quantity: <span th:text="${order.quantity}"></span> | 
-                                        Price at order: ₹<span th:text="${order.productPriceAtOrder}"></span> | 
-                                        Total: ₹<span th:text="${order.totalPrice}"></span>
-                                    </p>
-
-                                    <!-- Per-item actions -->
-                                    <div class="mt-2">
-                                        <form th:if="${order.orderStatus != null and (order.orderStatus.toLowerCase().contains('pending') or order.orderStatus.toLowerCase().contains('awaiting'))}"
-                                              th:action="@{'/order/cancel/' + ${order.id} + '/form'}" method="post" style="display:inline-block; margin-right:8px;">
-                                            <button class="btn btn-danger btn-sm btn-cancel" type="button" th:attr="data-order-id=${order.id}">Cancel Item</button>
-                                        </form>
-
-                                        <!-- If there is a return request for this specific order, show its status instead of the button -->
-                                        <span th:if="${returnStatusMap[order.id] != null}" class="badge badge-info" th:text="${returnStatusMap[order.id] == 'Pending' ? 'Return Requested' : returnStatusMap[order.id]}"></span>
-
-                                        <!-- Otherwise show the Request Return button when allowed -->
-                                        <button type="button"
-                                                th:if="${returnStatusMap[order.id] == null and order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered') and (returnAllowedMap[order.id] == true)}"
-                                                class="btn btn-warning btn-sm btn-return"
-                                                th:attr="data-order-id=${order.id}, data-product-name=${order.product != null ? order.product.name : 'item'}"
-                                                style="display:inline-block; margin-right:4px;">
-                                            Request Return
-                                        </button>
-                                    </div>
-
-                                </div>
+                        <div class="item-details">
+                            <h5 th:text="${order.product != null ? order.product.name : 'Product'}">Product Name</h5>
+                            <div class="item-info">
+                                <span class="quantity">Qty: <strong th:text="${order.quantity}"></strong></span>
+                                <span class="price">Price: ₹<strong th:text="${order.productPriceAtOrder}"></strong></span>
+                                <span class="total">Total: ₹<strong th:text="${order.totalPrice}"></strong></span>
                             </div>
                         </div>
+                        <div class="item-actions">
+                            <!-- Cancel button -->
+                            <form th:if="${order.orderStatus != null and (order.orderStatus.toLowerCase().contains('pending') or order.orderStatus.toLowerCase().contains('awaiting'))}"
+                                  th:action="@{'/order/cancel/' + ${order.id} + '/form'}" method="post" style="display:inline;">
+                                <button class="btn btn-danger btn-sm btn-cancel" type="button" th:attr="data-order-id=${order.id}">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </form>
 
-                        <!-- Group-level actions like cancel entire group remain available -->
-                        <!-- <div class="mt-3">
-                            <div th:if="${orderGroup.userOrders != null and !#lists.isEmpty(orderGroup.userOrders)}">
-                                <div th:with="firstOrder=${orderGroup.userOrders[0]}">
-                                    <form th:if="${orderGroup.groupStatus != null and (orderGroup.groupStatus.toLowerCase().contains('pending') or orderGroup.groupStatus.toLowerCase().contains('awaiting'))}"
-                                          th:action="@{'/order/cancel/' + ${firstOrder.id} + '/form'}" method="post" style="display:inline-block; margin-right:8px;">
-                                        <button class="btn btn-danger btn-sm" type="submit">Cancel Order Group</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div> -->
+                            <!-- Return status or button -->
+                            <span th:if="${returnStatusMap[order.id] != null}" 
+                                  class="return-status" 
+                                  th:text="${returnStatusMap[order.id] == 'Pending' ? 'Return Requested' : returnStatusMap[order.id]}">
+                            </span>
+
+                            <button type="button"
+                                    th:if="${returnStatusMap[order.id] == null and order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered') and (returnAllowedMap[order.id] == true)}"
+                                    class="btn btn-warning btn-sm btn-return"
+                                    th:attr="data-order-id=${order.id}, data-product-name=${order.product != null ? order.product.name : 'item'}">
+                                <i class="fas fa-undo"></i> Return
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -170,29 +188,85 @@
     </div>
 </div>
 
-<!-- Confirm Return Modal -->
+<!-- Modern Return Confirmation Modal -->
 <div class="modal fade" id="confirmReturnModal" tabindex="-1" role="dialog" aria-labelledby="confirmReturnModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="confirmReturnModalLabel">Confirm Return</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p id="confirmReturnText">Are you sure you want to request a return?</p>
-        <div class="form-group">
-          <label for="returnReason">Reason (optional)</label>
-          <textarea id="returnReason" class="form-control" rows="3"></textarea>
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content modern-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmReturnModalLabel">
+                    <i class="fas fa-undo"></i> Request Return
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmReturnText" class="mb-3">Are you sure you want to request a return?</p>
+                <div class="form-group">
+                    <label for="returnReason">Reason for return (optional)</label>
+                    <textarea id="returnReason" class="form-control" rows="3" placeholder="Please describe the reason for your return..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" id="confirmReturnBtn" class="btn btn-warning">
+                    <i class="fas fa-check"></i> Confirm Return
+                </button>
+            </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="button" id="confirmReturnBtn" class="btn btn-primary">Confirm Return</button>
-      </div>
     </div>
-  </div>
+</div>
+
+<!-- Modern Footer -->
+<footer class="modern-footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>EcommerceFresh</h3>
+            <p>Your one-stop destination for fresh products and amazing deals.</p>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+        <div class="footer-section">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="#" th:href="@{/}">Home</a></li>
+                <li><a href="#" th:href="@{/shop}">Shop</a></li>
+                <li><a href="#" th:href="@{/categories}">Categories</a></li>
+                <li><a href="#" th:href="@{/profile}">My Account</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h4>Customer Service</h4>
+            <ul>
+                <li><a href="#">Contact Us</a></li>
+                <li><a href="#">FAQs</a></li>
+                <li><a href="#">Return Policy</a></li>
+                <li><a href="#">Shipping Info</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h4>Newsletter</h4>
+            <p>Subscribe to get updates on new products and offers.</p>
+            <div class="newsletter-form">
+                <input type="email" placeholder="Enter your email">
+                <button type="submit"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2024 EcommerceFresh. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- Scroll to Top Button -->
+<div id="scrollToTop" class="scroll-to-top">
+    <i class="fas fa-arrow-up"></i>
 </div>
 
 <!-- Hidden form used by JS to submit return request to server (CSRF-aware) -->
@@ -202,9 +276,10 @@
     <input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : '_csrf'}" id="csrfInput" th:value="${_csrf != null ? _csrf.token : ''}" />
 </form>
 
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script th:src="@{/js/custom.js}" src="../static/js/custom.js"></script>
 <script>
     // Bind return buttons to open confirmation modal and set order id
     document.addEventListener('DOMContentLoaded', function(){

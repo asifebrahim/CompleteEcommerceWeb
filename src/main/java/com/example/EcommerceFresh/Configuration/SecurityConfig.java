@@ -18,9 +18,17 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // 🔹 CSRF protection disabled
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/shop/**", "/register/**","/forgotpassword/**","/resetPassword/**", "/resetPassword", "/resetPasswordConfirmation", "/saveNewPass", "/verify", "/resend-otp").permitAll()
+                        // Allow access to static resources
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/productImages/**", "/static/**", "/webjars/**").permitAll()
+                        // Allow access to public pages
+                        .requestMatchers("/", "/shop/**", "/register/**", "/forgotpassword/**", "/resetPassword/**", "/resetPassword", "/resetPasswordConfirmation", "/saveNewPass", "/verify", "/resend-otp").permitAll()
+                        // Allow access to login page
+                        .requestMatchers("/login", "/oauth2/**").permitAll()
+                        // Admin access
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/profile/**").authenticated()
+                        // Protected user areas
+                        .requestMatchers("/profile/**", "/cart/**", "/checkout/**", "/wishlist/**").authenticated()
+                        // All other requests require authentication
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login

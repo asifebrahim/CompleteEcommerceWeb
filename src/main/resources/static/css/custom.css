@@ -1112,3 +1112,697 @@ body {
         margin-bottom: 0.5rem;
     }
 }
+
+/* Clean Login Page Styles */
+.login-body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.login-header {
+    padding: 20px 0;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    margin-bottom: 2rem;
+}
+
+.logo-link {
+    text-decoration: none;
+}
+
+.header-logo {
+    height: 50px;
+    width: auto;
+    filter: brightness(0) invert(1);
+}
+
+.login-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    animation: slideUp 0.6s ease-out;
+}
+
+.login-card-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-card-header h1 {
+    color: #333;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.login-card-header p {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-error {
+    background-color: #ffeaea;
+    color: #d8000c;
+    border: 1px solid #ffcdd2;
+}
+
+.alert-success {
+    background-color: #e8f5e8;
+    color: #2e7d2e;
+    border: 1px solid #c8e6c9;
+}
+
+.login-form {
+    margin-bottom: 24px;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 16px 16px 16px 45px;
+    border: 2px solid #e1e5e9;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 16px;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.divider {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e1e5e9;
+}
+
+.divider span {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0 16px;
+    color: #999;
+    font-size: 14px;
+    position: relative;
+}
+
+.google-btn {
+    width: 100%;
+    padding: 16px;
+    background: white;
+    color: #333;
+    border: 2px solid #e1e5e9;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.google-btn:hover {
+    border-color: #4285f4;
+    color: #4285f4;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
+}
+
+.google-btn .fab {
+    color: #4285f4;
+}
+
+.login-footer {
+    text-align: center;
+}
+
+.forgot-link {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-block;
+    margin-bottom: 16px;
+}
+
+.forgot-link:hover {
+    color: #764ba2;
+    text-decoration: none;
+}
+
+.signup-prompt {
+    color: #666;
+    font-size: 14px;
+}
+
+.signup-prompt a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.signup-prompt a:hover {
+    color: #764ba2;
+    text-decoration: none;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modern Orders Page Styles */
+.orders-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.orders-header .header-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.orders-header .header-content p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.orders-header .btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.orders-header .btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.modern-alert {
+    border-radius: 12px;
+    border: none;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.modern-alert i {
+    font-size: 1.2rem;
+}
+
+/* Empty Orders State */
+.empty-orders {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #667eea;
+    margin-bottom: 2rem;
+    animation: bounceIn 1s ease-out;
+}
+
+.empty-orders h3 {
+    color: #333;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.empty-orders p {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.empty-orders .btn {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 25px;
+}
+
+/* Orders List */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.order-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    animation: slideInUp 0.6s ease-out;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.order-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.order-info h3 {
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.order-meta {
+    display: flex;
+    gap: 1.5rem;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.order-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.order-meta i {
+    color: #667eea;
+}
+
+.order-status .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-delivered {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-shipped {
+    background: #cce7ff;
+    color: #004085;
+    border: 1px solid #b3d7ff;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Delivery Details Section */
+.delivery-details {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.delivery-details h4 {
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.delivery-details h4 i {
+    color: #667eea;
+}
+
+.delivery-info {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.delivery-info p {
+    margin: 0.5rem 0;
+    color: #555;
+    line-height: 1.5;
+}
+
+.delivery-info strong {
+    color: #333;
+}
+
+/* Order Items Section */
+.order-items {
+    padding: 1.5rem 2rem;
+}
+
+.order-items h4 {
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.order-items h4 i {
+    color: #667eea;
+}
+
+.item-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 15px;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.item-card:hover {
+    background: #e9ecef;
+    border-color: #667eea;
+    transform: translateX(5px);
+}
+
+.item-card:last-child {
+    margin-bottom: 0;
+}
+
+.item-image {
+    flex-shrink: 0;
+}
+
+.item-image img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h5 {
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+}
+
+.item-info {
+    display: flex;
+    gap: 1.5rem;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.item-info span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.item-info strong {
+    color: #333;
+}
+
+.item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.item-actions .btn {
+    border-radius: 20px;
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.item-actions .btn:hover {
+    transform: translateY(-2px);
+}
+
+.return-status {
+    background: #cce7ff;
+    color: #004085;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #b3d7ff;
+}
+
+/* Modern Modal */
+.modern-modal {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.modern-modal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px 20px 0 0;
+    border: none;
+    padding: 1.5rem;
+}
+
+.modern-modal .modal-header h5 {
+    font-weight: 600;
+    margin: 0;
+}
+
+.modern-modal .modal-header .close {
+    color: white;
+    opacity: 0.8;
+    text-shadow: none;
+}
+
+.modern-modal .modal-header .close:hover {
+    opacity: 1;
+    color: white;
+}
+
+.modern-modal .modal-body {
+    padding: 2rem;
+}
+
+.modern-modal .modal-footer {
+    border: none;
+    padding: 1rem 2rem 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .orders-container {
+        padding: 1rem;
+    }
+    
+    .orders-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .orders-header .header-content h1 {
+        font-size: 2rem;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .order-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .item-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .item-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .item-actions {
+        flex-direction: row;
+        justify-content: center;
+    }
+    
+    .delivery-details,
+    .order-items {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .orders-header .header-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .item-image img {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .item-details h5 {
+        font-size: 1rem;
+    }
+    
+    .empty-orders {
+        padding: 3rem 1rem;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+    }
+}
