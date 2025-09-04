@@ -233,4 +233,12 @@ public class DiscountController {
         
         return "redirect:/admin/discounts";
     }
+
+
+    @GetMapping("/discounts/create/{id}")
+    public String createNewDiscountForProduct(@PathVariable Integer id, Model model){
+        Optional<Product> product = productService.findById(id);
+        model.addAttribute("product", product);
+        return "discountForm"; // new Thymeleaf template for creating discount
+    }
 }
