@@ -221,9 +221,9 @@
                         </div>
                         <!-- Transaction Details -->
                         <div class="transaction-details">
-                            <span class="txn-id" th:if="${orderGroup.txnId}">
+                            <span class="txn-id" th:if="${orderGroup.transactionId != null or orderGroup.razorpayOrderId != null}">
                                 <i class="fas fa-receipt"></i>
-                                Transaction ID: <strong th:text="${orderGroup.txnId}"></strong>
+                                Transaction ID: <strong th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"></strong>
                             </span>
                         </div>
                     </div>
@@ -338,7 +338,7 @@
                             <div class="col-md-6">
                                 <div class="transaction-item">
                                     <label>Transaction ID:</label>
-                                    <span th:text="${orderGroup.txnId ?: 'N/A'}"></span>
+                                    <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : (orderGroup.razorpayOrderId != null ? orderGroup.razorpayOrderId : 'N/A')}"></span>
                                 </div>
                                 <div class="transaction-item">
                                     <label>Order ID:</label>
