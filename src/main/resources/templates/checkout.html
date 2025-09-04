@@ -182,22 +182,20 @@
 
                         <!-- Auto-fill from saved address if available -->
                         <div th:if="${addresses != null and !addresses.empty}" class="mt-3">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="fillFromSavedAddress()">
-                                Fill from saved address
-                            </button>
+                            <div class="form-inline">
+                                <select id="savedAddressSelect" class="form-control form-control-sm mr-2">
+                                    <option th:each="addr,iterStat : ${addresses}"
+                                            th:value="${iterStat.index}"
+                                            th:data-address1="${addr.address1}"
+                                            th:data-address2="${addr.address2}"
+                                            th:data-pincode="${addr.pinCode}"
+                                            th:data-town="${addr.town}"
+                                            th:data-phone="${addr.phone}"
+                                            th:text="${(addr.address1 != null ? addr.address1 : '') + (addr.town != null ? ', ' + addr.town : '')}">Saved address</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="fillFromSavedAddress()">Use selected</button>
+                            </div>
                         </div>
-                        
-                        <!-- Hidden data for JavaScript -->
-                        <div th:if="${addresses != null and !addresses.empty}" style="display: none;">
-                            <span id="savedAddressData" 
-                                  th:data-address1="${addresses[0].address1}"
-                                  th:data-address2="${addresses[0].address2}"
-                                  th:data-pincode="${addresses[0].pinCode}"
-                                  th:data-town="${addresses[0].town}"
-                                  th:data-phone="${addresses[0].phone}"></span>
-                        </div>
-
-
 
                     </div>
                 </div>
@@ -466,13 +464,15 @@
     }
     
     function fillFromSavedAddress() {
-        const savedData = document.getElementById('savedAddressData');
-        if (savedData) {
-            const address1 = savedData.getAttribute('data-address1');
-            const address2 = savedData.getAttribute('data-address2');
-            const pincode = savedData.getAttribute('data-pincode');
-            const town = savedData.getAttribute('data-town');
-            const phone = savedData.getAttribute('data-phone');
+        const selectElement = document.getElementById('savedAddressSelect');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        
+        if (selectedOption) {
+            const address1 = selectedOption.getAttribute('data-address1');
+            const address2 = selectedOption.getAttribute('data-address2');
+            const pincode = selectedOption.getAttribute('data-pincode');
+            const town = selectedOption.getAttribute('data-town');
+            const phone = selectedOption.getAttribute('data-phone');
             
             if (address1) document.getElementById('form14').value = address1;
             if (address2) document.getElementById('form15').value = address2;
