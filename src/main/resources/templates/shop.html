@@ -122,30 +122,71 @@
             color: #2c3e50;
             font-size: 1.1rem; /* Increased font size */
             font-weight: 600;
-            margin-bottom: 12px;
-            height: 3.2em; /* Increased height even more for product names */
-            line-height: 1.4;
+            margin-bottom: 8px; /* Reduced margin for better spacing */
+            height: 2.6em; /* Adjusted height */
+            line-height: 1.3;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             word-wrap: break-word;
             hyphens: auto;
+            margin-top: 8px; /* Add top margin to push name down */
         }
         
         .rating-stars {
-            color: #ffc107;
-            font-size: 0.9rem; /* Slightly larger stars */
-            height: 18px;
-            margin-bottom: 10px;
+            display: none; /* Remove stars from top to save space */
+        }
+        
+        .price-rating-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 8px 0;
+            min-height: 50px; /* Ensure consistent height */
         }
         
         .price-section {
-            margin: 12px 0;
-            min-height: 45px; /* Increased min-height for price section */
+            flex: 1;
+            margin: 0;
+            min-height: 45px; /* Reduced height */
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
+        }
+        
+        .rating-time-section {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            margin-left: 10px;
+        }
+        
+        .rating-stars-small {
+            color: #ffc107;
+            font-size: 0.75rem; /* Smaller stars */
+            text-align: right;
+        }
+        
+        .time-remaining-small {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 3px 6px; /* Smaller padding */
+            border-radius: 8px;
+            font-size: 0.7rem; /* Smaller font */
+            text-align: center;
+            font-weight: 500;
+            white-space: nowrap;
+            max-width: 80px; /* Limit width */
+        }
+        
+        .time-remaining-small.urgent {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            color: #721c24;
         }
         
         .original-price {
@@ -393,32 +434,38 @@
                                  th:alt="${product.name}">
                         </div>
                         <div class="card-body">
-                            <!-- Product Name (Now prominently displayed) -->
+                            <!-- Product Name (Now prominently displayed with top margin) -->
                             <h6 class="card-title" th:text="${product.name}">Product Name</h6>
                             
-                            <!-- Rating Stars -->
-                            <div class="rating-stars mb-2">
-                                <i th:each="i: ${#numbers.sequence(1, roundedRatings[product.id]?:0)}" class="fas fa-star"></i>
-                                <span th:if="${roundedRatings[product.id] == 0}" class="text-muted small">No ratings yet</span>
-                            </div>
-                            
-                            <!-- Price Section -->
-                            <div class="price-section mb-3">
-                                <div th:if="${activeDiscounts.containsKey(product.id)}">
-                                    <div class="original-price">₹<span th:text="${product.price}"></span></div>
-                                    <div class="discount-price">₹<span th:text="${#numbers.formatDecimal(effectivePrices.get(product.id), 0, 2)}"></span></div>
+                            <!-- Price and Rating Row -->
+                            <div class="price-rating-row">
+                                <!-- Price Section (Left Side) -->
+                                <div class="price-section">
+                                    <div th:if="${activeDiscounts.containsKey(product.id)}">
+                                        <div class="original-price">₹<span th:text="${product.price}"></span></div>
+                                        <div class="discount-price">₹<span th:text="${#numbers.formatDecimal(effectivePrices.get(product.id), 0, 2)}"></span></div>
+                                    </div>
+                                    <div th:unless="${activeDiscounts.containsKey(product.id)}">
+                                        <div class="regular-price">₹ <span th:text="${product.price}"></span></div>
+                                    </div>
                                 </div>
-                                <div th:unless="${activeDiscounts.containsKey(product.id)}">
-                                    <div class="regular-price">₹ <span th:text="${product.price}"></span></div>
+                                
+                                <!-- Rating and Time Section (Right Side) -->
+                                <div class="rating-time-section">
+                                    <!-- Small Rating Stars -->
+                                    <div class="rating-stars-small">
+                                        <span th:each="i: ${#numbers.sequence(1, roundedRatings[product.id]?:0)}" class="fas fa-star"></span>
+                                        <span th:if="${roundedRatings[product.id] == 0}" class="text-muted" style="font-size: 0.7rem;">No ratings</span>
+                                    </div>
+                                    
+                                    <!-- Small Time Remaining -->
+                                    <div th:if="${activeDiscounts.containsKey(product.id)}" 
+                                         class="time-remaining-small" 
+                                         th:classappend="${activeDiscounts.get(product.id).getTimeRemaining().contains('hour') or activeDiscounts.get(product.id).getTimeRemaining().contains('minute')} ? 'urgent' : ''"
+                                         th:text="${activeDiscounts.get(product.id).getTimeRemaining()}">
+                                        2h 30m
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Time Remaining (Better positioned above button) -->
-                            <div th:if="${activeDiscounts.containsKey(product.id)}" 
-                                 class="time-remaining-compact" 
-                                 th:classappend="${activeDiscounts.get(product.id).getTimeRemaining().contains('hour') or activeDiscounts.get(product.id).getTimeRemaining().contains('minute')} ? 'urgent' : ''"
-                                 th:text="'⏰ ' + ${activeDiscounts.get(product.id).getTimeRemaining()}">
-                                ⏰ 2h 30m
                             </div>
                             
                             <!-- Action Button (Always stays at bottom) -->
