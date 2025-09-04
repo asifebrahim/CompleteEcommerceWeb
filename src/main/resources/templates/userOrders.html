@@ -77,6 +77,27 @@
             font-size: 1.1rem;
         }
         
+        /* Info item styling for delivery details */
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item label {
+            font-weight: 600;
+            color: #495057;
+            margin: 0;
+            min-width: 120px;
+        }
+        
+        .info-item span {
+            text-align: right;
+            flex: 1;
+        }
+        
         .payment-status, .order-status {
             padding: 0.25rem 0.75rem;
             border-radius: 15px;
@@ -107,6 +128,173 @@
             margin-top: 0.5rem;
         }
         
+        /* Product Preview Section */
+        .order-products-preview {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border-radius: 8px;
+            border-top: 3px solid #007bff;
+        }
+        
+        .order-products-preview h5 {
+            color: #495057;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .product-preview {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .product-preview:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .product-preview-image {
+            flex: 0 0 60px;
+            margin-right: 1rem;
+        }
+        
+        .product-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .product-preview-info {
+            flex: 1;
+        }
+        
+        .product-preview-info h6 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.3;
+        }
+        
+        .product-preview-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .product-preview-details .qty,
+        .product-preview-details .price {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .product-preview-details .price {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        /* Detailed Order Items Styling */
+        .order-items-detailed {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e9ecef;
+        }
+        
+        .order-items-detailed h4 {
+            color: #495057;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .item-card {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+        
+        .item-card:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .item-image {
+            flex: 0 0 120px;
+            margin-right: 1.5rem;
+        }
+        
+        .detailed-product-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .item-details h5 {
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .item-info {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .item-info .quantity,
+        .item-info .price,
+        .item-info .total {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .item-info .price,
+        .item-info .total {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: auto;
+            flex-wrap: wrap;
+        }
+        
+        .return-status {
+            background: #ffc107;
+            color: #856404;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
         /* Enhanced responsive design */
         @media (max-width: 768px) {
             .order-actions {
@@ -115,6 +303,65 @@
             
             .action-buttons {
                 flex-direction: column;
+            }
+            
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-preview {
+                padding: 0.75rem;
+            }
+            
+            .product-thumb {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .product-preview-image {
+                flex: 0 0 50px;
+                margin-right: 0.75rem;
+            }
+            
+            .item-card {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .item-image {
+                flex: none;
+                margin-right: 0;
+                margin-bottom: 1rem;
+                text-align: center;
+            }
+            
+            .detailed-product-image {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .item-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .item-actions {
+                justify-content: center;
+                gap: 0.5rem;
+            }
+            
+            .info-item {
+                flex-direction: column;
+                text-align: left;
+            }
+            
+            .info-item label {
+                min-width: auto;
+                margin-bottom: 0.25rem;
+            }
+            
+            .info-item span {
+                text-align: left;
             }
         }
     </style>
@@ -246,8 +493,25 @@
                     </div>
                 </div>
 
-                <!-- Collapsible sections -->
-                <div class="collapsible-content" th:id="'details-' + ${orderGroup.id}" style="display: none;">
+                <!-- Product Images and Names (Always Visible) -->
+                <div class="order-products-preview">
+                    <h5><i class="fas fa-box"></i> Order Items</h5>
+                    <div class="products-grid">
+                        <div class="product-preview" th:each="order : ${orderGroup.userOrders}">
+                            <div class="product-preview-image">
+                                <img th:src="@{${'/productImages/' + (order.product != null ? order.product.imageName : 'default.png')}}" 
+                                     alt="Product Image" class="product-thumb">
+                            </div>
+                            <div class="product-preview-info">
+                                <h6 th:text="${order.product != null ? order.product.name : 'Product'}">Product Name</h6>
+                                <div class="product-preview-details">
+                                    <span class="qty">Qty: <strong th:text="${order.quantity}"></strong></span>
+                                    <span class="price">₹<strong th:text="${order.productPriceAtOrder}"></strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Collapsible sections -->
                 <div class="collapsible-content" th:id="'details-' + ${orderGroup.id}" style="display: none;">
@@ -256,35 +520,47 @@
                         <div class="delivery-info">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p th:if="${orderGroup.firstName != null and !#strings.isEmpty(orderGroup.firstName)}">
-                                        <strong>Name:</strong> 
-                                        <span th:text="${orderGroup.firstName}"></span>
-                                        <span th:if="${orderGroup.lastName != null and !#strings.isEmpty(orderGroup.lastName)}" th:text="' ' + ${orderGroup.lastName}"></span>
-                                    </p>
-                                    <p th:if="${orderGroup.emailAddress != null and !#strings.isEmpty(orderGroup.emailAddress)}">
-                                        <strong>Email:</strong> <span th:text="${orderGroup.emailAddress}"></span>
-                                    </p>
-                                    <p th:if="${orderGroup.mobile != null and !#strings.isEmpty(orderGroup.mobile)}">
-                                        <strong>Mobile:</strong> <span th:text="${orderGroup.mobile}"></span>
-                                    </p>
+                                    <div class="info-item">
+                                        <label>Customer Name:</label>
+                                        <span th:text="${(orderGroup.firstName != null and !#strings.isEmpty(orderGroup.firstName)) ? 
+                                                        orderGroup.firstName + (orderGroup.lastName != null ? ' ' + orderGroup.lastName : '') : 
+                                                        (orderGroup.user != null ? orderGroup.user.firstName + ' ' + (orderGroup.user.lastName ?: '') : 'N/A')}">N/A</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>Email:</label>
+                                        <span th:text="${orderGroup.emailAddress != null ? orderGroup.emailAddress : 
+                                                        (orderGroup.user != null ? orderGroup.user.email : 'N/A')}">N/A</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>Mobile:</label>
+                                        <span th:text="${orderGroup.mobile != null ? orderGroup.mobile : 'N/A'}">N/A</span>
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <p th:if="${orderGroup.deliveryAddress != null and !#strings.isEmpty(orderGroup.deliveryAddress)}">
-                                        <strong>Address:</strong> <span th:text="${orderGroup.deliveryAddress}"></span>
-                                        <span th:if="${orderGroup.pinCode != null and !#strings.isEmpty(orderGroup.pinCode)}" 
-                                              th:text="' - ' + ${orderGroup.pinCode}"></span>
-                                    </p>
+                                    <div class="info-item">
+                                        <label>Delivery Address:</label>
+                                        <span th:text="${orderGroup.deliveryAddress != null ? orderGroup.deliveryAddress : 'N/A'}">N/A</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>PIN Code:</label>
+                                        <span th:text="${orderGroup.pinCode != null ? orderGroup.pinCode : 'N/A'}">N/A</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>Order Status:</label>
+                                        <span class="status-badge" th:text="${orderGroup.groupStatus}">Status</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="order-items">
-                        <h4><i class="fas fa-box"></i> Order Items</h4>
+                    <!-- Detailed Order Items with Actions -->
+                    <div class="order-items-detailed">
+                        <h4><i class="fas fa-box"></i> Order Items Details</h4>
                         <div class="item-card" th:each="order : ${orderGroup.userOrders}">
                             <div class="item-image">
-                                <img th:src="@{${'/productImages/' + (order.product != null ? order.product.imageName : '')}}" 
-                                     alt="Product Image">
+                                <img th:src="@{${'/productImages/' + (order.product != null ? order.product.imageName : 'default.png')}}" 
+                                     alt="Product Image" class="detailed-product-image">
                             </div>
                             <div class="item-details">
                                 <h5 th:text="${order.product != null ? order.product.name : 'Product'}">Product Name</h5>
@@ -302,29 +578,28 @@
                                             th:data-product-image="${order.product?.imageName}">
                                         <i class="fas fa-info-circle"></i> Product Details
                                     </button>
-                                </div>
-                            </div>
-                            <div class="item-actions">
-                                <!-- Cancel button -->
-                                <form th:if="${order.orderStatus != null and (order.orderStatus.toLowerCase().contains('pending') or order.orderStatus.toLowerCase().contains('awaiting'))}"
-                                      th:action="@{'/order/cancel/' + ${order.id} + '/form'}" method="post" style="display:inline;">
-                                    <button class="btn btn-danger btn-sm btn-cancel" type="button" th:attr="data-order-id=${order.id}">
-                                        <i class="fas fa-times"></i> Cancel
+                                    
+                                    <!-- Cancel button -->
+                                    <form th:if="${order.orderStatus != null and (order.orderStatus.toLowerCase().contains('pending') or order.orderStatus.toLowerCase().contains('awaiting'))}"
+                                          th:action="@{'/order/cancel/' + ${order.id} + '/form'}" method="post" style="display:inline;">
+                                        <button class="btn btn-danger btn-sm btn-cancel" type="button" th:attr="data-order-id=${order.id}">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    </form>
+
+                                    <!-- Return status or button -->
+                                    <span th:if="${returnStatusMap != null and returnStatusMap[order.id] != null}" 
+                                          class="return-status" 
+                                          th:text="${returnStatusMap[order.id] == 'Pending' ? 'Return Requested' : returnStatusMap[order.id]}">
+                                    </span>
+
+                                    <button type="button"
+                                            th:if="${returnStatusMap == null or returnStatusMap[order.id] == null} and ${order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered')} and ${returnAllowedMap != null and returnAllowedMap[order.id] == true}"
+                                            class="btn btn-warning btn-sm btn-return"
+                                            th:attr="data-order-id=${order.id}, data-product-name=${order.product != null ? order.product.name : 'item'}">
+                                        <i class="fas fa-undo"></i> Return
                                     </button>
-                                </form>
-
-                                <!-- Return status or button -->
-                                <span th:if="${returnStatusMap[order.id] != null}" 
-                                      class="return-status" 
-                                      th:text="${returnStatusMap[order.id] == 'Pending' ? 'Return Requested' : returnStatusMap[order.id]}">
-                                </span>
-
-                                <button type="button"
-                                        th:if="${returnStatusMap[order.id] == null and order.orderStatus != null and order.orderStatus.toLowerCase().contains('delivered') and (returnAllowedMap[order.id] == true)}"
-                                        class="btn btn-warning btn-sm btn-return"
-                                        th:attr="data-order-id=${order.id}, data-product-name=${order.product != null ? order.product.name : 'item'}">
-                                    <i class="fas fa-undo"></i> Return
-                                </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -338,37 +613,38 @@
                             <div class="col-md-6">
                                 <div class="transaction-item">
                                     <label>Transaction ID:</label>
-                                    <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : (orderGroup.razorpayOrderId != null ? orderGroup.razorpayOrderId : 'N/A')}"></span>
+                                    <span th:text="${orderGroup.transactionId != null ? orderGroup.transactionId : (orderGroup.razorpayOrderId != null ? orderGroup.razorpayOrderId : 'N/A')}">N/A</span>
                                 </div>
                                 <div class="transaction-item">
                                     <label>Order ID:</label>
-                                    <span th:text="${orderGroup.id}"></span>
+                                    <span th:text="${orderGroup.id}">N/A</span>
                                 </div>
                                 <div class="transaction-item">
                                     <label>Order Date:</label>
-                                    <span th:text="${#temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm:ss')}"></span>
+                                    <span th:text="${#temporals.format(orderGroup.createdAt, 'dd MMM yyyy HH:mm:ss')}">N/A</span>
                                 </div>
                                 <div class="transaction-item">
-                                    <label>Payment Status:</label>
-                                    <span class="payment-status">N/A</span>
+                                    <label>Payment Method:</label>
+                                    <span th:text="${orderGroup.razorpayOrderId != null ? 'Online Payment' : 'Cash on Delivery'}">N/A</span>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="transaction-item">
                                     <label>Total Amount:</label>
-                                    <span class="amount">₹<span th:text="${orderGroup.totalAmount}"></span></span>
+                                    <span class="amount">₹<span th:text="${orderGroup.totalAmount}">0</span></span>
+                                </div>
+                                <div class="transaction-item">
+                                    <label>Payment Status:</label>
+                                    <span class="payment-status" 
+                                          th:text="${orderGroup.transactionId != null or orderGroup.razorpayOrderId != null ? 'Completed' : 'Pending'}">N/A</span>
                                 </div>
                                 <div class="transaction-item">
                                     <label>Order Status:</label>
-                                    <span class="order-status" th:text="${orderGroup.groupStatus}"></span>
+                                    <span class="order-status" th:text="${orderGroup.groupStatus}">N/A</span>
                                 </div>
                                 <div class="transaction-item">
-                                    <label>Customer Mobile:</label>
-                                    <span th:text="${orderGroup.mobile}"></span>
-                                </div>
-                                <div class="transaction-item">
-                                    <label>Email:</label>
-                                    <span th:text="${orderGroup.emailAddress}"></span>
+                                    <label>Items Count:</label>
+                                    <span th:text="${orderGroup.userOrders != null ? orderGroup.userOrders.size() : 0}">0</span>
                                 </div>
                             </div>
                         </div>

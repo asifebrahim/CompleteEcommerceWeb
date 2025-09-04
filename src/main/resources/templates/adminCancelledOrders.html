@@ -21,10 +21,13 @@
         }
         
         .cancelled-container {
-            margin: 2rem 0;
+            margin: 2rem auto;
+            max-width: 1200px;
+            text-align: center;
         }
         
         .order-card {
+            text-align: left; /* Reset text alignment for card content */
             background: white;
             border-radius: 12px;
             overflow: hidden;
@@ -207,7 +210,17 @@
             .transaction-item,
             .user-detail-item {
                 flex-direction: column;
-                text-align: center;
+                text-align: left;
+            }
+            
+            .cancelled-container {
+                margin: 1rem auto;
+                padding: 0 1rem;
+            }
+            
+            .search-section {
+                padding: 1.5rem;
+                margin: 0 auto 1.5rem auto;
             }
         }
 
@@ -217,7 +230,9 @@
             padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
+            margin: 0 auto 2rem auto;
+            max-width: 1000px;
+            text-align: left; /* Reset for form elements */
         }
         
         .search-box {
@@ -260,9 +275,9 @@
 <body>
 
 <div class="header-section">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
+    <div class="container text-center">
+        <div class="d-flex justify-content-center align-items-center flex-column flex-md-row justify-content-md-between">
+            <div class="text-center text-md-left mb-3 mb-md-0">
                 <h2><i class="fas fa-times-circle mr-2"></i>Cancelled Orders</h2>
                 <p class="mb-0">Orders that have been cancelled by customers or admin</p>
             </div>

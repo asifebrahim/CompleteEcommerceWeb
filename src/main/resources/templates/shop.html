@@ -174,19 +174,31 @@
             background: linear-gradient(135deg, #fff3cd, #ffeaa7);
             border: 1px solid #ffeaa7;
             color: #856404;
-            padding: 3px 6px; /* Smaller padding */
+            padding: 4px 6px; /* Slightly increased padding */
             border-radius: 8px;
-            font-size: 0.7rem; /* Smaller font */
+            font-size: 0.65rem; /* Smaller font for better fit */
             text-align: center;
             font-weight: 500;
-            white-space: nowrap;
-            max-width: 80px; /* Limit width */
+            white-space: normal; /* Allow text wrapping */
+            max-width: 80px; /* Keep width limit */
+            line-height: 1.1; /* Tighter line height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 35px; /* Minimum height for vertical layout */
+        }
+        
+        .time-remaining-small div {
+            margin: 1px 0; /* Small margin between time units */
+            font-size: 0.65rem;
+            line-height: 1;
         }
         
         .time-remaining-small.urgent {
             background: linear-gradient(135deg, #f8d7da, #f5c6cb);
             border-color: #f5c6cb;
             color: #721c24;
+            font-weight: 600; /* Slightly bolder for urgency */
         }
         
         .original-price {
@@ -664,6 +676,39 @@ window.onscroll = function() {
         document.getElementById("scrollBtn").style.display = "none";
     }
 };
+
+// Format time remaining text for vertical display
+function formatTimeRemaining() {
+    const timeElements = document.querySelectorAll('.time-remaining-small');
+    timeElements.forEach(element => {
+        const timeText = element.textContent.trim();
+        if (timeText && timeText !== '2h 30m') { // Skip the placeholder text
+            // Split the text into components and format vertically
+            const formattedTime = timeText
+                .replace(/(\d+)\s*(day|days)/i, '<div>$1d</div>')
+                .replace(/(\d+)\s*(hour|hours|hr|h)/i, '<div>$1h</div>')
+                .replace(/(\d+)\s*(minute|minutes|min|m)/i, '<div>$1m</div>')
+                .replace(/(\d+)\s*(second|seconds|sec|s)/i, '<div>$1s</div>');
+            
+            // If we have HTML divs, use them, otherwise keep original text
+            if (formattedTime.includes('<div>')) {
+                element.innerHTML = formattedTime;
+            }
+        }
+    });
+}
+
+// Call the function when page loads and after any dynamic content updates
+document.addEventListener('DOMContentLoaded', formatTimeRemaining);
+
+// Also call after search or filter operations that might reload content
+const originalSearchProducts = window.searchProducts;
+if (typeof searchProducts === 'function') {
+    window.searchProducts = function(query) {
+        originalSearchProducts(query);
+        setTimeout(formatTimeRemaining, 100); // Small delay to ensure content is rendered
+    };
+}
 
 function scrollToTop() {
     document.body.scrollTop = 0;
