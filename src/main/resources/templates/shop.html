@@ -149,7 +149,7 @@
                             
                             <!-- Discount Badge -->
                             <div th:if="${activeDiscounts.containsKey(product.id)}">
-                                <span class="discount-badge" th:text="${activeDiscounts.get(product.id).calculateDiscountPercentage() + '% OFF'}">20% OFF</span>
+                                <span class="discount-badge" th:text="${#numbers.formatDecimal(activeDiscounts.get(product.id).getDiscountPercentage(), 0, 0) + '% OFF'}">20% OFF</span>
                             </div>
                             
                             <!-- Price Section -->
