@@ -9,8 +9,9 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
+    <link rel="stylesheet" th:href="@{/css/custom.css}" href="../static/css/custom.css">
 
-    <title>Document</title>
+    <title>EcommerceFresh - Order Receipt</title>
 </head>
 <body>
 
@@ -33,61 +34,143 @@
                 <li class="nav-item active">
                     <a class="nav-link" th:href="@{/shop}" href="#">shop</a>
                 </li>
+                <li class="nav-item active dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Profile
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" th:href="@{/profile}">My Profile</a>
+                        <a class="dropdown-item" th:href="@{/profile/orders}">My Orders</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" th:href="@{/logout}">Logout</a>
+                    </div>
+                </li>
                 <li class="nav-item active">
                     <a class="nav-link" sec:authorize="isAnonymous()" th:href="@{/login}" href="#">login</a>
                 </li>
-                <li class="nav-item active">
-                    <a class="nav-link" sec:authorize="isAuthenticated()" th:href="@{/logout}" href="#">logout</a>
+                <li class="nav-item active" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/wishlist}" href="#">wishlist</a>
                 </li>
                 <li class="nav-item active">
                     <a class="nav-link" th:href="@{/cart}" href="#">cart</a>
                 </li>
-<!--                <li class="nav-item active">-->
-<!--                    <span class="nav-link" th:text="${cartCount}">0</span>-->
-<!--                </li>-->
+                <li class="nav-item active">
+                    <span class="nav-link" th:text="${cartCount}">0</span>
+                </li>
             </ul>
-
         </div>
     </div>
 </nav>
-<div class="container">
-    <div class="row">
-        <div class="well col-xs-10 col-sm-10 col-md-6 col-xs-offset-1 col-sm-offset-1 col-md-offset-3">
-            <div class="row">
-                <div class="col-xs-6 col-sm-6 col-md-6">
-                    <strong th:text="${result}"></strong>
-                    <br>
-                </div>
-                <div class="col-xs-6 col-sm-6 col-md-6 text-right">
-                    <p>
-                        <em>Receipt #: 34522677W</em>
-                    </p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="text-center">
-                    <h1>Receipt</h1>
-                </div>
 
-                <table class="table table-hover">
+<div class="container-fluid main-content">
+    <div class="receipt-container">
+        <div class="receipt-header">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h1>Order Confirmed!</h1>
+            <p class="order-number">Receipt #34522677W</p>
+            <div class="order-status" th:text="${result}">Order Successfully Placed</div>
+        </div>
+
+        <div class="order-summary-card">
+            <h2>Order Details</h2>
+            <div class="order-details">
+                <table class="modern-table">
                     <thead>
-                    <tr>
-                        <th>Components</th>
-                    </tr>
+                        <tr>
+                            <th>Order Information</th>
+                            <th>Details</th>
+                        </tr>
                     </thead>
                     <tbody>
-
-                    <tr th:each="entry : ${parameters}">
-
-                        <td th:text="${entry.key} + '  : -  ' + ${entry.value}"></td>
-
-                    </tr>
+                        <tr th:each="entry : ${parameters}">
+                            <td class="label" th:text="${entry.key}">Item</td>
+                            <td class="value" th:text="${entry.value}">Value</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <div class="next-steps-card">
+            <h3><i class="fas fa-clock"></i> What's Next?</h3>
+            <div class="steps-list">
+                <div class="step">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>We're preparing your order</span>
+                </div>
+                <div class="step">
+                    <i class="fas fa-truck"></i>
+                    <span>Your order will be shipped within 2-3 business days</span>
+                </div>
+                <div class="step">
+                    <i class="fas fa-bell"></i>
+                    <span>You'll receive email updates on your order status</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a th:href="@{/profile/orders}" class="btn btn-primary">
+                <i class="fas fa-list"></i> Track Your Orders
+            </a>
+            <a th:href="@{/shop}" class="btn btn-outline">
+                <i class="fas fa-store"></i> Continue Shopping
+            </a>
+        </div>
     </div>
 </div>
+
+<!-- Modern Footer -->
+<footer class="modern-footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>EcommerceFresh</h3>
+            <p>Your one-stop destination for fresh products and amazing deals.</p>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+        <div class="footer-section">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="#" th:href="@{/}">Home</a></li>
+                <li><a href="#" th:href="@{/shop}">Shop</a></li>
+                <li><a href="#" th:href="@{/categories}">Categories</a></li>
+                <li><a href="#" th:href="@{/profile}">My Account</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h4>Customer Service</h4>
+            <ul>
+                <li><a href="#">Contact Us</a></li>
+                <li><a href="#">FAQs</a></li>
+                <li><a href="#">Return Policy</a></li>
+                <li><a href="#">Shipping Info</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h4>Newsletter</h4>
+            <p>Subscribe to get updates on new products and offers.</p>
+            <div class="newsletter-form">
+                <input type="email" placeholder="Enter your email">
+                <button type="submit"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2024 EcommerceFresh. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- Scroll to Top Button -->
+<div id="scrollToTop" class="scroll-to-top">
+    <i class="fas fa-arrow-up"></i>
+</div>
+
+<script th:src="@{/js/custom.js}" src="../static/js/custom.js"></script>
 
 
 

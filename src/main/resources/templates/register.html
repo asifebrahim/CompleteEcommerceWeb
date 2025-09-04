@@ -9,8 +9,9 @@
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
           integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/custom.css}" href="../static/css/custom.css">
     
-    <title>Register</title>
+    <title>EcommerceFresh - Register</title>
 </head>
 <body>
 
@@ -34,50 +35,151 @@
                     <a class="nav-link" th:href="@{/shop}" href="#">shop</a>
                 </li>
                 <li class="nav-item active">
-                    <a class="nav-link" href="#">Sign Up</a>
+                    <a class="nav-link" th:href="@{/cart}" href="#">cart</a>
                 </li>
-
+                <li class="nav-item active">
+                    <a class="nav-link" th:href="@{/login}" href="#">Login</a>
+                </li>
             </ul>
-
         </div>
     </div>
 </nav>
-<div class="container">
-    <div class="col-sm-6">
-        <h3 style="margin-top: 10px">Sign Up Now</h3>
-        <p>Please fill out this to register</p>
-        <form th:action="@{/register}" th:object="${user}" method="post">
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="fas fa-user-plus" style="font-size: 3rem; color: #667eea; margin-bottom: 20px;"></i>
+            <h2>Create Account</h2>
+            <p>Join EcommerceFresh and start shopping fresh products</p>
+        </div>
+
+        <form th:action="@{/register}" th:object="${user}" method="post" class="auth-form">
             <div th:if="${_csrf != null}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
             </div>
-            <div class="form-group">
-                <label for="firstName">First Name</label>
-                <input type="text" name="firstName" id="firstName" required placeholder="Your Firstname" class="form-control form-control-lg">
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="firstName"><i class="fas fa-user"></i> First Name</label>
+                        <input type="text" name="firstName" id="firstName" required placeholder="Enter first name" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="lastName"><i class="fas fa-user"></i> Last Name</label>
+                        <input type="text" name="lastName" id="lastName" required placeholder="Enter last name" class="form-control">
+                    </div>
+                </div>
             </div>
+            
             <div class="form-group">
-                <label for="lastName">Last Name</label>
-                <input type="text" name="lastName" id="lastName" required placeholder="Your Lastname" class="form-control form-control-lg">
+                <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+                <input type="email" class="form-control" required minlength="6" placeholder="Enter your email" name="email" id="email">
+                <small class="form-text text-muted">
+                    <i class="fas fa-shield-alt"></i> We'll never share your email with anyone else.
+                </small>
             </div>
+            
             <div class="form-group">
-                <label for="email">Email address</label>
-                <input type="email" class="form-control form-control-lg" required minlength="6" placeholder="Email" name="email" id="email"
-                       aria-describedby="emailHelp">
-                <small id="emailHelp" class="form-text text-muted">We'll never share your email with
-                    anyone else.</small>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control form-control-lg" required placeholder="Password" name="password"
-                       id="password">
+                <label for="password"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" class="form-control" required placeholder="Create a strong password" name="password" id="password" minlength="6">
+                <small class="form-text text-muted">
+                    <i class="fas fa-info-circle"></i> Password must be at least 6 characters long.
+                </small>
             </div>
 
-            <input type="submit" value="Register" class="btn btn-primary btn-block">
-            <span style="margin-top: 10px">Already have an account <a class="linkControl" href="./login.html"
-                                                                      th:href="@{/login}">Login here</a></span>
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
         </form>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a th:href="@{/login}">Sign in here</a></p>
+        </div>
     </div>
 </div>
 
+<!-- Modern Footer -->
+<footer class="modern-footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h5>EcommerceFresh</h5>
+            <p>Your trusted partner for fresh, quality products delivered right to your doorstep. Experience the convenience of online shopping with our carefully curated selection.</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+        <div class="footer-section">
+            <h5>Quick Links</h5>
+            <ul>
+                <li><a th:href="@{/}">Home</a></li>
+                <li><a th:href="@{/shop}">Shop</a></li>
+                <li><a th:href="@{/cart}">Cart</a></li>
+                <li><a th:href="@{/login}">Login</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h5>Customer Service</h5>
+            <ul>
+                <li><a href="#">Help Center</a></li>
+                <li><a href="#">Shipping Info</a></li>
+                <li><a href="#">Returns & Exchanges</a></li>
+                <li><a href="#">Track Your Order</a></li>
+                <li><a href="#">Contact Us</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h5>Contact Info</h5>
+            <p><i class="fas fa-map-marker-alt"></i> 123 Fresh Street, Market City, FC 12345</p>
+            <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+            <p><i class="fas fa-envelope"></i> info@ecommercefresh.com</p>
+            <p><i class="fas fa-clock"></i> Mon - Fri: 9:00 AM - 6:00 PM</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 EcommerceFresh. All rights reserved. | Made with <i class="fas fa-heart" style="color: #e74c3c;"></i> for fresh shopping experience</p>
+    </div>
+</footer>
+
+<script>
+// Form validation and animations
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.auth-form');
+    const inputs = form.querySelectorAll('input');
+    
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            if (!this.value) {
+                this.parentElement.classList.remove('focused');
+            }
+        });
+    });
+    
+    // Password strength indicator
+    const password = document.getElementById('password');
+    if (password) {
+        password.addEventListener('input', function() {
+            const strength = this.value.length;
+            const label = this.parentElement.querySelector('label');
+            if (strength >= 8) {
+                label.style.color = '#27ae60';
+            } else if (strength >= 6) {
+                label.style.color = '#f39c12';
+            } else {
+                label.style.color = '#e74c3c';
+            }
+        });
+    }
+});
+</script>
 
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
