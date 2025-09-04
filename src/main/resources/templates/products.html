@@ -7,68 +7,549 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
-    <title>Document</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 15px 15px;
+        }
+        .search-filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .products-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+        .table td {
+            vertical-align: middle;
+            border-color: #e9ecef;
+        }
+        .product-image {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        .product-image:hover {
+            transform: scale(1.05);
+        }
+        .btn-action {
+            margin: 2px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.375rem 1rem;
+            transition: all 0.2s ease;
+        }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+        .btn-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white; }
+        .btn-success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border: none; }
+        .btn-danger { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border: none; }
+        .btn-info { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border: none; color: #333; }
+        
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .category-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .price-badge {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        .search-input {
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            padding: 0.75rem 1.25rem;
+            transition: all 0.3s ease;
+        }
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .filter-select {
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+        }
+        .stats-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        .stats-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+    </style>
+    <title>Admin - Products Management</title>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light" >
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">
-            <img th:src="@{/images/logo.png}"  src="../static/images/logo.png" width="auto" height="40" class="d-inline-block align-top" alt=""/>
+            <img th:src="@{/images/logo.png}" src="../static/images/logo.png" width="auto" height="40" class="d-inline-block align-top" alt=""/>
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto"></ul>
             <ul class="navbar-nav">
                 <li class="nav-item active">
-                    <a class="nav-link" th:href="@{/admin}" href="#">admin-home</a>
+                    <a class="nav-link" th:href="@{/admin}" href="#">
+                        <i class="fas fa-home mr-1"></i>Admin Home
+                    </a>
                 </li>
                 <li class="nav-item active">
-                    <a class="nav-link" th:href="@{/logout}" href="#">logout</a>
+                    <a class="nav-link" th:href="@{/logout}" href="#">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                    </a>
                 </li>
-
             </ul>
-
         </div>
     </div>
 </nav>
-<div class="container-fluid">
 
-    <a th:href="@{/admin/products/add}" style="margin: 20px 0" class="btn btn-primary">Add Product</a>
-    <table class="table">
-        <thead class="thead-light">
-        <tr>
-            <th scope="col">SN</th>
-            <th scope="col">Product Name</th>
-            <th scope="col">Category</th>
-            <th scope="col">Preview</th>
-            <th scope="col">Delete</th>
-            <th scope="col">Update</th>
-        </tr>
-        </thead>
-        <tbody>
-
-        <tr th:each="product, iStat : ${products}">
-            <th scope="row" th:text="${iStat.index + 1}">1</th>
-            <td th:text="${product.name}">Larry</td>
-            <td th:text="${product.category.name}">Larry</td>
-            <td><img src="" height="100px" width="100px"  th:src="@{${'/productImages/' + product.imageName}}"></td>
-
-            <td><a href="" th:href="@{/admin/product/delete/{id}(id=${product.id})}" class="btn btn-danger">Delete</a></td>
-            <td><a href="" th:href="@{/admin/product/update/{id}(id=${product.id})}" class="btn btn-warning">Update</a></td>
-
-        </tr>
-        </tbody>
-    </table>
+<div class="header-section">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-box mr-3"></i>Products Management</h1>
+                <p class="mb-0">Manage your product inventory with advanced search and filtering</p>
+            </div>
+            <div class="col-md-4 text-right">
+                <a th:href="@{/admin/products/add}" class="btn btn-light btn-lg">
+                    <i class="fas fa-plus mr-2"></i>Add New Product
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number" th:text="${#lists.size(products)}">0</div>
+                <small>Total Products</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number" th:text="${#lists.size(categories)}">0</div>
+                <small>Categories</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number" id="filteredCount" th:text="${#lists.size(products)}">0</div>
+                <small>Filtered Results</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number" th:text="${activeDiscounts != null ? #lists.size(activeDiscounts) : 0}">0</div>
+                <small>Active Discounts</small>
+            </div>
+        </div>
+    </div>
 
+    <!-- Search and Filters -->
+    <div class="search-filters">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label><i class="fas fa-search mr-1"></i>Search by Name</label>
+                    <input type="text" id="searchByName" class="form-control search-input" placeholder="Enter product name...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label><i class="fas fa-hashtag mr-1"></i>Search by ID</label>
+                    <input type="number" id="searchById" class="form-control search-input" placeholder="Enter product ID...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label><i class="fas fa-filter mr-1"></i>Filter by Category</label>
+                    <select id="categoryFilter" class="form-control filter-select">
+                        <option value="">All Categories</option>
+                        <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <div>
+                        <button id="clearFilters" class="btn btn-outline-secondary btn-block">
+                            <i class="fas fa-times mr-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <!-- Products Table -->
+    <div class="products-table">
+        <table class="table table-hover mb-0">
+            <thead>
+            <tr>
+                <th scope="col" style="width: 5%">ID</th>
+                <th scope="col" style="width: 15%">Product Name</th>
+                <th scope="col" style="width: 12%">Category</th>
+                <th scope="col" style="width: 10%">Price</th>
+                <th scope="col" style="width: 15%">Preview</th>
+                <th scope="col" style="width: 8%">Discount</th>
+                <th scope="col" style="width: 35%">Actions</th>
+            </tr>
+            </thead>
+            <tbody id="productsTableBody">
+            <tr th:each="product, iStat : ${products}" class="product-row" 
+                th:data-id="${product.id}"
+                th:data-name="${product.name.toLowerCase()}"
+                th:data-category="${product.category.id}">
+                <td>
+                    <span class="badge badge-primary">#<span th:text="${product.id}"></span></span>
+                </td>
+                <td>
+                    <strong th:text="${product.name}"></strong>
+                    <br>
+                    <small class="text-muted" th:text="${#strings.abbreviate(product.description, 50)}"></small>
+                </td>
+                <td>
+                    <span class="category-badge" th:text="${product.category.name}"></span>
+                </td>
+                <td>
+                    <span class="price-badge">₹<span th:text="${product.price}"></span></span>
+                </td>
+                <td class="text-center">
+                    <img class="product-image" height="80px" width="80px" th:src="@{${'/productImages/' + product.imageName}}" th:alt="${product.name}">
+                </td>
+                <td class="text-center">
+                    <span th:if="${activeDiscounts != null and activeDiscounts.containsKey(product.id)}" 
+                          class="badge badge-success">
+                        <i class="fas fa-tags mr-1"></i>Active
+                    </span>
+                    <span th:unless="${activeDiscounts != null and activeDiscounts.containsKey(product.id)}" 
+                          class="badge badge-secondary">
+                        None
+                    </span>
+                </td>
+                <td>
+                    <div class="d-flex flex-wrap">
+                        <a th:href="@{/shop/viewproduct/{id}(id=${product.id})}" class="btn btn-info btn-action btn-sm" target="_blank">
+                            <i class="fas fa-eye mr-1"></i>View
+                        </a>
+                        <a th:href="@{/admin/product/update/{id}(id=${product.id})}" class="btn btn-warning btn-action btn-sm">
+                            <i class="fas fa-edit mr-1"></i>Edit
+                        </a>
+                        <button class="btn btn-success btn-action btn-sm" onclick="openDiscountModal([[${product.id}]], '[[${product.name}]]', [[${product.price}]])">
+                            <i class="fas fa-percentage mr-1"></i>Discount
+                        </button>
+                        <a th:href="@{/admin/product/delete/{id}(id=${product.id})}" 
+                           class="btn btn-danger btn-action btn-sm" 
+                           onclick="return confirm('Are you sure you want to delete this product?')">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div id="noResults" class="no-results" style="display: none;">
+            <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+            <h4>No products found</h4>
+            <p>Try adjusting your search criteria or filters</p>
+        </div>
+    </div>
+</div>
+
+<!-- Discount Modal -->
+<div class="modal fade" id="discountModal" tabindex="-1" role="dialog" aria-labelledby="discountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="discountModalLabel">
+                    <i class="fas fa-percentage mr-2"></i>Create Product Discount
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="discountForm">
+                    <input type="hidden" id="discountProductId">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Product Name</label>
+                                <input type="text" id="discountProductName" class="form-control" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Original Price</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">₹</span>
+                                    </div>
+                                    <input type="text" id="discountOriginalPrice" class="form-control" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Discount Price <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">₹</span>
+                                    </div>
+                                    <input type="number" id="discountPrice" class="form-control" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Discount Percentage</label>
+                                <div class="input-group">
+                                    <input type="text" id="discountPercentage" class="form-control" readonly>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Start Date <span class="text-danger">*</span></label>
+                                <input type="datetime-local" id="startDate" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>End Date <span class="text-danger">*</span></label>
+                                <input type="datetime-local" id="endDate" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-success" onclick="createDiscount()">
+                    <i class="fas fa-check mr-1"></i>Create Discount
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Search and filter functionality
+    function filterProducts() {
+        const nameSearch = $('#searchByName').val().toLowerCase();
+        const idSearch = $('#searchById').val();
+        const categoryFilter = $('#categoryFilter').val();
+        
+        let visibleCount = 0;
+        
+        $('.product-row').each(function() {
+            const $row = $(this);
+            const productName = $row.data('name');
+            const productId = $row.data('id').toString();
+            const productCategory = $row.data('category').toString();
+            
+            let show = true;
+            
+            // Name filter
+            if (nameSearch && !productName.includes(nameSearch)) {
+                show = false;
+            }
+            
+            // ID filter
+            if (idSearch && productId !== idSearch) {
+                show = false;
+            }
+            
+            // Category filter
+            if (categoryFilter && productCategory !== categoryFilter) {
+                show = false;
+            }
+            
+            if (show) {
+                $row.show();
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+        
+        // Update filtered count
+        $('#filteredCount').text(visibleCount);
+        
+        // Show/hide no results message
+        if (visibleCount === 0) {
+            $('#noResults').show();
+        } else {
+            $('#noResults').hide();
+        }
+    }
+    
+    // Bind filter events
+    $('#searchByName, #searchById, #categoryFilter').on('input change', filterProducts);
+    
+    // Clear filters
+    $('#clearFilters').click(function() {
+        $('#searchByName, #searchById, #categoryFilter').val('');
+        filterProducts();
+    });
+    
+    // Auto-calculate discount percentage
+    $('#discountPrice').on('input', function() {
+        const originalPrice = parseFloat($('#discountOriginalPrice').val());
+        const discountPrice = parseFloat($(this).val());
+        
+        if (originalPrice && discountPrice && discountPrice < originalPrice) {
+            const percentage = ((originalPrice - discountPrice) / originalPrice * 100).toFixed(1);
+            $('#discountPercentage').val(percentage);
+        } else {
+            $('#discountPercentage').val('');
+        }
+    });
+    
+    // Set default start date to now
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    $('#startDate').val(now.toISOString().slice(0, 16));
+    
+    // Set default end date to 7 days from now
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 7);
+    endDate.setMinutes(endDate.getMinutes() - endDate.getTimezoneOffset());
+    $('#endDate').val(endDate.toISOString().slice(0, 16));
+});
+
+function openDiscountModal(productId, productName, originalPrice) {
+    $('#discountProductId').val(productId);
+    $('#discountProductName').val(productName);
+    $('#discountOriginalPrice').val(originalPrice);
+    $('#discountPrice').val('');
+    $('#discountPercentage').val('');
+    $('#discountModal').modal('show');
+}
+
+function createDiscount() {
+    const productId = $('#discountProductId').val();
+    const originalPrice = $('#discountOriginalPrice').val();
+    const discountPrice = $('#discountPrice').val();
+    const startDate = $('#startDate').val();
+    const endDate = $('#endDate').val();
+    
+    if (!discountPrice || !startDate || !endDate) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    if (parseFloat(discountPrice) >= parseFloat(originalPrice)) {
+        alert('Discount price must be less than original price');
+        return;
+    }
+    
+    if (new Date(startDate) >= new Date(endDate)) {
+        alert('End date must be after start date');
+        return;
+    }
+    
+    const discountData = {
+        productId: productId,
+        originalPrice: originalPrice,
+        discountPrice: discountPrice,
+        startDate: startDate,
+        endDate: endDate
+    };
+    
+    $.ajax({
+        url: '/admin/discounts/create',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(discountData),
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader($('meta[name=_csrf_header]').attr('content'), $('meta[name=_csrf]').attr('content'));
+        },
+        success: function(response) {
+            alert('Discount created successfully!');
+            $('#discountModal').modal('hide');
+            location.reload(); // Refresh to show updated discount status
+        },
+        error: function(xhr, status, error) {
+            alert('Error creating discount: ' + (xhr.responseJSON ? xhr.responseJSON.message : error));
+        }
+    });
+}
+</script>
 </body>
 </html>

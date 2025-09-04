@@ -30,6 +30,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class AdminController {
@@ -42,10 +44,11 @@ public class AdminController {
     private OrderGroupDao orderGroupDao;
     private DeliveryOtpDao deliveryOtpDao;
     private AddressDao addressDao;
+    private com.example.EcommerceFresh.Service.DiscountService discountService;
     @Value("${product.images.dir:${user.dir}/productImages}")
     public String uploadDir;
 
-    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao, UserProfileDao userProfileDao, OrderGroupDao orderGroupDao, DeliveryOtpDao deliveryOtpDao, AddressDao addressDao){
+    public AdminController(CategoryserviceImpl categoryservice, ProductServiceImpl productService, PaymentProofDao paymentProofDao, UserOrderDao userOrderDao, UserProfileDao userProfileDao, OrderGroupDao orderGroupDao, DeliveryOtpDao deliveryOtpDao, AddressDao addressDao, com.example.EcommerceFresh.Service.DiscountService discountService){
         this.categoryservice=categoryservice;
         this.productService=productService;
         this.paymentProofDao = paymentProofDao;
@@ -54,6 +57,7 @@ public class AdminController {
         this.orderGroupDao = orderGroupDao;
         this.deliveryOtpDao = deliveryOtpDao;
         this.addressDao = addressDao;
+        this.discountService = discountService;
     }
 
     @GetMapping("/admin")
@@ -101,7 +105,31 @@ public class AdminController {
     @GetMapping("/admin/products")
     public String getProduct(Model model){
         model.addAttribute("cartCount", GlobalData.cart.size());
-        model.addAttribute("products",productService.findAllProduct());
+        
+        // Get all products and categories
+        List<Product> products = productService.findAllProduct();
+        model.addAttribute("products", products);
+        model.addAttribute("categories", categoryservice.getAllCategory());
+        
+        // Get active discounts for products
+        Map<Integer, com.example.EcommerceFresh.Entity.ProductDiscount> activeDiscounts = new java.util.HashMap<>();
+        
+        // Check if discount service is available and get active discounts
+        try {
+            if (discountService != null) {
+                for (Product product : products) {
+                    java.util.Optional<com.example.EcommerceFresh.Entity.ProductDiscount> discount = discountService.getActiveDiscount(product.getId());
+                    if (discount.isPresent()) {
+                        activeDiscounts.put(product.getId(), discount.get());
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            // If discount functionality isn't available, continue without it
+            ex.printStackTrace();
+        }
+        
+        model.addAttribute("activeDiscounts", activeDiscounts);
         return "products";
     }
 

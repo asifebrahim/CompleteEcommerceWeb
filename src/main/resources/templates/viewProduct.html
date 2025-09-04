@@ -76,7 +76,7 @@
             
             <!-- Discount Badge -->
             <div th:if="${activeDiscount != null}">
-                <span class="badge badge-danger" th:text="${activeDiscount.calculateDiscountPercentage() + '% OFF'}">20% OFF</span>
+                <span class="badge badge-danger" th:text="${#numbers.formatDecimal(activeDiscount.getDiscountPercentage(), 0, 0) + '% OFF'}">20% OFF</span>
             </div>
             
             <!-- Price Section -->
