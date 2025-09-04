@@ -9,8 +9,8 @@
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
           integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
     <style>
         body {
             background-color: #f8f9fa;
@@ -538,7 +538,11 @@ function createDiscount() {
         contentType: 'application/json',
         data: JSON.stringify(discountData),
         beforeSend: function(xhr) {
-            xhr.setRequestHeader($('meta[name=_csrf_header]').attr('content'), $('meta[name=_csrf]').attr('content'));
+            var token = $('meta[name=_csrf]').attr('content');
+            var header = $('meta[name=_csrf_header]').attr('content');
+            if (token && header) {
+                xhr.setRequestHeader(header, token);
+            }
         },
         success: function(response) {
             alert('Discount created successfully!');
