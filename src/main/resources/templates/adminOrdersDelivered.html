@@ -357,7 +357,7 @@
              th:data-txn-id="${orderGroup.transactionId != null ? orderGroup.transactionId : orderGroup.razorpayOrderId}"
              th:data-mobile="${orderGroup.mobile != null ? orderGroup.mobile : (groupPhoneMap != null && groupPhoneMap.containsKey(orderGroup.id) ? groupPhoneMap[orderGroup.id] : '')}"
              th:data-customer="${orderGroup.firstName != null ? orderGroup.firstName : (orderGroup.user != null ? orderGroup.user.firstName : '')} + ' ' + ${orderGroup.lastName != null ? orderGroup.lastName : (orderGroup.user != null ? orderGroup.user.lastName : '')}"
-             th:data-products="${#strings.join(#lists.toArray(#sets.toArray(#ctx.orderGroupProducts[orderGroup.id] != null ? #ctx.orderGroupProducts[orderGroup.id] : #sets.newHashSet())), '|')}">
+             th:data-products="${orderGroupProducts != null && orderGroupProducts.containsKey(orderGroup.id) ? #strings.join(#lists.toArray(orderGroupProducts[orderGroup.id]), '|') : ''}">>
             <div class="order-header">
                 <div class="order-info">
                     <h5>

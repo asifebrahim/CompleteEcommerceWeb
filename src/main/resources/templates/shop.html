@@ -123,12 +123,14 @@
             font-size: 1.1rem; /* Increased font size */
             font-weight: 600;
             margin-bottom: 12px;
-            height: 2.8em; /* Increased height for product names */
+            height: 3.2em; /* Increased height even more for product names */
             line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            word-wrap: break-word;
+            hyphens: auto;
         }
         
         .rating-stars {
@@ -501,9 +503,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         productCards.forEach(function(card) {
             const productName = card.querySelector('.card-title').textContent.toLowerCase();
-            const productDescription = card.querySelector('.card-text').textContent.toLowerCase();
+            // Remove the card-text reference as it doesn't exist
             
-            if (term === '' || productName.includes(term) || productDescription.includes(term)) {
+            if (term === '' || productName.includes(term)) {
                 card.parentElement.style.display = '';
                 visibleCount++;
             } else {
