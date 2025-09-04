@@ -50,7 +50,20 @@ public class WebConfig implements WebMvcConfigurer {
         logger.info("Mapping /productImages/** to {}", productImagesPath);
         registry.addResourceHandler("/productImages/**")
                 .addResourceLocations(productImagesPath)
-                .setCachePeriod(31536000); // Cache for 1 year
+                .setCachePeriod(31536000); 
+        
+        registry.addResourceHandler("/css/**")
+                .addResourceLocations("classpath:/static/css/")
+                .setCachePeriod(31536000);
+
+        registry.addResourceHandler("/js/**")
+                .addResourceLocations("classpath:/static/js/")
+                .setCachePeriod(31536000);
+
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("classpath:/static/images/")
+                .setCachePeriod(31536000);
+
 
         // Note: Other static resources (/css/**, /js/**, /images/**, /static/**) 
         // are served by Spring Boot defaults from classpath:/static/
