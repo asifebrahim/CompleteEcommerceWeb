@@ -17,22 +17,24 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
+        /* Increased container width and centered for wider layouts so multiple product cards can fit */
         .product-container {
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+            margin: 2rem auto;
+            max-width: 1200px; /* wider card to allow up to three product cards in a row on large screens */
+            padding: 0.5rem;
         }
         
         .product-image-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 3rem;
+            padding: 2.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 400px;
+            min-height: 420px; /* slightly taller to match larger card */
         }
         
         .product-image {
@@ -40,12 +42,10 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             background: white;
-            padding: 20px;
-        }
-        
-        .product-image:hover {
-            transform: scale(1.05) rotate(2deg);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            padding: 18px;
+            width: 360px;
+            height: 360px; /* force square image */
+            object-fit: cover; /* ensure the image covers the square without distortion */
         }
         
         .product-details {
@@ -147,30 +147,52 @@
         .rating-section {
             background: white;
             border-radius: 15px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
+            padding: 2rem;
+            margin: 2rem 0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             border: 2px solid #f1f3f4;
         }
         
+        /* Related / similar products grid to show three cards side-by-side on large screens */
+        .related-products {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .related-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        
         .rating-stars {
             color: #ffc107;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             margin-left: 0.5rem;
         }
         
         .rating-form {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1.5rem;
+            padding: 2.5rem;
             border-radius: 15px;
-            margin: 1rem 0;
+            margin: 2rem 0;
+        }
+        
+        .rating-form .form-group {
+            margin-bottom: 1.5rem;
         }
         
         .rating-form .form-control {
             border-radius: 10px;
             border: none;
-            padding: 0.75rem;
+            padding: 1rem;
+            font-size: 1rem;
+            margin-bottom: 1rem;
         }
         
         .rating-form .btn {
@@ -178,8 +200,18 @@
             color: #667eea;
             border: none;
             border-radius: 10px;
-            padding: 0.75rem 1.5rem;
+            padding: 1rem 2rem;
             font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .rating-form .btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .sort-controls {
@@ -336,7 +368,7 @@
         }
         
         /* Responsive adjustments */
-        @media (max-width: 768px) {
+        @media (max-width: 992px) {
             .product-title {
                 font-size: 2rem;
             }
@@ -352,7 +384,43 @@
             .discount-price, .regular-price {
                 font-size: 2rem;
             }
-        }
+            
+            .rating-section {
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }
+            
+            .rating-form {
+                padding: 2rem 1.5rem;
+                margin: 1.5rem 0;
+            }
+            
+            .rating-form .row {
+                flex-direction: column;
+            }
+            
+            .rating-form .col-md-4,
+            .rating-form .col-md-8 {
+                width: 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .rating-form .btn {
+                width: 100%;
+                padding: 1rem;
+                font-size: 1rem;
+            }
+            
+            .rating-stars {
+                font-size: 1.2rem;
+            }
+            
+            /* On smaller screens collapse related products to single column */
+            .related-products {
+                grid-template-columns: 1fr;
+            }
+         }
     </style>
     <title>EcommerceFresh - Product Details</title>
 </head>
@@ -476,24 +544,43 @@
                     
                     <!-- Rating Form -->
                     <div th:if="${#authorization.expression('isAuthenticated()')}" class="rating-form">
-                        <h5 class="mb-3"><i class="fas fa-pencil-alt mr-2"></i>Rate This Product</h5>
-                        <form th:action="@{/product/{id}/rate(id=${product.id})}" method="post" class="form-inline">
+                        <h5 class="mb-4"><i class="fas fa-pencil-alt mr-2"></i>Rate This Product</h5>
+                        <form th:action="@{/product/{id}/rate(id=${product.id})}" method="post">
                             <div th:if="${_csrf != null}">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                             </div>
-                            <div class="form-group mr-3">
-                                <select name="score" class="form-control">
-                                    <option value="1">⭐ 1 Star</option>
-                                    <option value="2">⭐⭐ 2 Stars</option>
-                                    <option value="3">⭐⭐⭐ 3 Stars</option>
-                                    <option value="4">⭐⭐⭐⭐ 4 Stars</option>
-                                    <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
-                                </select>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="score" class="font-weight-bold mb-2">
+                                            <i class="fas fa-star mr-1"></i>Your Rating
+                                        </label>
+                                        <select name="score" id="score" class="form-control">
+                                            <option value="1">⭐ 1 Star</option>
+                                            <option value="2">⭐⭐ 2 Stars</option>
+                                            <option value="3">⭐⭐⭐ 3 Stars</option>
+                                            <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                                            <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label for="comment" class="font-weight-bold mb-2">
+                                            <i class="fas fa-comment mr-1"></i>Your Review (Optional)
+                                        </label>
+                                        <input type="text" name="comment" id="comment" class="form-control" 
+                                               placeholder="Share your experience with this product...">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group mr-3 flex-grow-1">
-                                <input type="text" name="comment" class="form-control" placeholder="Share your experience (optional)">
+                            
+                            <div class="text-center">
+                                <button class="btn" type="submit">
+                                    <i class="fas fa-paper-plane mr-2"></i>Submit Rating
+                                </button>
                             </div>
-                            <button class="btn" type="submit">Submit Rating</button>
                         </form>
                     </div>
                     
@@ -570,6 +657,49 @@
                 </div>
             </div>
             <p class="mb-0" th:text="${r.comment}">Review comment goes here...</p>
+        </div>
+    </div>
+    
+    <!-- Related Products Section -->
+    <div class="related-products">
+        <div class="related-card">
+            <img src="../static/images/product1.jpg" alt="Related Product 1" class="img-fluid rounded-top">
+            <div class="p-3">
+                <h5 class="mb-3">Related Product 1</h5>
+                <p class="text-muted mb-3">Short description of related product 1.</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-primary font-weight-bold">₹ 1,999</span>
+                    <a href="#" class="btn btn-primary btn-sm">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="related-card">
+            <img src="../static/images/product2.jpg" alt="Related Product 2" class="img-fluid rounded-top">
+            <div class="p-3">
+                <h5 class="mb-3">Related Product 2</h5>
+                <p class="text-muted mb-3">Short description of related product 2.</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-primary font-weight-bold">₹ 2,499</span>
+                    <a href="#" class="btn btn-primary btn-sm">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="related-card">
+            <img src="../static/images/product3.jpg" alt="Related Product 3" class="img-fluid rounded-top">
+            <div class="p-3">
+                <h5 class="mb-3">Related Product 3</h5>
+                <p class="text-muted mb-3">Short description of related product 3.</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-primary font-weight-bold">₹ 3,999</span>
+                    <a href="#" class="btn btn-primary btn-sm">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
