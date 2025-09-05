@@ -258,8 +258,27 @@
             color: white;
         }
         
-        /* 2-Column Layout Responsive Design */
-        @media (min-width: 768px) {
+        /* Shop container centered and widened so three columns fit comfortably */
+        .shop-container {
+            max-width: 1320px;
+            margin: 30px auto;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+        /* Make product columns 3-up on desktop */
+        @media (min-width: 992px) {
+            .product-col {
+                flex: 0 0 33.3333%;
+                max-width: 33.3333%;
+            }
+            .card-img-container { height: 190px; }
+            .compact-card { height: 440px; min-height: 440px; }
+            .compact-card .card-body { height: 250px; min-height: 250px; }
+            .card-img-top { max-height: 160px; max-width: 160px; }
+        }
+
+        /* Keep 2-up on medium screens */
+        @media (min-width: 768px) and (max-width: 991px) {
             .product-col {
                 flex: 0 0 50%;
                 max-width: 50%;
