@@ -1,0 +1,118 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <title>Contact Us - EcommerceFresh</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" crossorigin="anonymous">
+    <style>
+        body { background: linear-gradient(135deg,#f5f7fa,#e6eef8); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .contact-card { max-width: 900px; margin: 40px auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; }
+        .contact-left { background: linear-gradient(135deg,#667eea,#764ba2); color: white; padding: 36px; }
+        .contact-left h3 { font-weight: 700; }
+        .contact-right { padding: 30px; background: white; }
+        .required { color: #d9534f; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">EcommerceFresh</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/shop}">Shop</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/cart}">Cart</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="contact-card">
+    <div class="row no-gutters">
+        <div class="col-md-5 contact-left d-flex flex-column justify-content-center">
+            <div class="px-4">
+                <h3>Contact Support</h3>
+                <p>We are here to help. Fill the form and our support team will get back to you.</p>
+                <p><strong>Support Email:</strong> jnesa38@gmail.com</p>
+                <p><strong>Response Time:</strong> Within 24-48 hours</p>
+            </div>
+        </div>
+        <div class="col-md-7 contact-right">
+            <div class="container">
+                <!-- If user is authenticated show the form -->
+                <div sec:authorize="isAuthenticated()">
+                    <form id="contactForm" th:action="@{/contact/send}" method="post">
+                        <div th:if="${_csrf != null}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        </div>
+
+                        <!-- Sender email will be the logged-in user email -->
+                        <input type="hidden" name="senderEmail" th:value="${#authentication.name}" />
+
+                        <div class="form-group">
+                            <label for="name">Your Name <small class="text-muted">(optional)</small></label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Full name" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="txnId">Transaction ID <small class="text-muted">(optional)</small></label>
+                            <input type="text" class="form-control" id="txnId" name="txnId" placeholder="e.g. txn_12345" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="issueDate">Date related to issue <small class="text-muted">(optional)</small></label>
+                            <input type="date" class="form-control" id="issueDate" name="issueDate" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subject">Subject <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="subject" name="subject" placeholder="Short summary (e.g. Payment not reflected)" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="details">Issue Details <span class="required">*</span></label>
+                            <textarea class="form-control" id="details" name="details" rows="5" placeholder="Describe the issue, include any relevant info, screenshots or order IDs" required></textarea>
+                        </div>
+
+                        <div class="form-group text-right">
+                            <button type="submit" id="submitBtn" class="btn btn-primary">Send to Support</button>
+                        </div>
+
+                        <div id="formMessage" style="display:none;" class="alert" role="alert"></div>
+                    </form>
+                </div>
+
+                <!-- If not authenticated prompt to login -->
+                <div sec:authorize="isAnonymous()" class="text-center py-5">
+                    <p class="mb-3">Please <a th:href="@{/login}">login</a> to contact support. The email used to send the message will be your login email.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Prefer a full POST to server. Add client-side UX for async feedback.
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('contactForm');
+        if (!form) return;
+        const submitBtn = document.getElementById('submitBtn');
+        const msg = document.getElementById('formMessage');
+
+        form.addEventListener('submit', function (e) {
+            // allow normal POST if Java backend handles it; but show a simple client UX and prevent double submits
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Sending...';
+            msg.style.display = 'none';
+            // let browser submit the form normally; after a short delay re-enable (in case JS submission is desired later)
+            setTimeout(function(){
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Send to Support';
+            }, 3000);
+        });
+    });
+</script>
+
+</body>
+</html>
