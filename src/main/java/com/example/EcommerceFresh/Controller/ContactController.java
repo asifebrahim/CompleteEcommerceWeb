@@ -6,6 +6,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Controller
+@RequestMapping("/support")
 public class ContactController {
 
     private final JavaMailSender mailSender;
@@ -26,17 +28,17 @@ public class ContactController {
         this.mailSender = mailSender;
     }
 
-    @GetMapping({"/contact", "/Contact"})
+    @GetMapping({"", "/", "/contact", "/Contact"})
     public String showContactPage() {
         return "Contact";
     }
 
     @GetMapping("/help")
     public String showHelpPage() {
-        return "redirect:/contact";
+        return "redirect:/support/contact";
     }
 
-    @PostMapping("/contact/send")
+    @PostMapping("/send")
     public String sendContactEmail(
             @RequestParam(name = "subject", required = false) String subject,
             @RequestParam(name = "details", required = false) String details,
@@ -49,7 +51,7 @@ public class ContactController {
         // Basic server-side validation
         if (subject == null || subject.trim().isEmpty() || details == null || details.trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Subject and details are required.");
-            return "redirect:/contact";
+            return "redirect:/support/contact";
         }
 
         String senderEmail = (principal != null) ? principal.getName() : null;
@@ -91,15 +93,31 @@ public class ContactController {
             mailSender.send(message);
 
             redirectAttributes.addFlashAttribute("success", "Support request sent successfully. Our team will contact you soon.");
-            return "redirect:/contact";
+            return "redirect:/support/contact";
         } catch (MessagingException mex) {
             mex.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Failed to send email: " + mex.getMessage());
-            return "redirect:/contact";
+            return "redirect:/support/contact";
         } catch (Exception ex) {
             ex.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "An unexpected error occurred while sending your request.");
-            return "redirect:/contact";
+            return "redirect:/support/contact";
         }
+    }
+}
+
+// Add a separate controller outside the @RequestMapping("/support") scope
+// to handle backward compatibility for direct /contact and /Contact URLs
+@Controller
+class ContactRedirectController {
+    
+    @GetMapping({"/contact", "/Contact"})
+    public String redirectToSupport() {
+        return "redirect:/support/contact";
+    }
+    
+    @GetMapping("/help")
+    public String redirectHelpToSupport() {
+        return "redirect:/support/help";
     }
 }

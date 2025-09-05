@@ -58,7 +58,7 @@
 
                 <!-- If user is authenticated show the form -->
                 <div sec:authorize="isAuthenticated()">
-                    <form id="contactForm" th:action="@{/contact/send}" method="post">
+                    <form id="contactForm" th:action="@{/support/send}" method="post">
                         <div th:if="${_csrf != null}">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         </div>
