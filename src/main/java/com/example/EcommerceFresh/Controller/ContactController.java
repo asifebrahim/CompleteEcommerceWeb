@@ -26,7 +26,7 @@ public class ContactController {
         this.mailSender = mailSender;
     }
 
-    @GetMapping({"/Contact", "/contact"})
+    @GetMapping({"/contact", "/Contact"})
     public String showContactPage() {
         return "Contact";
     }
