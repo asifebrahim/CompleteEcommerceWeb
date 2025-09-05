@@ -140,12 +140,13 @@
         
         .price-rating-row {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start; /* keep items aligned to the left */
             align-items: flex-start;
+            gap: 12px;
             margin: 8px 0;
             min-height: 50px; /* Ensure consistent height */
         }
-        
+         
         .price-section {
             flex: 1;
             margin: 0;
@@ -153,15 +154,26 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            align-items: flex-start; /* ensure children stick to the left */
+            text-align: left;
         }
-        
+
+        /* Ensure individual price lines are left aligned */
+        .price-section .original-price,
+        .price-section .discount-price,
+        .price-section .regular-price {
+            width: 100%;
+            margin: 0;
+            text-align: left;
+        }
+         
         .rating-time-section {
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 4px;
-            margin-left: 10px;
+            margin-left: auto; /* push this section to the far right */
         }
         
         .rating-stars-small {
