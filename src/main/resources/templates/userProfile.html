@@ -33,10 +33,10 @@
                     <a class="nav-link" th:href="@{/shop}" href="#">shop</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/support/contact}">Contact</a>
+                    <a class="nav-link" th:href="@{/contact}">Contact</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/support/help}">Help</a>
+                    <a class="nav-link" th:href="@{/help}">Help</a>
                 </li>
                 <li class="nav-item active dropdown" sec:authorize="isAuthenticated()">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -167,18 +167,18 @@
         <div class="footer-section">
             <h5>Customer Service</h5>
             <ul>
-                <li><a href="#">Help Center</a></li>
+                <li><a href="@{/support/help}">Help Center</a></li>
                 <li><a href="#">Shipping Info</a></li>
-                <li><a href="#">Returns & Exchanges</a></li>
-                <li><a href="#">Track Your Order</a></li>
-                <li><a href="#">Contact Us</a></li>
+                <li><a href="@{/profile/orders}">Returns & Exchanges</a></li>
+                <li><a href="@{/profile/orders}">Track Your Order</a></li>
+                <li><a href="@{/support/Contact}">Contact Us</a></li>
             </ul>
         </div>
         <div class="footer-section">
             <h5>Contact Info</h5>
-            <p><i class="fas fa-map-marker-alt"></i> 123 Fresh Street, Market City, FC 12345</p>
+            <p><i class="fas fa-map-marker-alt"></i> Deganga,Kartickpur,West Bengal,743423</p>
             <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
-            <p><i class="fas fa-envelope"></i> info@ecommercefresh.com</p>
+            <p><i class="fas fa-envelope"></i> jnesa38@gmail.com</p>
             <p><i class="fas fa-clock"></i> Mon - Fri: 9:00 AM - 6:00 PM</p>
         </div>
     </div>

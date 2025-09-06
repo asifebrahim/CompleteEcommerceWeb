@@ -106,18 +106,3 @@ public class ContactController {
     }
 }
 
-// Add a separate controller outside the @RequestMapping("/support") scope
-// to handle backward compatibility for direct /contact and /Contact URLs
-@Controller
-class ContactRedirectController {
-    
-    @GetMapping({"/contact", "/Contact"})
-    public String redirectToSupport() {
-        return "redirect:/support/contact";
-    }
-    
-    @GetMapping("/help")
-    public String redirectHelpToSupport() {
-        return "redirect:/support/help";
-    }
-}
