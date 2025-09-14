@@ -26,6 +26,16 @@ public class Product {
     private String description;
     @Column(name="image_name")
     private String imageName;
-    @Column(name="active")
-    private boolean active = true; // Default to active, soft delete flag
+    @Column(name="active", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean active = true; // Default to active, soft delete flag
+    
+    // Helper method to safely check if product is active
+    public boolean isActive() {
+        return active != null ? active : true;
+    }
+    
+    // Helper method to set active status
+    public void setActive(Boolean active) {
+        this.active = active != null ? active : true;
+    }
 }
