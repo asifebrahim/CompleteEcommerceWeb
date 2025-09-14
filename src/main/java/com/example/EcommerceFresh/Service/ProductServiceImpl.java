@@ -34,53 +34,47 @@ public class ProductServiceImpl {
     }
 
     public List<Product> findAllProduct(){
-        return productDao.findAll();
+        return productDao.findByActiveTrue(); // Only return active products
+    }
+    
+    public List<Product> findAllProductsIncludingInactive(){
+        return productDao.findAll(); // For admin use - shows all products
     }
 
     public void removeProductById(int id){
-        // Delete associated payment proofs
+        // Soft delete: mark product as inactive instead of physical deletion
         try {
             var productOpt = productDao.findById(id);
             if (productOpt.isPresent()) {
                 var product = productOpt.get();
-                var proofs = paymentProofDao.findByProduct(product);
-                if (proofs != null) {
-                    paymentProofDao.deleteAll(proofs);
-                }
-                // Delete user orders referencing this product
-                var orders = userOrderDao.findAll();
-                for (var ord : orders) {
-                    if (ord.getProduct() != null && ord.getProduct().getId() == product.getId()) {
-                        userOrderDao.delete(ord);
-                    }
-                }
-                // Delete ratings referencing this product
-                try {
-                    var ratings = ratingDao.findByProduct(product);
-                    if (ratings != null) {
-                        ratingDao.deleteAll(ratings);
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                // Delete image file (best-effort)
-                try {
-                    java.nio.file.Path imagePath = java.nio.file.Paths.get(System.getProperty("user.dir"), "productImages", product.getImageName());
-                    if (java.nio.file.Files.exists(imagePath)) {
-                        java.nio.file.Files.delete(imagePath);
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
+                product.setActive(false); // Mark as inactive
+                productDao.save(product); // Save the change
+                System.out.println("Product " + id + " marked as inactive (soft deleted)");
             }
         } catch (Exception ex) {
             ex.printStackTrace();
+            throw new RuntimeException("Failed to deactivate product: " + ex.getMessage());
         }
-        productDao.deleteById(id);
+    }
+
+    public void reactivateProductById(int id){
+        // Reactivate product: mark product as active
+        try {
+            var productOpt = productDao.findById(id);
+            if (productOpt.isPresent()) {
+                var product = productOpt.get();
+                product.setActive(true); // Mark as active
+                productDao.save(product); // Save the change
+                System.out.println("Product " + id + " reactivated");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Failed to reactivate product: " + ex.getMessage());
+        }
     }
 
     public List<Product> getProductByCategoryId(int id){
-        return  productDao.findAllBycategoryId(id);
+        return productDao.findByCategoryIdAndActiveTrue(id); // Only active products by category
     }
 
     public double getAverageRating(Product product){

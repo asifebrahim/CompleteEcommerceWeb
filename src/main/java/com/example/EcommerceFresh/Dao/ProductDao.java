@@ -10,4 +10,11 @@ public interface ProductDao extends JpaRepository<Product,Integer> {
     //...
 
     List<Product> findAllBycategoryId(int id);
+    
+    // Soft delete support: find only active products
+    List<Product> findByActiveTrue();
+    List<Product> findByCategoryIdAndActiveTrue(int categoryId);
+    
+    // Find all products including inactive ones (for admin)
+    List<Product> findAll();
 }

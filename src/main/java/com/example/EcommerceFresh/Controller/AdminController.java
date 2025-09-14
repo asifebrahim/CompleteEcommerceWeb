@@ -106,8 +106,8 @@ public class AdminController {
     public String getProduct(Model model){
         model.addAttribute("cartCount", GlobalData.cart.size());
         
-        // Get all products and categories
-        List<Product> products = productService.findAllProduct();
+        // Get all products (including inactive ones) for admin view
+        List<Product> products = productService.findAllProductsIncludingInactive();
         model.addAttribute("products", products);
         model.addAttribute("categories", categoryservice.getAllCategory());
         
@@ -212,6 +212,12 @@ public class AdminController {
     @GetMapping("/admin/product/delete/{id}")
     public String deleteProduct(@PathVariable int id){
         productService.removeProductById(id);
+        return "redirect:/admin/products";
+    }
+
+    @GetMapping("/admin/product/reactivate/{id}")
+    public String reactivateProduct(@PathVariable int id){
+        productService.reactivateProductById(id);
         return "redirect:/admin/products";
     }
 

@@ -26,4 +26,6 @@ public class Product {
     private String description;
     @Column(name="image_name")
     private String imageName;
+    @Column(name="active")
+    private boolean active = true; // Default to active, soft delete flag
 }
